@@ -1,0 +1,6 @@
+@Japdeva.APIMovil.Usuarios_HostAddress = http://localhost:5216
+
+GET {{Japdeva.APIMovil.Usuarios_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
