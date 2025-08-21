@@ -6,10 +6,11 @@ namespace Japdeva.APIMovil.Usuarios.Controller
     [Route("api/weatherForecast")]
     public class WeatherForecastController : ControllerBase
     {
+        private const string PRUEBA = "Freezing";
 
         private static readonly string[] Summaries = new[]
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+            PRUEBA
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
