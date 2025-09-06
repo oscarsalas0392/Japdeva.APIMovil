@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Japdeva.APIMovil.Usuarios.Controller 
 {
+
     /// <summary>
-    /// Controlador para gestionar las consultas meteorológicas
+    /// Controlador para obtener pronósticos meteorológicos.
     /// </summary>
-    [ApiController]
-    [Route("api/weatherForecast")]
-    public class WeatherForecastController : ControllerBase
+        [ApiController]
+        [Route("api/weatherForecast")]
+        public class WeatherForecastController : ControllerBase
     {
         private const string PRUEBA = "Freezing";
         private const int DEFAULT_MAX_TEMPERATURE = 55;
@@ -38,7 +39,6 @@ namespace Japdeva.APIMovil.Usuarios.Controller
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            // Ejemplo de uso correcto de 'var' (tipos complejos):
             var resultado = Enumerable.Range(DEFAULT_START_INDEX, DEFAULT_NUMBER_OF_DAYS).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
