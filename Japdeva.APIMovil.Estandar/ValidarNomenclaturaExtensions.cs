@@ -73,7 +73,7 @@ namespace Japdeva.APIMovil.Estandar
             ClassDeclarationSyntax clase, string nombreClase)
         {
             if (!EsClaseExtensionEspecial(nombreClase, clase) && 
-                (!EsNombrePascalCase(nombreClase) || !nombreClase.EndsWith("Extensions", System.StringComparison.Ordinal)))
+                (!EsNombrePascalCase(nombreClase) || !nombreClase.EndsWith("Extension", System.StringComparison.Ordinal)))
             {
                 var nombreSugerido = ObtenerNombreSugerido(nombreClase);
                 
@@ -90,7 +90,7 @@ namespace Japdeva.APIMovil.Estandar
         private static bool EsClaseExtensionEspecial(string nombreClase, ClassDeclarationSyntax clase)
         {
             // Excluir clases que ya siguen la convención correcta
-            if (EsNombrePascalCase(nombreClase) && nombreClase.EndsWith("Extensions", System.StringComparison.Ordinal))
+            if (EsNombrePascalCase(nombreClase) && nombreClase.EndsWith("Extension", System.StringComparison.Ordinal))
                 return true;
 
             // Excluir clases abstractas (pueden ser clases base)
@@ -187,7 +187,7 @@ namespace Japdeva.APIMovil.Estandar
             var nombrePascal = ConvertirAPascalCase(nombreBase);
 
             // Agregar sufijo "Extensions" si no lo tiene
-            if (!nombrePascal.EndsWith("Extensions", System.StringComparison.Ordinal))
+            if (!nombrePascal.EndsWith("Extension", System.StringComparison.Ordinal))
             {
                 nombrePascal += "Extensions";
             }
