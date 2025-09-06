@@ -14,7 +14,7 @@
 		<FileVersion>1.0.0.5</FileVersion>
 		
 		<!-- Suprimir warnings específicos para analizadores -->
-		<NoWarn>$(NoWarn);NU5128;CS8618;CS8625;RS2000;RS2001;RS2005;RS1030;RS1032;RS1037;RS2008</NoWarn>
+		<NoWarn>$(NoWarn);NU5128;CS8618;CS8625;RS2000;RS2001;RS2005;RS1030;RS1032;RS1037;RS2008;RS2007</NoWarn>
 		
 		<!-- Desactivar análisis en este proyecto -->
 		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>

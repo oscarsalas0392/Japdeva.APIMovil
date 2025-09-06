@@ -14,13 +14,13 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticIdDeclaracion = "JAPDEVA036";
         public const string DiagnosticIdLlamada = "JAPDEVA037";
 
-        private const string TituloDeclaracion = "Falta espacio después de la coma en parámetros de método";
-        private const string FormatoMensajeDeclaracion = "Debe haber un espacio después de la coma en la declaración de parámetros";
-        private const string DescripcionDeclaracion = "Los parámetros de métodos deben tener un espacio después de cada coma para mejorar la legibilidad del código.";
+        private const string TituloDeclaracion = "Falta espacio despuï¿½s de la coma en parï¿½metros de mï¿½todo";
+        private const string FormatoMensajeDeclaracion = "Debe haber un espacio despuï¿½s de la coma en la declaraciï¿½n de parï¿½metros";
+        private const string DescripcionDeclaracion = "Los parï¿½metros de mï¿½todos deben tener un espacio despuï¿½s de cada coma para mejorar la legibilidad del cï¿½digo.";
 
-        private const string TituloLlamada = "Falta espacio después de la coma en argumentos de método";
-        private const string FormatoMensajeLlamada = "Debe haber un espacio después de la coma en los argumentos del método";
-        private const string DescripcionLlamada = "Los argumentos de métodos deben tener un espacio después de cada coma para mejorar la legibilidad del código.";
+        private const string TituloLlamada = "Falta espacio despuï¿½s de la coma en argumentos de mï¿½todo";
+        private const string FormatoMensajeLlamada = "Debe haber un espacio despuï¿½s de la coma en los argumentos del mï¿½todo";
+        private const string DescripcionLlamada = "Los argumentos de mï¿½todos deben tener un espacio despuï¿½s de cada coma para mejorar la legibilidad del cï¿½digo.";
 
         private const string Categoria = "Style";
 
@@ -29,7 +29,7 @@ namespace Japdeva.APIMovil.Estandar
             TituloDeclaracion,
             FormatoMensajeDeclaracion,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: DescripcionDeclaracion,
             helpLinkUri: "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0055");
@@ -52,14 +52,14 @@ namespace Japdeva.APIMovil.Estandar
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             
-            // Registrar análisis para declaraciones de métodos
+            // Registrar anï¿½lisis para declaraciones de mï¿½todos
             contexto.RegisterSyntaxNodeAction(AnalizarMetodo, SyntaxKind.MethodDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarConstructor, SyntaxKind.ConstructorDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarIndexer, SyntaxKind.IndexerDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarDelegate, SyntaxKind.DelegateDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarFuncionLocal, SyntaxKind.LocalFunctionStatement);
             
-            // Registrar análisis para llamadas a métodos
+            // Registrar anï¿½lisis para llamadas a mï¿½todos
             contexto.RegisterSyntaxNodeAction(AnalizarLlamadaMetodo, SyntaxKind.InvocationExpression);
             contexto.RegisterSyntaxNodeAction(AnalizarCreacionObjeto, SyntaxKind.ObjectCreationExpression);
             contexto.RegisterSyntaxNodeAction(AnalizarLlamadaElementAccess, SyntaxKind.ElementAccessExpression);
@@ -67,7 +67,7 @@ namespace Japdeva.APIMovil.Estandar
             contexto.RegisterSyntaxNodeAction(AnalizarCreacionImplicita, SyntaxKind.ImplicitArrayCreationExpression);
         }
 
-        #region Análisis de Declaraciones
+        #region Anï¿½lisis de Declaraciones
 
         private static void AnalizarMetodo(SyntaxNodeAnalysisContext contexto)
         {
@@ -118,7 +118,7 @@ namespace Japdeva.APIMovil.Estandar
 
         #endregion
 
-        #region Análisis de Llamadas
+        #region Anï¿½lisis de Llamadas
 
         private static void AnalizarLlamadaMetodo(SyntaxNodeAnalysisContext contexto)
         {
@@ -247,23 +247,23 @@ namespace Japdeva.APIMovil.Estandar
 
         #endregion
 
-        #region Validación de Espacios
+        #region Validaciï¿½n de Espacios
 
         private static void ValidarEspacioDespuesComa(SyntaxNodeAnalysisContext contexto, SyntaxToken tokenComa, 
             SourceText textoFuente, DiagnosticDescriptor regla)
         {
             var posicionComa = tokenComa.Span.End;
             
-            // Verificar si hay salto de línea después de la coma
+            // Verificar si hay salto de lï¿½nea despuï¿½s de la coma
             if (HaySaltoLineaDespuesComa(tokenComa, textoFuente))
-                return; // Los saltos de línea están permitidos
+                return; // Los saltos de lï¿½nea estï¿½n permitidos
 
-            // Verificar si hay espacio después de la coma
+            // Verificar si hay espacio despuï¿½s de la coma
             if (posicionComa < textoFuente.Length)
             {
                 var caracterSiguiente = textoFuente[posicionComa];
                 
-                // Si no hay espacio inmediatamente después de la coma
+                // Si no hay espacio inmediatamente despuï¿½s de la coma
                 if (caracterSiguiente != ' ')
                 {
                     var diagnostico = Diagnostic.Create(
@@ -272,10 +272,10 @@ namespace Japdeva.APIMovil.Estandar
 
                     contexto.ReportDiagnostic(diagnostico);
                 }
-                // Si hay espacio, verificar que no sean múltiples espacios
+                // Si hay espacio, verificar que no sean mï¿½ltiples espacios
                 else if (HayMultiplesEspacios(textoFuente, posicionComa))
                 {
-                    // Opcional: reportar múltiples espacios como warning menor
+                    // Opcional: reportar mï¿½ltiples espacios como warning menor
                     // Por ahora solo validamos que haya al menos un espacio
                 }
             }
@@ -285,7 +285,7 @@ namespace Japdeva.APIMovil.Estandar
         {
             var posicionFinal = tokenComa.Span.End;
             
-            // Buscar caracteres después de la coma hasta encontrar contenido no blanco
+            // Buscar caracteres despuï¿½s de la coma hasta encontrar contenido no blanco
             for (int i = posicionFinal; i < textoFuente.Length; i++)
             {
                 var caracter = textoFuente[i];
