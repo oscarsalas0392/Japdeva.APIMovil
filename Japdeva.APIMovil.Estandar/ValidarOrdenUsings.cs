@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticId = "JAPDEVA017";
 
         private const string Titulo = "Los using statements deben estar ordenados correctamente";
-        private const string FormatoMensaje = "El using '{0}' no está en el orden correcto. Los using deben agruparse: System.*, terceros, proyecto local";
-        private const string Descripcion = "Los using statements deben estar ordenados en grupos específicos: primero System.*, luego librerías de terceros, finalmente namespaces del proyecto local. Esto mejora la legibilidad y organización del código.";
+    private const string FormatoMensaje = "El using '{0}' no estÃ¡ en el orden correcto, los using deben agruparse: System.*, terceros, proyecto local";
+        private const string Descripcion = "Los using statements deben estar ordenados en grupos especï¿½ficos: primero System.*, luego librerï¿½as de terceros, finalmente namespaces del proyecto local. Esto mejora la legibilidad y organizaciï¿½n del cï¿½digo.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -148,7 +148,7 @@ namespace Japdeva.APIMovil.Estandar
             if (EsNamespaceProyecto(nombreUsing, contexto))
                 return CategoriaUsing.Proyecto;
 
-            // Terceros (todo lo demás)
+            // Terceros (todo lo demï¿½s)
             return CategoriaUsing.Terceros;
         }
 
@@ -167,7 +167,7 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsNamespaceProyecto(string nombreUsing, SyntaxNodeAnalysisContext contexto)
         {
-            // Obtener el namespace raíz del proyecto actual
+            // Obtener el namespace raï¿½z del proyecto actual
             var namespacesProyecto = ObtenerNamespacesProyecto(contexto);
             
             return namespacesProyecto.Any(ns => 
@@ -200,7 +200,7 @@ namespace Japdeva.APIMovil.Estandar
                     {
                         namespacesProyecto.Add(parte);
                         
-                        // También agregar posibles sub-namespaces
+                        // Tambiï¿½n agregar posibles sub-namespaces
                         var subPartes = parte.Split('.');
                         if (subPartes.Length > 1)
                         {

@@ -14,13 +14,13 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticIdInterfaz = "JAPDEVA031";
         public const string DiagnosticIdClase = "JAPDEVA032";
 
-        private const string TituloInterfaz = "Interfaz debe tener el mismo nombre que su implementación con 'I' al frente";
+        private const string TituloInterfaz = "Interfaz debe tener el mismo nombre que su implementaciï¿½n con 'I' al frente";
         private const string FormatoMensajeInterfaz = "La interfaz '{0}' debe llamarse '{1}' para corresponder con la clase '{2}' que la implementa";
-        private const string DescripcionInterfaz = "Las interfaces deben tener el mismo nombre que las clases que las implementan, precedido por 'I', para mantener la correspondencia clara entre interfaz e implementación.";
+        private const string DescripcionInterfaz = "Las interfaces deben tener el mismo nombre que las clases que las implementan, precedido por 'I', para mantener la correspondencia clara entre interfaz e implementaciï¿½n.";
 
         private const string TituloClase = "Clase debe tener el mismo nombre que la interfaz que implementa sin 'I'";
         private const string FormatoMensajeClase = "La clase '{0}' debe llamarse '{1}' para corresponder con la interfaz '{2}' que implementa";
-        private const string DescripcionClase = "Las clases deben tener el mismo nombre que las interfaces que implementan, sin el prefijo 'I', para mantener la correspondencia clara entre interfaz e implementación.";
+        private const string DescripcionClase = "Las clases deben tener el mismo nombre que las interfaces que implementan, sin el prefijo 'I', para mantener la correspondencia clara entre interfaz e implementaciï¿½n.";
 
         private const string Categoria = "Naming";
 
@@ -32,7 +32,8 @@ namespace Japdeva.APIMovil.Estandar
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: DescripcionInterfaz,
-            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces");
+            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces",
+            customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
 
         private static readonly DiagnosticDescriptor ReglaClase = new DiagnosticDescriptor(
             DiagnosticIdClase,
@@ -42,7 +43,8 @@ namespace Japdeva.APIMovil.Estandar
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: DescripcionClase,
-            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces");
+            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces",
+            customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(ReglaInterfaz, ReglaClase);
@@ -101,13 +103,13 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
-            // Validar nombres de interfaces basándose en sus implementaciones
+            // Validar nombres de interfaces basï¿½ndose en sus implementaciones
             foreach (var interfaz in interfaces)
             {
                 ValidarNombreInterfaz(contexto, interfaz, clases);
             }
 
-            // Validar nombres de clases basándose en las interfaces que implementan
+            // Validar nombres de clases basï¿½ndose en las interfaces que implementan
             foreach (var clase in clases)
             {
                 ValidarNombreClase(contexto, clase, interfaces);
@@ -126,7 +128,7 @@ namespace Japdeva.APIMovil.Estandar
             if (!implementaciones.Any())
                 return; // Si no hay implementaciones, no validar
 
-            // Si hay múltiples implementaciones, tomar la primera como referencia
+            // Si hay mï¿½ltiples implementaciones, tomar la primera como referencia
             var implementacionPrincipal = implementaciones.First();
             var nombreClaseEsperado = implementacionPrincipal.Nombre;
             var nombreInterfazEsperado = "I" + nombreClaseEsperado;
@@ -160,7 +162,7 @@ namespace Japdeva.APIMovil.Estandar
             // Verificar cada interfaz implementada
             foreach (var interfazImplementada in interfacesImplementadas)
             {
-                // Solo validar interfaces que empiecen con "I" seguido de mayúscula
+                // Solo validar interfaces que empiecen con "I" seguido de mayï¿½scula
                 if (!interfazImplementada.Nombre.StartsWith("I") || 
                     interfazImplementada.Nombre.Length < 2 ||
                     !char.IsUpper(interfazImplementada.Nombre[1]))
@@ -219,7 +221,7 @@ namespace Japdeva.APIMovil.Estandar
         {
             try
             {
-                // Verificar si la clase implementa la interfaz usando análisis semántico
+                // Verificar si la clase implementa la interfaz usando anï¿½lisis semï¿½ntico
                 var interfacesImplementadas = clase.Simbolo.AllInterfaces;
                 
                 return interfacesImplementadas.Any(i => 
@@ -227,7 +229,7 @@ namespace Japdeva.APIMovil.Estandar
             }
             catch
             {
-                // Fallback: verificar sintácticamente
+                // Fallback: verificar sintï¿½cticamente
                 return ClaseImplementaInterfazSintacticamente(clase, interfaz);
             }
         }
@@ -282,7 +284,7 @@ namespace Japdeva.APIMovil.Estandar
                 interfaz.Sintaxis.Parent is InterfaceDeclarationSyntax)
                 return true;
 
-            // Excluir interfaces genéricas complejas
+            // Excluir interfaces genï¿½ricas complejas
             if (interfaz.Sintaxis.TypeParameterList != null && 
                 interfaz.Sintaxis.ConstraintClauses.Any())
                 return true;
@@ -301,7 +303,7 @@ namespace Japdeva.APIMovil.Estandar
             if (clase.Sintaxis.Modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword)))
                 return true;
 
-            // Excluir clases estáticas
+            // Excluir clases estï¿½ticas
             if (clase.Sintaxis.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
                 return true;
 
@@ -341,7 +343,7 @@ namespace Japdeva.APIMovil.Estandar
                 var tieneClaseBase = clase.Sintaxis.BaseList.Types.Any(tipo =>
                 {
                     var tipoString = tipo.ToString();
-                    // Si no empieza con "I" y tiene mayúscula después, probablemente es una clase base
+                    // Si no empieza con "I" y tiene mayï¿½scula despuï¿½s, probablemente es una clase base
                     return !tipoString.StartsWith("I") || 
                            (tipoString.Length > 1 && !char.IsUpper(tipoString[1]));
                 });

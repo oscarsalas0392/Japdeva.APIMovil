@@ -12,9 +12,9 @@ namespace Japdeva.APIMovil.Estandar
     {
         public const string DiagnosticId = "JAPDEVA030";
 
-        private const string Titulo = "Interfaz debe estar al mismo nivel que su implementación";
-        private const string FormatoMensaje = "La interfaz '{0}' debe estar en el mismo namespace que las clases que la implementan. Se encontraron implementaciones en: {1}";
-        private const string Descripcion = "Las interfaces deben estar ubicadas en el mismo namespace que las clases que las implementan para mantener la cohesión del código y facilitar el mantenimiento.";
+        private const string Titulo = "Interfaz debe estar al mismo nivel que su implementaciï¿½n";
+    private const string FormatoMensaje = "La interfaz '{0}' debe estar en el mismo namespace que las clases que la implementan, se encontraron implementaciones en: {1}";
+        private const string Descripcion = "Las interfaces deben estar ubicadas en el mismo namespace que las clases que las implementan para mantener la cohesiï¿½n del cï¿½digo y facilitar el mantenimiento.";
         private const string Categoria = "Design";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -25,7 +25,8 @@ namespace Japdeva.APIMovil.Estandar
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: Descripcion,
-            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces");
+            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces",
+            customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Regla);
@@ -86,7 +87,7 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
-            // Validar ubicación de cada interfaz
+            // Validar ubicaciï¿½n de cada interfaz
             foreach (var interfaz in interfaces)
             {
                 ValidarUbicacionInterfaz(contexto, interfaz, clases);
@@ -105,7 +106,7 @@ namespace Japdeva.APIMovil.Estandar
             if (!implementaciones.Any())
                 return; // Si no hay implementaciones, no validar
 
-            // Verificar si todas las implementaciones están en el mismo namespace que la interfaz
+            // Verificar si todas las implementaciones estï¿½n en el mismo namespace que la interfaz
             var namespacesImplementaciones = implementaciones
                 .Select(impl => impl.Namespace)
                 .Where(ns => !string.IsNullOrEmpty(ns))
@@ -161,7 +162,7 @@ namespace Japdeva.APIMovil.Estandar
             }
             catch
             {
-                // Fallback: verificar sintácticamente
+                // Fallback: verificar sintï¿½cticamente
                 return ClaseImplementaInterfazSintacticamente(clase, interfaz);
             }
         }
@@ -216,7 +217,7 @@ namespace Japdeva.APIMovil.Estandar
                 interfaz.Sintaxis.Parent is InterfaceDeclarationSyntax)
                 return true;
 
-            // Excluir interfaces genéricas complejas
+            // Excluir interfaces genï¿½ricas complejas
             if (interfaz.Sintaxis.TypeParameterList != null && 
                 interfaz.Sintaxis.ConstraintClauses.Any())
                 return true;
