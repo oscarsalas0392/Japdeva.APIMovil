@@ -56,11 +56,16 @@ JAPDEVA052 | Style | Warning | DetectarEspaciosInnecesarios (Espacios finales de
 JAPDEVA053 | Style | Warning | DetectarEspaciosInnecesarios (Espacios excesivos)
 JAPDEVA054 | Design | Warning | ValidarUbicacionInterfaz (Interfaz debe estar en misma carpeta que implementación)
 JAPDEVA055 | Design | Warning | ValidarVisibilidadMetodos (Método debe ser público para pruebas unitarias)
+JAPDEVA056 | Maintainability | Warning | ValidarInicializadoresComplejos (Inicializadores complejos dificultan debugging)
+JAPDEVA057 | Reliability | Error | ValidarReturnEnCatch (Return en bloque catch oculta errores)
+JAPDEVA058 | Reliability | Warning | ValidarEstructuraTryCatchFinally (Método debe tener estructura try-catch)
+JAPDEVA059 | Reliability | Warning | ValidarEstructuraTryCatchFinally (Método debe tener bloque finally)
+JAPDEVA060 | Estilo | Warning | ValidarUsoThis (Uso obligatorio de 'this.' para miembros de instancia)
 
 ## Release 1.1
 
-### Disabled Rules
+### Re-enabled Rules
 
 Rule ID | Category | Notes
 --------|----------|-------
-JAPDEVA017 | Style | ValidarOrdenUsings - Temporalmente desactivado por problemas de lógica de validación
+JAPDEVA017 | Style | ValidarOrdenUsings - Reescrito desde cero con lógica mejorada para validar orden: System.*, Microsoft.*, terceros, Japdeva.*

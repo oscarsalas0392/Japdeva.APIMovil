@@ -241,7 +241,7 @@ namespace Japdeva.APIMovil.Estandar
 
             // Verificaciones adicionales para mejor camelCase
             // No debe ser todo min�sculas cuando tiene m�ltiples palabras evidentes
-            if (nombre.Length > 8 && nombre.ToLowerInvariant() == nombre)
+            if (nombre.Length > 15 && nombre.ToLowerInvariant() == nombre)
             {
                 // Si es muy largo y todo min�sculas, probablemente no es camelCase correcto
                 return false;

@@ -3,10 +3,10 @@ using Microsoft.IdentityModel.Tokens;
 namespace Japdeva.APIMovil.Common.Services
 {
     /// <summary>
-    /// Define los métodos para la generación de tokens JWT en la aplicación.
+    /// Define los métodos para generar tokens JWT y obtener claves de seguridad.
     /// </summary>
-    public interface IGenerarTokenService
-    {
+        public interface IGenerarTokenService
+        {
         /// <summary>
         /// Genera un token JWT para el usuario especificado con el rol proporcionado.
         /// </summary>

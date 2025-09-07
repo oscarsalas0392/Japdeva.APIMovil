@@ -24,7 +24,7 @@ namespace Japdeva.APIMovil.Common.Services
         /// <exception cref="ArgumentNullException">Se lanza cuando el logger es null.</exception>
         public GenerarTokenService(ILogger<GenerarTokenService> logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
         }
 
         /// <summary>
@@ -39,10 +39,10 @@ namespace Japdeva.APIMovil.Common.Services
         /// <exception cref="ArgumentNullException">Se lanza cuando algún parámetro es null.</exception>
         public string GenerarToken(string traceId, string issuer, string audience, string claveSecreta, string role)
         {
-            string nombreMetodo = nameof(GenerarToken);
-            _logger.Inicio(traceId, nombreMetodo);
+            string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                this._logger.Inicio(traceId, nombreMetodo);
                 if (traceId is null) throw new ArgumentNullException(nameof(traceId));
                 if (issuer is null) throw new ArgumentNullException(nameof(issuer));
                 if (audience is null) throw new ArgumentNullException(nameof(audience));
@@ -57,14 +57,12 @@ namespace Japdeva.APIMovil.Common.Services
 
                 DateTime fechaExpiracion = DateTime.UtcNow.AddMinutes(tiempoExpiracion);
 
-                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claimsValidos),
-                    Expires = fechaExpiracion,
-                    Issuer = issuer,
-                    Audience = audience,
-                    SigningCredentials = credencialesSignado
-                };
+                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor();
+                tokenDescriptor.Subject = new ClaimsIdentity(claimsValidos);
+                tokenDescriptor.Expires = fechaExpiracion;
+                tokenDescriptor.Issuer = issuer;
+                tokenDescriptor.Audience = audience;
+                tokenDescriptor.SigningCredentials = credencialesSignado;
 
                 JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -74,12 +72,12 @@ namespace Japdeva.APIMovil.Common.Services
             }
             catch (Exception ex)
             {
-                _logger.Error(traceId, nombreMetodo, ex);
+                this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                _logger.Fin(traceId, nombreMetodo);
+                this._logger.Fin(traceId, nombreMetodo);
             }
         }
 
@@ -92,24 +90,24 @@ namespace Japdeva.APIMovil.Common.Services
         /// <exception cref="ArgumentNullException">Se lanza cuando claveSecreta es null.</exception>
         public SymmetricSecurityKey ObtenerClaveSeguridad(string traceId, string claveSecreta)
         {
-            string nombreMetodo = nameof(ObtenerClaveSeguridad);
+            string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                this._logger.Inicio(traceId, nombreMetodo);
                 if (traceId is null) throw new ArgumentNullException(nameof(traceId));
                 if (claveSecreta is null) throw new ArgumentNullException(nameof(claveSecreta));
 
-                _logger.Inicio(traceId, nombreMetodo);
                 byte[] bytesClaveSecreta = Encoding.UTF8.GetBytes(claveSecreta);
                 return new SymmetricSecurityKey(bytesClaveSecreta);
             }
             catch (Exception ex)
             {
-                _logger.Error(traceId, nombreMetodo, ex);
+                this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                _logger.Fin(traceId, nombreMetodo);
+                this._logger.Fin(traceId, nombreMetodo);
             }
         }
     }
