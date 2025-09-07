@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Ocelot.Middleware;
+using Japdeva.APIMovil.Common.Middlewares;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -25,6 +27,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
+                app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();
             }
             catch (Exception)

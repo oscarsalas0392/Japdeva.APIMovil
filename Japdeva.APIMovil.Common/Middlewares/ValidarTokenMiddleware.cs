@@ -1,0 +1,89 @@
+using System.Linq;
+using System.Net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Services;
+
+namespace Japdeva.APIMovil.Common.Middlewares
+{
+    /// <summary>
+    /// Middleware para validar el token de autenticación en las solicitudes.
+    /// </summary>
+    public class ValidarTokenMiddleware
+    {
+        private const string TRACE_ID = "SYSTEM";
+        private const string HEADER_AUTHORIZATION = "Authorization";
+        private const string MENSAJE_TOKEN_NO_PROPORCIONADO = "Token no proporcionado.";
+        private const string MENSAJE_TOKEN_INVALIDO = "Token inválido.";
+        private const string MENSAJE_ERROR_PARAMETROS = "Revise la configuración de los parámetros de autenticación en las variables de entorno.(ISSUER)";
+        private readonly string _issuer = Environment.GetEnvironmentVariable("ISSUER") ?? string.Empty;
+        private readonly string _audience = Environment.GetEnvironmentVariable("AUDIENCE") ?? string.Empty;
+        private readonly string _claveSecreta = Environment.GetEnvironmentVariable("CLAVE_SECRETA") ?? string.Empty;
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ValidarTokenMiddleware> _logger;
+        private readonly IValidarTokenService _validarTokenService;
+
+        /// <summary>
+        /// Inicializa una nueva instancia del middleware de validación de token.
+        /// </summary>
+        /// <param name="next">Siguiente middleware en el pipeline.</param>
+        /// <param name="logger">Logger para registrar información.</param>
+        /// <param name="validarTokenService">Servicio para validar tokens.</param>
+        public ValidarTokenMiddleware(RequestDelegate next, ILogger<ValidarTokenMiddleware> logger, IValidarTokenService validarTokenService)
+        {
+            this._next = next;
+            this._logger = logger;
+            this._validarTokenService = validarTokenService;
+        }
+
+        /// <summary>
+        /// Método de invocación del middleware que valida el token.
+        /// </summary>
+        /// <param name="context">Contexto HTTP de la solicitud.</param>
+        /// <returns>Task que representa la operación asíncrona.</returns>
+        public async Task InvokeAsync(HttpContext context)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(TRACE_ID, nombreMetodo);
+
+                string? token = context.Request.Headers[HEADER_AUTHORIZATION].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrEmpty(token))
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_NO_PROPORCIONADO });
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(_issuer) || string.IsNullOrEmpty(_audience) || string.IsNullOrEmpty(_claveSecreta))
+                {
+                    this._logger.Error(TRACE_ID, nombreMetodo, MENSAJE_ERROR_PARAMETROS);
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_INVALIDO });
+                    return;
+                }
+
+                var claims = this._validarTokenService.ValidarToken(TRACE_ID, token, _issuer, _audience, _claveSecreta);
+                if (claims is null)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_INVALIDO });
+                    return;
+                }
+
+                await this._next(context);
+            }
+            catch (System.Exception ex)
+            {
+                this._logger.Error(TRACE_ID, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(TRACE_ID, nombreMetodo);
+            }
+        }
+    }
+}

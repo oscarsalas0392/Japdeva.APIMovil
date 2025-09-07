@@ -11,6 +11,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         private const string IDENTIFICADOR = "Identificador:";
         private const string INICIO_METODO = "inicio del método:";
         private const string FIN_METODO = "fin del método:";
+        private const string ERROR = "Error :";
         private const string NOMBRE_METODO = "nombre del método:";
 
         /// <summary>
@@ -34,6 +35,18 @@ namespace Japdeva.APIMovil.Common.Extensions
         public static void Error(this ILogger logger, string traceId, string nombreMetodo, Exception ex)
         {
             logger.LogError($"{IDENTIFICADOR} {traceId}, {NOMBRE_METODO} {nombreMetodo}", ex);
+        }
+
+                /// <summary>
+        /// Registra un error con información contextual del método donde ocurrió la excepción.
+        /// </summary>
+        /// <param name="logger">La instancia del logger donde se registrará el error.</param>
+        /// <param name="traceId">Identificador único de rastreo para seguimiento de la operación.</param>
+        /// <param name="nombreMetodo">Nombre del método donde ocurrió el error.</param>
+        /// <param name="ex">La excepción que se produjo y debe ser registrada.</param>
+        public static void Error(this ILogger logger, string traceId, string nombreMetodo, string mensaje)
+        {
+            logger.LogError($"{IDENTIFICADOR} {traceId}, {NOMBRE_METODO} {nombreMetodo}, {ERROR} {mensaje}");
         }
 
         /// <summary>
