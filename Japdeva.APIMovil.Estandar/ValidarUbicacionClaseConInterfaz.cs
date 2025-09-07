@@ -11,25 +11,41 @@ namespace Japdeva.APIMovil.Estandar
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ValidarUbicacionClaseConInterfaz : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JAPDEVA033";
+        public const string DiagnosticIdClase = "JAPDEVA033";
+        public const string DiagnosticIdInterfaz = "JAPDEVA054";
 
-        private const string Titulo = "Clase con interfaz debe estar en carpeta con su nombre";
-        private const string FormatoMensaje = "La clase '{0}' que implementa la interfaz '{1}' debe estar en una carpeta llamada '{0}'. UbicaciÛn actual: {2}";
-        private const string Descripcion = "Las clases que implementan interfaces deben estar organizadas en carpetas que lleven el nombre de la clase para mantener una estructura de proyecto clara y facilitar la navegaciÛn del cÛdigo.";
+        private const string TituloClase = "Clase con interfaz debe estar en carpeta con su nombre";
+        private const string TituloInterfaz = "Interfaz debe estar en la misma carpeta que su implementaci√≥n";
+        
+        private const string FormatoMensajeClase = "La clase '{0}' que implementa la interfaz '{1}' debe estar en una carpeta llamada '{0}'. Ubicaci√≥n actual: {2}";
+        private const string FormatoMensajeInterfaz = "La interfaz '{0}' debe estar en la misma carpeta que su implementaci√≥n '{1}'. Ubicaci√≥n interfaz: {2}, ubicaci√≥n implementaci√≥n: {3}";
+        
+        private const string DescripcionClase = "Las clases que implementan interfaces deben estar organizadas en carpetas que lleven el nombre de la clase para mantener una estructura de proyecto clara y facilitar la navegaci√≥n del c√≥digo.";
+        private const string DescripcionInterfaz = "Las interfaces deben estar ubicadas en la misma carpeta que sus implementaciones principales para mantener cohesi√≥n y facilitar el mantenimiento.";
         private const string Categoria = "Design";
 
-        private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
-            DiagnosticId,
-            Titulo,
-            FormatoMensaje,
+        private static readonly DiagnosticDescriptor ReglaClase = new DiagnosticDescriptor(
+            DiagnosticIdClase,
+            TituloClase,
+            FormatoMensajeClase,
             Categoria,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
-            description: Descripcion,
+            description: DescripcionClase,
+            helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces");
+
+        private static readonly DiagnosticDescriptor ReglaInterfaz = new DiagnosticDescriptor(
+            DiagnosticIdInterfaz,
+            TituloInterfaz,
+            FormatoMensajeInterfaz,
+            Categoria,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: DescripcionInterfaz,
             helpLinkUri: "https://docs.microsoft.com/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(Regla);
+            ImmutableArray.Create(ReglaClase, ReglaInterfaz);
 
         public override void Initialize(AnalysisContext contexto)
         {
@@ -87,10 +103,16 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
-            // Validar ubicaciÛn de cada clase que implementa interfaces
+            // Validar ubicaci√≥n de cada clase que implementa interfaces
             foreach (var clase in clases)
             {
                 ValidarUbicacionClase(contexto, clase, interfaces);
+            }
+
+            // Validar ubicaci√≥n de cada interfaz
+            foreach (var interfaz in interfaces)
+            {
+                ValidarUbicacionInterfaz(contexto, interfaz, clases);
             }
         }
 
@@ -106,7 +128,7 @@ namespace Japdeva.APIMovil.Estandar
             if (!interfacesImplementadas.Any())
                 return; // Si no implementa interfaces, no validar
 
-            // Verificar si la clase est· en la carpeta correcta
+            // Verificar si la clase estÔøΩ en la carpeta correcta
             if (!string.IsNullOrEmpty(clase.RutaArchivo))
             {
                 var carpetaEsperada = clase.Nombre;
@@ -119,11 +141,47 @@ namespace Japdeva.APIMovil.Estandar
                     var interfazPrincipal = interfacesImplementadas.First();
 
                     var diagnostico = Diagnostic.Create(
-                        Regla,
+                        ReglaClase,
                         clase.Sintaxis.Identifier.GetLocation(),
                         clase.Nombre,
                         interfazPrincipal.Nombre,
                         rutaRelativa);
+
+                    contexto.ReportDiagnostic(diagnostico);
+                }
+            }
+        }
+
+        private static void ValidarUbicacionInterfaz(CompilationAnalysisContext contexto,
+            InterfaceInfo interfaz, System.Collections.Generic.List<ClaseInfo> todasLasClases)
+        {
+            // Encontrar clases que implementan esta interfaz
+            var clasesQueImplementan = todasLasClases.Where(c => ClaseImplementaInterfaz(c, interfaz)).ToList();
+            
+            if (!clasesQueImplementan.Any())
+                return; // Si no tiene implementaciones, no validar
+
+            // Para cada clase que implementa la interfaz, verificar que la interfaz est√© en la misma carpeta
+            foreach (var claseImplementadora in clasesQueImplementan)
+            {
+                if (EsClaseEspecial(claseImplementadora))
+                    continue;
+
+                var carpetaInterfaz = ObtenerCarpetaDelArchivo(interfaz.RutaArchivo);
+                var carpetaClase = ObtenerCarpetaDelArchivo(claseImplementadora.RutaArchivo);
+                
+                if (!carpetaInterfaz.Equals(carpetaClase, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    var rutaRelativaInterfaz = ObtenerRutaRelativa(interfaz.RutaArchivo);
+                    var rutaRelativaClase = ObtenerRutaRelativa(claseImplementadora.RutaArchivo);
+
+                    var diagnostico = Diagnostic.Create(
+                        ReglaInterfaz,
+                        interfaz.Sintaxis.Identifier.GetLocation(),
+                        interfaz.Nombre,
+                        claseImplementadora.Nombre,
+                        rutaRelativaInterfaz,
+                        rutaRelativaClase);
 
                     contexto.ReportDiagnostic(diagnostico);
                 }
@@ -150,7 +208,7 @@ namespace Japdeva.APIMovil.Estandar
         {
             try
             {
-                // Verificar si la clase implementa la interfaz usando an·lisis sem·ntico
+                // Verificar si la clase implementa la interfaz usando anÔøΩlisis semÔøΩntico
                 var interfacesImplementadas = clase.Simbolo.AllInterfaces;
                 
                 return interfacesImplementadas.Any(i => 
@@ -158,7 +216,7 @@ namespace Japdeva.APIMovil.Estandar
             }
             catch
             {
-                // Fallback: verificar sint·cticamente
+                // Fallback: verificar sintÔøΩcticamente
                 return ClaseImplementaInterfazSintacticamente(clase, interfaz);
             }
         }
@@ -187,7 +245,7 @@ namespace Japdeva.APIMovil.Estandar
             if (clase.Sintaxis.Modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword)))
                 return true;
 
-            // Excluir clases est·ticas
+            // Excluir clases estÔøΩticas
             if (clase.Sintaxis.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
                 return true;
 
@@ -222,7 +280,7 @@ namespace Japdeva.APIMovil.Estandar
                 clase.Sintaxis.Parent is RecordDeclarationSyntax)
                 return true;
 
-            // Excluir clases especÌficas por nombre
+            // Excluir clases especÔøΩficas por nombre
             var clasesEspecialesExcluidas = new[]
             {
                 "Program", "Startup", "Global", "AssemblyInfo"
@@ -232,7 +290,7 @@ namespace Japdeva.APIMovil.Estandar
                 clase.Nombre.Equals(nombre, System.StringComparison.OrdinalIgnoreCase)))
                 return true;
 
-            // Excluir clases en carpetas especÌficas que no requieren esta organizaciÛn
+            // Excluir clases en carpetas especÔøΩficas que no requieren esta organizaciÔøΩn
             if (!string.IsNullOrEmpty(clase.RutaArchivo))
             {
                 var rutaNormalizada = clase.RutaArchivo.Replace('\\', '/');
@@ -277,7 +335,7 @@ namespace Japdeva.APIMovil.Estandar
 
             try
             {
-                // Obtener solo las ˙ltimas 2-3 carpetas para mostrar contexto
+                // Obtener solo las ÔøΩltimas 2-3 carpetas para mostrar contexto
                 var partesRuta = rutaArchivo.Replace('\\', '/').Split('/');
                 if (partesRuta.Length >= 3)
                 {

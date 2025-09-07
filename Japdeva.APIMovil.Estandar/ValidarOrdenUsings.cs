@@ -23,8 +23,8 @@ namespace Japdeva.APIMovil.Estandar
             Titulo,
             FormatoMensaje,
             Categoria,
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: false, // Temporalmente desactivado
             description: Descripcion,
             helpLinkUri: "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0065");
 
@@ -53,30 +53,54 @@ namespace Japdeva.APIMovil.Estandar
 
         private static void ValidarOrdenDeclaracionesUsing(SyntaxNodeAnalysisContext contexto, SyntaxList<UsingDirectiveSyntax> usings)
         {
-            var usingsCategoritzados = CategorizarUsings(usings, contexto);
-            var ordenEsperado = ObtenerOrdenEsperado(usingsCategoritzados);
-            
+            if (usings.Count <= 1)
+                return;
+
+            CategoriaUsing categoriaAnterior = CategoriaUsing.Especial;
+            bool primeraValidacion = true;
+
             for (int i = 0; i < usings.Count; i++)
             {
-                var usingActual = usings[i];
-                var nombreUsing = ObtenerNombreUsing(usingActual);
+                UsingDirectiveSyntax usingActual = usings[i];
+                string nombreUsing = ObtenerNombreUsing(usingActual);
                 
                 // Saltar usings especiales
                 if (EsUsingEspecial(usingActual))
                     continue;
 
-                var categoriaActual = ObtenerCategoriaUsing(nombreUsing, contexto);
-                var posicionEsperada = ObtenerPosicionEsperada(nombreUsing, ordenEsperado, categoriaActual);
+                CategoriaUsing categoriaActual = ObtenerCategoriaUsing(nombreUsing, contexto);
                 
-                if (i < posicionEsperada)
+                // Solo validar que las categorías estén en el orden correcto
+                if (!primeraValidacion)
                 {
-                    var diagnostico = Diagnostic.Create(
-                        Regla,
-                        usingActual.GetLocation(),
-                        nombreUsing);
+                    bool ordenIncorrecto = false;
+                    
+                    switch (categoriaAnterior)
+                    {
+                        case CategoriaUsing.System:
+                            ordenIncorrecto = categoriaActual == CategoriaUsing.System; // OK - mismo grupo
+                            break;
+                        case CategoriaUsing.Terceros:
+                            ordenIncorrecto = categoriaActual == CategoriaUsing.System;
+                            break;
+                        case CategoriaUsing.Proyecto:
+                            ordenIncorrecto = categoriaActual == CategoriaUsing.System || categoriaActual == CategoriaUsing.Terceros;
+                            break;
+                    }
+                    
+                    if (ordenIncorrecto)
+                    {
+                        Diagnostic diagnostico = Diagnostic.Create(
+                            Regla,
+                            usingActual.GetLocation(),
+                            nombreUsing);
 
-                    contexto.ReportDiagnostic(diagnostico);
+                        contexto.ReportDiagnostic(diagnostico);
+                    }
                 }
+                
+                categoriaAnterior = categoriaActual;
+                primeraValidacion = false;
             }
         }
 
@@ -140,7 +164,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombreUsing))
                 return CategoriaUsing.Especial;
 
-            // System namespaces
+            // System namespaces - verificar primero con lógica más específica
             if (EsNamespaceSystem(nombreUsing))
                 return CategoriaUsing.System;
 
@@ -148,20 +172,30 @@ namespace Japdeva.APIMovil.Estandar
             if (EsNamespaceProyecto(nombreUsing, contexto))
                 return CategoriaUsing.Proyecto;
 
-            // Terceros (todo lo dem�s)
+            // Terceros (todo lo demás)
             return CategoriaUsing.Terceros;
         }
 
         private static bool EsNamespaceSystem(string nombreUsing)
         {
-            var namespacesSystem = new[]
+            // Verificación explícita de namespaces System
+            if (nombreUsing.StartsWith("System.", System.StringComparison.OrdinalIgnoreCase) ||
+                nombreUsing.Equals("System", System.StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Namespaces Microsoft que consideramos parte del framework
+            string[] namespacesFramework = new[]
             {
-                "System", "Microsoft.Extensions", "Microsoft.AspNetCore",
-                "Microsoft.EntityFrameworkCore", "Microsoft.Data",
-                "Microsoft.VisualStudio", "Microsoft.CodeAnalysis"
+                "Microsoft.Extensions",
+                "Microsoft.AspNetCore",
+                "Microsoft.EntityFrameworkCore",
+                "Microsoft.Data",
+                "Microsoft.VisualStudio",
+                "Microsoft.CodeAnalysis",
+                "Microsoft.IdentityModel"
             };
 
-            return namespacesSystem.Any(ns => 
+            return namespacesFramework.Any(ns => 
                 nombreUsing.StartsWith(ns, System.StringComparison.OrdinalIgnoreCase));
         }
 

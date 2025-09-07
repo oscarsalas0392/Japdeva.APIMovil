@@ -3,7 +3,7 @@
 namespace Japdeva.APIMovil.Common.Extensions
 {
     /// <summary>
-    /// Proporciona métodos de extensión para ILogger que facilitan el registro estandarizado 
+    /// Proporciona métodos de extensión para ILogger que facilitan el registro estandarizado
     /// de eventos con identificadores de rastreo y nombres de métodos.
     /// </summary>
     public static class LoggerExtension

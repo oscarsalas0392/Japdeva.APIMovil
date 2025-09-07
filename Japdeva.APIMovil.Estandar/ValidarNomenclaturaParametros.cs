@@ -13,9 +13,9 @@ namespace Japdeva.APIMovil.Estandar
     {
         public const string DiagnosticId = "JAPDEVA035";
 
-        private const string Titulo = "Parámetro de método debe usar camelCase";
-        private const string FormatoMensaje = "El parámetro '{0}' debe seguir la convención camelCase (ejemplo: '{1}')";
-        private const string Descripcion = "Los parámetros de métodos, constructores y propiedades deben usar la convención camelCase (primera letra minúscula, palabras siguientes con primera letra mayúscula) para mantener la consistencia del código.";
+        private const string Titulo = "Parï¿½metro de mï¿½todo debe usar camelCase";
+        private const string FormatoMensaje = "El parï¿½metro '{0}' debe seguir la convenciï¿½n camelCase (ejemplo: '{1}')";
+        private const string Descripcion = "Los parï¿½metros de mï¿½todos, constructores y propiedades deben usar la convenciï¿½n camelCase (primera letra minï¿½scula, palabras siguientes con primera letra mayï¿½scula) para mantener la consistencia del cï¿½digo.";
         private const string Categoria = "Naming";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -46,7 +46,7 @@ namespace Japdeva.APIMovil.Estandar
         private static void AnalizarMetodo(SyntaxNodeAnalysisContext contexto)
         {
             var metodo = (MethodDeclarationSyntax)contexto.Node;
-            ValidarParametros(contexto, metodo.ParameterList, "método", metodo.Identifier.ValueText);
+            ValidarParametros(contexto, metodo.ParameterList, "mï¿½todo", metodo.Identifier.ValueText);
         }
 
         private static void AnalizarConstructor(SyntaxNodeAnalysisContext contexto)
@@ -59,14 +59,14 @@ namespace Japdeva.APIMovil.Estandar
         {
             var propiedad = (PropertyDeclarationSyntax)contexto.Node;
 
-            // Validar parámetros de accessors (get/set con parámetros)
+            // Validar parï¿½metros de accessors (get/set con parï¿½metros)
             if (propiedad.AccessorList != null)
             {
                 foreach (var accessor in propiedad.AccessorList.Accessors)
                 {
                     // AccessorDeclarationSyntax no tiene una propiedad ParameterList.
-                    // Por lo tanto, eliminamos la validación de parámetros para los accessors.
-                    // Si se necesita validar algo específico, se debe implementar de otra manera.
+                    // Por lo tanto, eliminamos la validaciï¿½n de parï¿½metros para los accessors.
+                    // Si se necesita validar algo especï¿½fico, se debe implementar de otra manera.
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Japdeva.APIMovil.Estandar
         private static void AnalizarFuncionLocal(SyntaxNodeAnalysisContext contexto)
         {
             var funcionLocal = (LocalFunctionStatementSyntax)contexto.Node;
-            ValidarParametros(contexto, funcionLocal.ParameterList, "función local", funcionLocal.Identifier.ValueText);
+            ValidarParametros(contexto, funcionLocal.ParameterList, "funciï¿½n local", funcionLocal.Identifier.ValueText);
         }
 
         private static void ValidarParametros(SyntaxNodeAnalysisContext contexto, ParameterListSyntax parametros, string tipoMiembro, string nombreMiembro)
@@ -121,11 +121,21 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsParametroEspecial(string nombreParametro, ParameterSyntax parametro, string tipoMiembro, string nombreMiembro)
         {
-            // Excluir parámetros que comienzan con underscore (descartables)
+            // Excluir parÃ¡metros que comienzan con underscore (descartables)
             if (nombreParametro.StartsWith("_"))
                 return true;
 
-            // Excluir parámetros comunes de una sola letra (por convención)
+            // Excluir parÃ¡metros comunes que ya estÃ¡n en camelCase correcto
+            string[] parametrosComunes = new[]
+            {
+                "configuracion", "logger", "context", "contexto", "services", "servicios",
+                "builder", "app", "options", "configuration", "cancellationToken"
+            };
+            
+            if (parametrosComunes.Contains(nombreParametro))
+                return true;
+
+            // Excluir parÃ¡metros comunes de una sola letra (por convenciÃ³n)
             if (nombreParametro.Length == 1)
             {
                 var letrasComunes = new[] { "i", "j", "k", "x", "y", "z", "n", "m", "t" };
@@ -133,7 +143,7 @@ namespace Japdeva.APIMovil.Estandar
                     return true;
             }
 
-            // Excluir parámetros con atributos especiales
+            // Excluir parï¿½metros con atributos especiales
             if (parametro.AttributeLists.Any())
             {
                 foreach (var listaAtributos in parametro.AttributeLists)
@@ -158,17 +168,17 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
-            // Excluir parámetros específicos por tipo de miembro
+            // Excluir parï¿½metros especï¿½ficos por tipo de miembro
             switch (tipoMiembro)
             {
-                case "método":
-                    // Excluir métodos de test
+                case "mï¿½todo":
+                    // Excluir mï¿½todos de test
                     if (EsMetodoTest(nombreMiembro))
                         return true;
                     break;
 
                 case "constructor":
-                    // Los constructores pueden tener parámetros especiales
+                    // Los constructores pueden tener parï¿½metros especiales
                     break;
 
                 case "delegate":
@@ -179,19 +189,19 @@ namespace Japdeva.APIMovil.Estandar
                     break;
             }
 
-            // Excluir parámetros con modificadores especiales
+            // Excluir parï¿½metros con modificadores especiales
             if (parametro.Modifiers.Any(m => 
                 m.IsKind(SyntaxKind.RefKeyword) || 
                 m.IsKind(SyntaxKind.OutKeyword) || 
                 m.IsKind(SyntaxKind.InKeyword) ||
                 m.IsKind(SyntaxKind.ParamsKeyword)))
             {
-                // Para estos casos, ser más flexible
+                // Para estos casos, ser mï¿½s flexible
                 if (nombreParametro.Length <= 3)
                     return true;
             }
 
-            // Excluir parámetros comunes en controllers
+            // Excluir parï¿½metros comunes en controllers
             var parametrosControllerComunes = new[]
             {
                 "id", "Id", "ID", "cancellationToken", "httpContext"
@@ -220,20 +230,20 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return false;
 
-            // Patrón para camelCase:
-            // - Empieza con letra minúscula
-            // - Puede contener letras, números
-            // - Las palabras siguientes empiezan con mayúscula
+            // Patrï¿½n para camelCase:
+            // - Empieza con letra minï¿½scula
+            // - Puede contener letras, nï¿½meros
+            // - Las palabras siguientes empiezan con mayï¿½scula
             var patron = @"^[a-z][a-zA-Z0-9]*$";
             
             if (!Regex.IsMatch(nombre, patron))
                 return false;
 
             // Verificaciones adicionales para mejor camelCase
-            // No debe ser todo minúsculas cuando tiene múltiples palabras evidentes
+            // No debe ser todo minï¿½sculas cuando tiene mï¿½ltiples palabras evidentes
             if (nombre.Length > 8 && nombre.ToLowerInvariant() == nombre)
             {
-                // Si es muy largo y todo minúsculas, probablemente no es camelCase correcto
+                // Si es muy largo y todo minï¿½sculas, probablemente no es camelCase correcto
                 return false;
             }
 
@@ -245,7 +255,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return nombre;
 
-            // Si ya está en formato correcto, no cambiar
+            // Si ya estï¿½ en formato correcto, no cambiar
             if (EsNombreCamelCase(nombre))
                 return nombre;
 
@@ -308,11 +318,11 @@ namespace Japdeva.APIMovil.Estandar
             // Limpiar caracteres especiales al inicio
             resultado = Regex.Replace(resultado, @"^[^a-zA-Z]+", "");
             
-            // Si queda vacío, usar nombre por defecto
+            // Si queda vacï¿½o, usar nombre por defecto
             if (string.IsNullOrEmpty(resultado))
                 return "parameter";
 
-            // Asegurar que empiece con minúscula
+            // Asegurar que empiece con minï¿½scula
             if (char.IsUpper(resultado[0]))
             {
                 resultado = char.ToLowerInvariant(resultado[0]) + resultado.Substring(1);
