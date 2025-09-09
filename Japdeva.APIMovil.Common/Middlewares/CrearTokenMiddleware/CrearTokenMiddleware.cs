@@ -8,7 +8,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
     /// <summary>
     /// Middleware para validar tokens JWT en las solicitudes HTTP.
     /// </summary>
-    public class CrearTokenMiddleware
+    public class CrearTokenMiddleware : ICrearTokenMiddleware
     {
         private const string USUARIO_PATH = "Usuarios";
         private const string ISSUER_USUARIO_ENV = "ISSUER_USUARIO";

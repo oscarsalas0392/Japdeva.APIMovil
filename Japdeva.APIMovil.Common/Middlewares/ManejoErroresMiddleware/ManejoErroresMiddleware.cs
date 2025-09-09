@@ -10,7 +10,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
     /// Middleware para el manejo centralizado de errores en la aplicación.
     /// Captura excepciones no controladas y las transforma en respuestas HTTP apropiadas.
     /// </summary>
-    public class ManejoErroresMiddleware
+    public class ManejoErroresMiddleware : IManejoErroresMiddleware
     {
         private const string MENSAJE_TIMEOUT = "La solicitud ha excedido el tiempo de espera.";
         private const string MENSAJE_BAD_REQUEST = "La solicitud contiene datos inválidos.";

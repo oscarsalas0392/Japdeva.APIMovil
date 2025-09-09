@@ -47,12 +47,9 @@ namespace Japdeva.APIMovil.Common.Extensions
             try
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
-                
-                // Construir la ruta al archivo log4net.config dinámicamente
                 string directorioActual = Directory.GetCurrentDirectory();
                 string rutaLog4Net = Path.Combine(directorioActual, DIRECTORIO_PADRE, PROYECTO_COMMON, ARCHIVO_LOG4NET);
                 rutaLog4Net = Path.GetFullPath(rutaLog4Net);
-                
                 builder.Logging.ClearProviders();
                 builder.Logging.AddLog4Net(rutaLog4Net);
                 builder.Services.AddControllers();

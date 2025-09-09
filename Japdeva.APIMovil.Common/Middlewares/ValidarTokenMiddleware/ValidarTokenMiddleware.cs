@@ -1,16 +1,17 @@
+using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Services;
 using Japdeva.APIMovil.Common.Models;
+using Japdeva.APIMovil.Common.Services;
 
 namespace Japdeva.APIMovil.Common.Middlewares
 {
     /// <summary>
     /// Middleware para validar el token de autenticación en las solicitudes.
     /// </summary>
-    public class ValidarTokenMiddleware
+    public class ValidarTokenMiddleware : IValidarTokenMiddleware
     {
         private const string TRACE_ID = "SYSTEM";
         private const string HEADER_AUTHORIZATION = "Authorization";

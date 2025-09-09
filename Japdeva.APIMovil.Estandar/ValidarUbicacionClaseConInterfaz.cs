@@ -298,7 +298,7 @@ namespace Japdeva.APIMovil.Estandar
                 {
                     "/Controllers/", "/Models/", "/Views/", "/Areas/",
                     "/Migrations/", "/Configuration/", "/Extensions/",
-                    "/Attributes/", "/Filters/", "/Middleware/"
+                    "/Attributes/", "/Filters/", "/Middleware/", "/Middlewares/"
                 };
 
                 if (carpetasExcluidas.Any(carpeta => 

@@ -62,6 +62,17 @@ JAPDEVA058 | Reliability | Warning | ValidarEstructuraTryCatchFinally (Método d
 JAPDEVA059 | Reliability | Warning | ValidarEstructuraTryCatchFinally (Método debe tener bloque finally)
 JAPDEVA060 | Estilo | Warning | ValidarUsoThis (Uso obligatorio de 'this.' para miembros de instancia)
 
+### Updated Rules
+
+Rule ID | Category | Notes
+--------|----------|-------
+JAPDEVA018 | Style | ValidarNomenclaturaClasesMiddlewares - Ampliado para validar también interfaces de middleware
+JAPDEVA074 | Style | Error | ValidarNomenclaturaClasesMiddlewares (Interfaz) - Nueva validación para interfaces en carpeta Middlewares
+JAPDEVA075 | Design | Error | ValidarUbicacionInterfacesMiddlewares - Nueva validación para asegurar que interfaces de middleware estén en carpeta Middlewares
+JAPDEVA076 | Design | Error | ValidarEstructuraCarpetasMiddlewares (Clase) - Nueva validación para estructura de subcarpetas de middlewares
+JAPDEVA077 | Design | Error | ValidarEstructuraCarpetasMiddlewares (Interfaz) - Nueva validación para subcarpetas de interfaces de middleware
+JAPDEVA078 | Naming | Error | ValidarImplementacionInterfazMiddlewares - Nueva validación para asegurar que middlewares implementen su interfaz
+
 ## Release 1.1
 
 ### Re-enabled Rules
@@ -69,3 +80,9 @@ JAPDEVA060 | Estilo | Warning | ValidarUsoThis (Uso obligatorio de 'this.' para 
 Rule ID | Category | Notes
 --------|----------|-------
 JAPDEVA017 | Style | ValidarOrdenUsings - Reescrito desde cero con lógica mejorada para validar orden: System.*, Microsoft.*, terceros, Japdeva.*
+
+### Disabled Rules
+
+Rule ID | Category | Notes
+--------|----------|-------
+JAPDEVA052 | Style | DetectarEspaciosInnecesarios (Espacios finales de línea) - Deshabilitado para permitir espacios al final de líneas

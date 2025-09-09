@@ -44,7 +44,7 @@ namespace Japdeva.APIMovil.Estandar
             FormatoMensajeEspaciosFinales,
             Categoria,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             description: DescripcionEspaciosFinales);
 
         private static readonly DiagnosticDescriptor ReglaEspaciosExcesivos = new DiagnosticDescriptor(
