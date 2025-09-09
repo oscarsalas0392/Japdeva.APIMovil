@@ -15,6 +15,8 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string MENSAJE_TIMEOUT = "La solicitud ha excedido el tiempo de espera.";
         private const string MENSAJE_BAD_REQUEST = "La solicitud contiene datos inválidos.";
         private const string MENSAJE_ERROR_INTERNO = "La solicitud ha fallado.";
+        private const string MENSAJE_EXITO = "Solicitud procesada con éxito.";
+        private const int POSICION_INICIO_STREAM = 0;
         private readonly RequestDelegate _siguiente;
         private readonly ILogger<ManejoErroresMiddleware> _logger;
 
@@ -43,6 +45,18 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 this._logger.Inicio(contextoHttp.TraceIdentifier, nombreMetodo);
                 await this._siguiente(contextoHttp);
+                Stream streamOriginal = contextoHttp.Response.Body;
+                using (MemoryStream streamTemporal = new MemoryStream())
+                {
+                    contextoHttp.Response.Body = streamTemporal;
+                    streamTemporal.Seek(POSICION_INICIO_STREAM, SeekOrigin.Begin);
+                    string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
+                    respuesta.Exito = true;
+                    respuesta.Mensaje = MENSAJE_EXITO;
+                    respuesta.Datos = string.IsNullOrEmpty(contenidoRespuesta) ? null : contenidoRespuesta;
+                    contextoHttp.Response.Body = streamOriginal;
+                    await contextoHttp.Response.WriteAsJsonAsync(respuesta);
+                }
             }
             catch (TimeoutException ex)
             {

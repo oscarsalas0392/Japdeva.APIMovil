@@ -15,7 +15,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// Configura los servicios para los microservicios de la aplicación.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
-        public static void ConfigurarServiciosMicroservicios(this WebApplication app)
+        public static WebApplication ConfigurarServiciosMicroservicios(this WebApplication app)
         {
             try
             {
@@ -27,9 +27,10 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                app.UseMiddleware<ValidarTokenMiddleware>();
+                //app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
-                app.Run();
+
+                return app;
             }
             catch (Exception)
             {
@@ -41,7 +42,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// Configura los servicios para el gateway utilizando Ocelot.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
-        public static async Task ConfigurarServiciosGatewayAsync(this WebApplication app)
+        public static async Task<WebApplication> ConfigurarServiciosGatewayAsync(this WebApplication app)
         {
             try
             {
@@ -57,6 +58,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<CrearTokenMiddleware>();
                 app.Run();
+                return app;
             }
             catch (Exception)
             {

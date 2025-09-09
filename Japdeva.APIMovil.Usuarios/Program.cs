@@ -1,22 +1,7 @@
-var builder = WebApplication.CreateBuilder(args);
+using Japdeva.APIMovil.Common.Extensions;
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+WebApplication.CreateBuilder(args)
+.AgregarServiciosMicroservicios()
+.Build()
+.ConfigurarServiciosMicroservicios()
+.Run();

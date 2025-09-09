@@ -11,21 +11,27 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class AgregarServiciosExtension
     {
-        private const string LOG4NET_CONFIG = "log4net.config";
+        private const string DIRECTORIO_PADRE = "..";
+        private const string PROYECTO_COMMON = "Japdeva.APIMovil.Common";
+        private const string ARCHIVO_LOG4NET = "log4net.config";
 
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
         /// </summary>
-        public static void AgregarServiciosMicroservicios(this WebApplicationBuilder builder)
+        public static WebApplicationBuilder AgregarServiciosMicroservicios(this WebApplicationBuilder builder)
         {
             try
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
+                string directorioActual = Directory.GetCurrentDirectory();
+                string rutaLog4Net = Path.Combine(directorioActual, DIRECTORIO_PADRE, PROYECTO_COMMON, ARCHIVO_LOG4NET);
+                rutaLog4Net = Path.GetFullPath(rutaLog4Net);
                 builder.Logging.ClearProviders();
-                builder.Logging.AddLog4Net(LOG4NET_CONFIG);
+                builder.Logging.AddLog4Net(rutaLog4Net);
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
                 builder.Services.AddScoped<IValidarTokenService, ValidarTokenService>();
+                return builder;
             }
             catch (Exception)
             {
@@ -36,18 +42,25 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// <summary>
         /// Agrega los servicios necesarios para el gateway a la aplicación.
         /// </summary>
-        public static void AgregarServiciosGateway(this WebApplicationBuilder builder)
+        public static WebApplicationBuilder AgregarServiciosGateway(this WebApplicationBuilder builder)
         {
             try
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
+                
+                // Construir la ruta al archivo log4net.config dinámicamente
+                string directorioActual = Directory.GetCurrentDirectory();
+                string rutaLog4Net = Path.Combine(directorioActual, DIRECTORIO_PADRE, PROYECTO_COMMON, ARCHIVO_LOG4NET);
+                rutaLog4Net = Path.GetFullPath(rutaLog4Net);
+                
                 builder.Logging.ClearProviders();
-                builder.Logging.AddLog4Net(LOG4NET_CONFIG);
+                builder.Logging.AddLog4Net(rutaLog4Net);
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
                 builder.Services.AddScoped<IGenerarTokenService, GenerarTokenService>();
                 builder.Services.AddScoped<IValidarTokenService, ValidarTokenService>();
                 builder.Services.AddOcelot(builder.Configuration);
+                return builder;
             }
             catch (Exception)
             {

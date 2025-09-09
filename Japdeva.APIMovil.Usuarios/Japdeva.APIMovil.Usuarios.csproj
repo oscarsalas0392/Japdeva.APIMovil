@@ -8,13 +8,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Japdeva.APIMovil.Estandar\Japdeva.APIMovil.Estandar.csproj"
 						  OutputItemType="Analyzer"
 						  ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\Japdeva.APIMovil.Common\Japdeva.APIMovil.Common.csproj" />
 	</ItemGroup>
 	
 </Project>
