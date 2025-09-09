@@ -41,28 +41,27 @@ namespace Japdeva.APIMovil.Common.Middlewares
             string nombreMetodo = this.ObtenerNombreMetodo();
             RespuestaModel respuesta = new RespuestaModel();
             respuesta.Identificador = contextoHttp.TraceIdentifier;
+            Stream streamOriginal = contextoHttp.Response.Body;
             try
             {
+                using MemoryStream streamTemporal = new MemoryStream();
+                contextoHttp.Response.Body = streamTemporal;
                 this._logger.Inicio(contextoHttp.TraceIdentifier, nombreMetodo);
                 await this._siguiente(contextoHttp);
-                Stream streamOriginal = contextoHttp.Response.Body;
-                using (MemoryStream streamTemporal = new MemoryStream())
-                {
-                    contextoHttp.Response.Body = streamTemporal;
-                    streamTemporal.Seek(POSICION_INICIO_STREAM, SeekOrigin.Begin);
-                    string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
-                    respuesta.Exito = true;
-                    respuesta.Mensaje = MENSAJE_EXITO;
-                    respuesta.Datos = string.IsNullOrEmpty(contenidoRespuesta) ? null : contenidoRespuesta;
-                    contextoHttp.Response.Body = streamOriginal;
-                    await contextoHttp.Response.WriteAsJsonAsync(respuesta);
-                }
+                streamTemporal.Seek(POSICION_INICIO_STREAM, SeekOrigin.Begin);
+                string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
+                respuesta.Exito = true;
+                respuesta.Mensaje = MENSAJE_EXITO;
+                respuesta.Datos = string.IsNullOrEmpty(contenidoRespuesta) ? null : contenidoRespuesta;
+                contextoHttp.Response.Body = streamOriginal;
+                await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
             catch (TimeoutException ex)
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
                 respuesta.Mensaje = MENSAJE_TIMEOUT;
+                contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
             catch (ArgumentException ex)
@@ -70,6 +69,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
                 respuesta.Mensaje = MENSAJE_BAD_REQUEST;
+                contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
             catch (Exception ex)
@@ -77,6 +77,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
                 respuesta.Mensaje = MENSAJE_ERROR_INTERNO;
+                contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
             finally

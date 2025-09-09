@@ -43,7 +43,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                 TemperatureC = Random.Shared.Next(DEFAULT_MIN_TEMPERATURE, DEFAULT_MAX_TEMPERATURE),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            });
+
 
             return resultado.ToArray();
         }
