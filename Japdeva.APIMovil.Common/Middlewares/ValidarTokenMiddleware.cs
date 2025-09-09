@@ -17,9 +17,12 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string MENSAJE_TOKEN_NO_PROPORCIONADO = "Token no proporcionado.";
         private const string MENSAJE_TOKEN_INVALIDO = "Token inválido.";
         private const string MENSAJE_ERROR_PARAMETROS = "Revise la configuración de los parámetros de autenticación en las variables de entorno.(ISSUER)";
-        private readonly string _issuer = Environment.GetEnvironmentVariable("ISSUER") ?? string.Empty;
-        private readonly string _audience = Environment.GetEnvironmentVariable("AUDIENCE") ?? string.Empty;
-        private readonly string _claveSecreta = Environment.GetEnvironmentVariable("CLAVE_SECRETA") ?? string.Empty;
+        private const string ISSUER_ENV_VARIABLE = "ISSUER";
+        private const string AUDIENCE_ENV_VARIABLE = "AUDIENCE";
+        private const string CLAVE_SECRETA_ENV_VARIABLE = "CLAVE_SECRETA";
+        private readonly string _issuer = Environment.GetEnvironmentVariable(ISSUER_ENV_VARIABLE) ?? string.Empty;
+        private readonly string _audience = Environment.GetEnvironmentVariable(AUDIENCE_ENV_VARIABLE) ?? string.Empty;
+        private readonly string _claveSecreta = Environment.GetEnvironmentVariable(CLAVE_SECRETA_ENV_VARIABLE) ?? string.Empty;
         private readonly RequestDelegate _next;
         private readonly ILogger<ValidarTokenMiddleware> _logger;
         private readonly IValidarTokenService _validarTokenService;
@@ -57,7 +60,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     return;
                 }
 
-                if (string.IsNullOrEmpty(_issuer) || string.IsNullOrEmpty(_audience) || string.IsNullOrEmpty(_claveSecreta))
+                if (string.IsNullOrEmpty(this._issuer) || string.IsNullOrEmpty(this._audience) || string.IsNullOrEmpty(this._claveSecreta))
                 {
                     this._logger.Error(TRACE_ID, nombreMetodo, MENSAJE_ERROR_PARAMETROS);
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -65,7 +68,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     return;
                 }
 
-                var claims = this._validarTokenService.ValidarToken(TRACE_ID, token, _issuer, _audience, _claveSecreta);
+                var claims = this._validarTokenService.ValidarToken(TRACE_ID, token, this._issuer, this._audience, this._claveSecreta);
                 if (claims is null)
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;

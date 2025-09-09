@@ -12,9 +12,14 @@ namespace Japdeva.APIMovil.Common.Models
         public bool Exito { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el identificador de la respuesta.
+        /// </summary>
+        public string Identificador { get; set; } = string.Empty;
+
+        /// <summary>
         /// Obtiene o establece el mensaje de la respuesta.
         /// </summary>
-        public string Mensaje { get; set; } = string.Empty;
+        public string Mensaje{ get; set; } = string.Empty;
 
         /// <summary>
         /// Obtiene o establece los datos de la respuesta.

@@ -27,6 +27,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
+                app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();
             }
@@ -53,6 +54,8 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseAuthorization();
                 app.MapControllers();
                 await app.UseOcelot();
+                app.UseMiddleware<ValidarTokenMiddleware>();
+                app.UseMiddleware<CrearTokenMiddleware>();
                 app.Run();
             }
             catch (Exception)

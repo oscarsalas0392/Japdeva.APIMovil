@@ -38,6 +38,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             RespuestaModel respuesta = new RespuestaModel();
+            respuesta.Identificador = contextoHttp.TraceIdentifier;
             try
             {
                 this._logger.Inicio(contextoHttp.TraceIdentifier, nombreMetodo);
