@@ -1,9 +1,9 @@
-using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Services;
+using Japdeva.APIMovil.Common.Models;
 
 namespace Japdeva.APIMovil.Common.Middlewares
 {
@@ -50,13 +50,17 @@ namespace Japdeva.APIMovil.Common.Middlewares
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                RespuestaModel respuestaModel = new RespuestaModel();
+                respuestaModel.Identificador = context.TraceIdentifier;
+                respuestaModel.Exito = false;
                 this._logger.Inicio(TRACE_ID, nombreMetodo);
 
                 string? token = context.Request.Headers[HEADER_AUTHORIZATION].FirstOrDefault()?.Split(" ").Last();
                 if (string.IsNullOrEmpty(token))
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_NO_PROPORCIONADO });
+                    respuestaModel.Mensaje = MENSAJE_TOKEN_NO_PROPORCIONADO;
+                    await context.Response.WriteAsJsonAsync(respuestaModel);
                     return;
                 }
 
@@ -64,7 +68,8 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 {
                     this._logger.Error(TRACE_ID, nombreMetodo, MENSAJE_ERROR_PARAMETROS);
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_INVALIDO });
+                    respuestaModel.Mensaje = MENSAJE_TOKEN_INVALIDO;
+                    await context.Response.WriteAsJsonAsync(respuestaModel);
                     return;
                 }
 
@@ -72,13 +77,14 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 if (claims is null)
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    await context.Response.WriteAsJsonAsync(new { Mensaje = MENSAJE_TOKEN_INVALIDO });
+                    respuestaModel.Mensaje = MENSAJE_TOKEN_INVALIDO;
+                    await context.Response.WriteAsJsonAsync(respuestaModel);
                     return;
                 }
 
                 await this._next(context);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 this._logger.Error(TRACE_ID, nombreMetodo, ex);
                 throw;

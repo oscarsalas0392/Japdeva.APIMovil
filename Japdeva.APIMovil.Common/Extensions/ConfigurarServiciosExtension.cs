@@ -15,7 +15,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// Configura los servicios para los microservicios de la aplicación.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
-        public static WebApplication ConfigurarServiciosMicroservicios(this WebApplication app)
+        public static void ConfigurarServiciosMicroservicios(this WebApplication app)
         {
             try
             {
@@ -27,10 +27,9 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                //app.UseMiddleware<ValidarTokenMiddleware>();
+                app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
-
-                return app;
+                app.Run();  
             }
             catch (Exception)
             {

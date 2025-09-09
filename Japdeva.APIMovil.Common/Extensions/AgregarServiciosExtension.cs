@@ -30,7 +30,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Logging.AddLog4Net(rutaLog4Net);
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
-                builder.Services.AddScoped<IValidarTokenService, ValidarTokenService>();
+                builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
                 return builder;
             }
             catch (Exception)
