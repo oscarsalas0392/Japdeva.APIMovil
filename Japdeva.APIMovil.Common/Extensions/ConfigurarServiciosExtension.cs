@@ -53,9 +53,10 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                await app.UseOcelot();
                 app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<CrearTokenMiddleware>();
+                await app.UseOcelot();
+               
                 app.Run();
                 return app;
             }

@@ -10,17 +10,20 @@ namespace Japdeva.APIMovil.Common.Middlewares
     /// </summary>
     public class CrearTokenMiddleware : ICrearTokenMiddleware
     {
-        private const string USUARIO_PATH = "Usuarios";
-        private const string ISSUER_USUARIO_ENV = "ISSUER_USUARIO";
-        private const string AUDIENCE_USUARIO_ENV = "AUDIENCE_USUARIO";
-        private const string CLAVE_SECRETA_USUARIO_ENV = "CLAVE_SECRETA_USUARIO";
-        private const string ROL_ENV = "ROL_USUARIO";
+    
+        private const string ISSUER_ENV = "ISSUER_";
+        private const string AUDIENCE_ENV = "AUDIENCE_";
+        private const string CLAVE_SECRETA_ENV = "CLAVE_SECRETA_";
+        private const string ROL_ENV = "ROL_";
+        private const string RUTAS_CON_TOKEN_ENV = "RUTAS_CON_TOKEN";
+        private const string ERROR_VARIABLES_ENTORNO = "Revise la configuración de los parámetros de autenticación en las variables de entorno.(ISSUER, AUDIENCE, CLAVE_SECRETA, ROL), de la ruta:";
+        private const string ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA = "La variable de entorno RUTAS_CON_TOKEN no está configurada.";
+        private const string AUTHORIZATION_HEADER = "Authorization";
+        private const string BEARER_PREFIX = "Bearer";
         private readonly RequestDelegate _next;
         private readonly IGenerarTokenService _generarTokenService;
         private readonly ILogger<CrearTokenMiddleware> _logger;
-        private const string ERROR_VARIABLES_ENTORNO_USUARIOS = "Revise la configuración de los parámetros de autenticación en las variables de entorno.(ISSUER_USUARIO, AUDIENCE_USUARIO, CLAVE_SECRETA_USUARIO)";
-        private const string AUTHORIZATION_HEADER = "Authorization";
-        private const string BEARER_PREFIX = "Bearer";
+        private readonly string _rutas = Environment.GetEnvironmentVariable(RUTAS_CON_TOKEN_ENV) ?? string.Empty;
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ValidarTokenMiddleware"/>.
@@ -43,32 +46,44 @@ namespace Japdeva.APIMovil.Common.Middlewares
         public async Task InvokeAsync(HttpContext context)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            List<string> rutasConToken = new List<string>();
             string traceId = context.TraceIdentifier;
-            string variableEntornoIssuer = string.Empty;
-            string variableEntornoAudience = string.Empty;
-            string variableEntornoClaveSecreta= string.Empty;
-            string variableEntornoRol = string.Empty;
-            string errorVariablesEntorno = string.Empty;
             string rol = string.Empty;
-            string issuer ;
-            string audience;
-            string claveSecreta;
+            string issuer = string.Empty;
+            string audience = string.Empty;
+            string claveSecreta = string.Empty;
+            string rutaEncontrada = string.Empty;
             try
             {
-                if (context.Request.Path.Equals(USUARIO_PATH, StringComparison.OrdinalIgnoreCase))
+                this._logger.Inicio(traceId, nombreMetodo);
+
+                if (string.IsNullOrEmpty(this._rutas))
                 {
-                    variableEntornoIssuer = ISSUER_USUARIO_ENV;
-                    variableEntornoAudience = AUDIENCE_USUARIO_ENV;
-                    variableEntornoClaveSecreta = CLAVE_SECRETA_USUARIO_ENV;
-                    variableEntornoRol = ROL_ENV;
-                    errorVariablesEntorno = ERROR_VARIABLES_ENTORNO_USUARIOS;
+                    throw new ArgumentException(ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA);
                 }
-                issuer = Environment.GetEnvironmentVariable(variableEntornoIssuer) ?? string.Empty;
-                audience = Environment.GetEnvironmentVariable(variableEntornoAudience) ?? string.Empty;
-                claveSecreta = Environment.GetEnvironmentVariable(variableEntornoClaveSecreta) ?? string.Empty;
-                if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience) || string.IsNullOrEmpty(claveSecreta))
+                rutasConToken = this._rutas.Split(',').Select(r => r.Trim()).ToList();
+
+                foreach (var ruta in rutasConToken)
                 {
-                        throw new ArgumentException(errorVariablesEntorno);
+                    if (context.Request.Path.Equals(ruta, StringComparison.OrdinalIgnoreCase))
+                    {
+                        rutaEncontrada = ruta;
+                        issuer = Environment.GetEnvironmentVariable(ISSUER_ENV + ruta.ToUpper()) ?? string.Empty;
+                        audience = Environment.GetEnvironmentVariable(AUDIENCE_ENV + ruta.ToUpper()) ?? string.Empty;
+                        claveSecreta = Environment.GetEnvironmentVariable(CLAVE_SECRETA_ENV + ruta.ToUpper()) ?? string.Empty;
+                        rol = Environment.GetEnvironmentVariable(ROL_ENV + ruta.ToUpper()) ?? string.Empty;
+                        break;
+                    }
+                }
+                
+                if (!string.IsNullOrEmpty(rutaEncontrada))
+                {
+                    throw new ArgumentException(ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA);
+                }
+
+                if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience) || string.IsNullOrEmpty(claveSecreta) || string.IsNullOrEmpty(rol))
+                {
+                    throw new ArgumentException(ERROR_VARIABLES_ENTORNO + rutaEncontrada);
                 }
                 string token = this._generarTokenService.GenerarToken(traceId, rol, issuer, audience, claveSecreta);
                 token = $"{BEARER_PREFIX} {token}";

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Ocelot.DependencyInjection;
 using Japdeva.APIMovil.Common.Services;
 
@@ -11,10 +10,6 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class AgregarServiciosExtension
     {
-        private const string DIRECTORIO_PADRE = "..";
-        private const string PROYECTO_COMMON = "Japdeva.APIMovil.Common";
-        private const string ARCHIVO_LOG4NET = "log4net.config";
-
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
         /// </summary>
@@ -23,11 +18,7 @@ namespace Japdeva.APIMovil.Common.Extensions
             try
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
-                string directorioActual = Directory.GetCurrentDirectory();
-                string rutaLog4Net = Path.Combine(directorioActual, DIRECTORIO_PADRE, PROYECTO_COMMON, ARCHIVO_LOG4NET);
-                rutaLog4Net = Path.GetFullPath(rutaLog4Net);
-                builder.Logging.ClearProviders();
-                builder.Logging.AddLog4Net(rutaLog4Net);
+                builder.AgregarLog4Net();
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
                 builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
@@ -47,15 +38,11 @@ namespace Japdeva.APIMovil.Common.Extensions
             try
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
-                string directorioActual = Directory.GetCurrentDirectory();
-                string rutaLog4Net = Path.Combine(directorioActual, DIRECTORIO_PADRE, PROYECTO_COMMON, ARCHIVO_LOG4NET);
-                rutaLog4Net = Path.GetFullPath(rutaLog4Net);
-                builder.Logging.ClearProviders();
-                builder.Logging.AddLog4Net(rutaLog4Net);
+                builder.AgregarLog4Net();
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
-                builder.Services.AddScoped<IGenerarTokenService, GenerarTokenService>();
-                builder.Services.AddScoped<IValidarTokenService, ValidarTokenService>();
+                builder.Services.AddSingleton<IGenerarTokenService, GenerarTokenService>();
+                builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
                 builder.Services.AddOcelot(builder.Configuration);
                 return builder;
             }
