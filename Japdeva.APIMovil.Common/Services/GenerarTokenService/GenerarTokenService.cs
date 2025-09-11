@@ -63,6 +63,7 @@ namespace Japdeva.APIMovil.Common.Services
                 tokenDescriptor.Issuer = issuer;
                 tokenDescriptor.Audience = audience;
                 tokenDescriptor.SigningCredentials = credencialesSignado;
+            
 
                 JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);

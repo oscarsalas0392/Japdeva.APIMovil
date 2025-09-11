@@ -65,7 +65,8 @@ namespace Japdeva.APIMovil.Common.Middlewares
 
                 foreach (var ruta in rutasConToken)
                 {
-                    if (context.Request.Path.Equals(ruta, StringComparison.OrdinalIgnoreCase))
+                    string rutaRequest = context.Request.Path.ToString();
+                    if (rutaRequest.Contains(ruta))
                     {
                         rutaEncontrada = ruta;
                         issuer = Environment.GetEnvironmentVariable(ISSUER_ENV + ruta.ToUpper()) ?? string.Empty;
@@ -76,7 +77,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     }
                 }
                 
-                if (!string.IsNullOrEmpty(rutaEncontrada))
+                if (string.IsNullOrEmpty(rutaEncontrada))
                 {
                     throw new ArgumentException(ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA);
                 }
