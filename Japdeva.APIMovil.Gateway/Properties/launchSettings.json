@@ -20,7 +20,7 @@
         "RUTAS_CON_TOKEN": "Usuarios",
         "ISSUER_USUARIOS": "https://localhost:7075",
         "AUDIENCE_USUARIOS": "apiUsuarios",
-        "CLAVE_SECRETA_USUARIOS": "EstaEsUnaClaveSuperSeguraDe32Chars!!",
+        "CLAVE_SECRETA_USUARIOS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
         "ROL_USUARIOS": "Usuarios"
       }
     }

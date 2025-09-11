@@ -86,7 +86,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 {
                     throw new ArgumentException(ERROR_VARIABLES_ENTORNO + rutaEncontrada);
                 }
-                string token = this._generarTokenService.GenerarToken(traceId, rol, issuer, audience, claveSecreta);
+                string token = this._generarTokenService.GenerarToken(traceId, issuer, audience, claveSecreta, rol);
                 token = $"{BEARER_PREFIX} {token}";
                 context.Request.Headers.Append(AUTHORIZATION_HEADER, token);
                 await this._next(context);

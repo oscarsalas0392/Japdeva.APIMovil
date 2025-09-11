@@ -16,6 +16,7 @@ namespace Japdeva.APIMovil.Common.Services
         private readonly ILogger<GenerarTokenService> _logger;
         private const string ALGORITMO_SEGURIDAD = SecurityAlgorithms.HmacSha256;
         private const int TIEMPO_EXPIRACION_DEFAULT = 60;
+        private const int POSICION_INICIAL = 0;
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de generación de tokens.
@@ -97,7 +98,6 @@ namespace Japdeva.APIMovil.Common.Services
                 this._logger.Inicio(traceId, nombreMetodo);
                 if (traceId is null) throw new ArgumentNullException(nameof(traceId));
                 if (claveSecreta is null) throw new ArgumentNullException(nameof(claveSecreta));
-
                 byte[] bytesClaveSecreta = Encoding.UTF8.GetBytes(claveSecreta);
                 return new SymmetricSecurityKey(bytesClaveSecreta);
             }
