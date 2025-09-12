@@ -63,7 +63,7 @@ namespace Japdeva.APIMovil.Estandar
                     var namespaceDeclaration = interfaceDeclaration.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
                     var namespaceName = namespaceDeclaration?.Name.ToString();
                     
-                    if (namespaceName == "Japdeva.APIMovil.Common.Middlewares" && interfaceName.StartsWith("I") && interfaceName.EndsWith("Middleware"))
+                    if (namespaceName != null && namespaceName.Contains("Middlewares") && interfaceName.StartsWith("I") && interfaceName.EndsWith("Middleware"))
                     {
                         interfaces.Add(interfaceName);
                     }
@@ -97,10 +97,10 @@ namespace Japdeva.APIMovil.Estandar
             if (!className.EndsWith("Middleware"))
                 return false;
 
-            // 2. Está en el namespace correcto
+            // 2. Está en el namespace correcto (cualquier sub-namespace de Middlewares)
             var namespaceDeclaration = classDeclaration.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
             var namespaceName = namespaceDeclaration?.Name.ToString();
-            if (namespaceName != "Japdeva.APIMovil.Common.Middlewares")
+            if (namespaceName == null || !namespaceName.Contains("Middlewares"))
                 return false;
 
             // 3. Tiene un método InvokeAsync
