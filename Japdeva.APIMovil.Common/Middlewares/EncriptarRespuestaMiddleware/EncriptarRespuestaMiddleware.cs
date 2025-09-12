@@ -37,13 +37,13 @@ namespace Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             string traceId = context.TraceIdentifier;
-
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 Stream streamOriginal = context.Response.Body;    
                 using MemoryStream streamTemporal = new MemoryStream();
                 context.Response.Body = streamTemporal;
+                await this._next(context);
                 streamTemporal.Seek(POSICION_INICIAL_STREAM, SeekOrigin.Begin);
                 streamTemporal.Seek(0, SeekOrigin.Begin);
                 string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
@@ -52,10 +52,9 @@ namespace Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware
                     string? claveEncriptacion = Environment.GetEnvironmentVariable(CLAVE_ENCRIPTACION_VARIABLE);
                     if (string.IsNullOrWhiteSpace(claveEncriptacion)) throw new InvalidOperationException(ERROR_CLAVE_NO_CONFIGURADA);
                     string contenidoEncriptado = this._encriptarService.EncriptarConClave(traceId, contenidoRespuesta, claveEncriptacion);
+                    context.Response.Body = streamOriginal;
                     await context.Response.WriteAsync(contenidoEncriptado);
-                }
-
-                context.Response.Body = streamOriginal;
+                }   
             }
             catch (Exception ex)
             {

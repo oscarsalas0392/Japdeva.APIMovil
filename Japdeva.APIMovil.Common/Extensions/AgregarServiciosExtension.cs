@@ -2,6 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.DependencyInjection;
 using Japdeva.APIMovil.Common.Services;
+using Japdeva.APIMovil.Common.Services.EncriptarService;
+using Japdeva.APIMovil.Common.Services.DesencriptarService;
+using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -43,6 +46,9 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddOpenApi();
                 builder.Services.AddSingleton<IGenerarTokenService, GenerarTokenService>();
                 builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
+                builder.Services.AddSingleton<IEncriptarService, EncriptarService>();
+                builder.Services.AddSingleton<IDesencriptarService, DesencriptarService>();
+                builder.Services.AddSingleton<IEncriptarHelperService, EncriptarHelperService>();
                 builder.Services.AddOcelot(builder.Configuration);
                 return builder;
             }
