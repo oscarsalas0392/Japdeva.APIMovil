@@ -13,8 +13,8 @@ namespace Japdeva.APIMovil.Estandar
     {
         public const string DiagnosticId = "JAPDEVA003";
         private const string Titulo = "Variable no utilizada";
-        private const string FormatoMensaje = "La variable '{0}' está declarada pero nunca se utiliza";
-        private const string Descripcion = "Las variables que se declaran pero nunca se utilizan deben ser removidas para mantener el código limpio y evitar confusión.";
+        private const string FormatoMensaje = "La variable '{0}' estï¿½ declarada pero nunca se utiliza";
+        private const string Descripcion = "Las variables que se declaran pero nunca se utilizan deben ser removidas para mantener el cï¿½digo limpio y evitar confusiï¿½n.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -62,7 +62,7 @@ namespace Japdeva.APIMovil.Estandar
             var variablesDeclaradas = new Dictionary<string, VariableDeclaratorSyntax>();
             var variablesUtilizadas = new HashSet<string>();
 
-            // Recopilar todas las declaraciones de variables en este bloque (sin recursión)
+            // Recopilar todas las declaraciones de variables en este bloque (sin recursiï¿½n)
             RecopilarDeclaracionesVariables(bloque, variablesDeclaradas);
 
             // Recopilar todas las utilizaciones de variables en este bloque
@@ -89,7 +89,7 @@ namespace Japdeva.APIMovil.Estandar
 
         private static void RecopilarDeclaracionesVariables(SyntaxNode nodo, Dictionary<string, VariableDeclaratorSyntax> variablesDeclaradas)
         {
-            // Solo analizar nodos directos, sin recursión profunda para evitar problemas
+            // Solo analizar nodos directos, sin recursiï¿½n profunda para evitar problemas
             foreach (var statement in nodo.ChildNodes())
             {
                 switch (statement)
@@ -145,12 +145,13 @@ namespace Japdeva.APIMovil.Estandar
                     case TryStatementSyntax tryStatement:
                         foreach (var catchClause in tryStatement.Catches)
                         {
-                            if (catchClause.Declaration?.Identifier != null)
+                            if (catchClause.Declaration?.Identifier != null && 
+                                !catchClause.Declaration.Identifier.IsKind(SyntaxKind.None))
                             {
-                                var nombreCatch = catchClause.Declaration.Identifier.Value.ToString();
-                                if (!variablesDeclaradas.ContainsKey(nombreCatch))
+                                var nombreCatch = catchClause.Declaration.Identifier.ValueText;
+                                if (!string.IsNullOrEmpty(nombreCatch) && !variablesDeclaradas.ContainsKey(nombreCatch))
                                 {
-                                    var declaradorFicticio = SyntaxFactory.VariableDeclarator(catchClause.Declaration.Identifier.ToString());
+                                    var declaradorFicticio = SyntaxFactory.VariableDeclarator(catchClause.Declaration.Identifier);
                                     variablesDeclaradas[nombreCatch] = declaradorFicticio;
                                 }
                             }
@@ -158,7 +159,7 @@ namespace Japdeva.APIMovil.Estandar
                         break;
                 }
 
-                // Recursión controlada para bloques anidados
+                // Recursiï¿½n controlada para bloques anidados
                 if (statement is BlockSyntax bloqueAnidado)
                 {
                     RecopilarDeclaracionesVariables(bloqueAnidado, variablesDeclaradas);
@@ -189,7 +190,7 @@ namespace Japdeva.APIMovil.Estandar
                         {
                             variablesUtilizadas.Add(variableLocal.Name);
                         }
-                        // Verificar si es un parámetro
+                        // Verificar si es un parï¿½metro
                         else if (simbolo is IParameterSymbol parametro)
                         {
                             variablesUtilizadas.Add(parametro.Name);
@@ -197,7 +198,7 @@ namespace Japdeva.APIMovil.Estandar
                     }
                     catch
                     {
-                        // En caso de error, asumir que se está utilizando
+                        // En caso de error, asumir que se estï¿½ utilizando
                         variablesUtilizadas.Add(identificador.Identifier.ValueText);
                     }
                 }
@@ -206,11 +207,11 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsVariableEspecial(string nombreVariable, VariableDeclaratorSyntax declaradorVariable)
         {
-            // Excluir variables que comienzan con underscore (convención para variables no utilizadas)
+            // Excluir variables que comienzan con underscore (convenciï¿½n para variables no utilizadas)
             if (nombreVariable.StartsWith("_"))
                 return true;
 
-            // Excluir variables llamadas "ex" o "exception" (común en catch)
+            // Excluir variables llamadas "ex" o "exception" (comï¿½n en catch)
             if (nombreVariable.Equals("ex", System.StringComparison.OrdinalIgnoreCase) ||
                 nombreVariable.Equals("exception", System.StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -228,10 +229,10 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool TieneEfectosSecundarios(ExpressionSyntax expresion)
         {
-            // Verificar si la expresión puede tener efectos secundarios
+            // Verificar si la expresiï¿½n puede tener efectos secundarios
             return expresion.DescendantNodesAndSelf().Any(nodo =>
-                nodo is InvocationExpressionSyntax ||           // Llamadas a métodos
-                nodo is ObjectCreationExpressionSyntax ||       // Creación de objetos
+                nodo is InvocationExpressionSyntax ||           // Llamadas a mï¿½todos
+                nodo is ObjectCreationExpressionSyntax ||       // Creaciï¿½n de objetos
                 nodo is AssignmentExpressionSyntax ||           // Asignaciones
                 nodo is PostfixUnaryExpressionSyntax ||         // Incremento/decremento postfijo
                 nodo is PrefixUnaryExpressionSyntax ||          // Incremento/decremento prefijo

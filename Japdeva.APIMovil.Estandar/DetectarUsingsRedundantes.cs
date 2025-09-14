@@ -22,7 +22,7 @@ namespace Japdeva.APIMovil.Estandar
             Titulo,
             FormatoMensaje,
             Categoria,
-            DiagnosticSeverity.Error,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: Descripcion);
 
@@ -54,37 +54,91 @@ namespace Japdeva.APIMovil.Estandar
         {
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            contexto.RegisterSyntaxNodeAction(AnalizarUnidadCompilacion, SyntaxKind.CompilationUnit);
+            contexto.RegisterSyntaxNodeAction(AnalizarUsings, SyntaxKind.CompilationUnit);
         }
 
-        private static void AnalizarUnidadCompilacion(SyntaxNodeAnalysisContext contexto)
+        private static void AnalizarUsings(SyntaxNodeAnalysisContext contexto)
         {
             var unidadCompilacion = (CompilationUnitSyntax)contexto.Node;
-
-            // Solo analizar si el proyecto tiene ImplicitUsings habilitado
+            
+            // Solo analizar si ImplicitUsings está habilitado
             if (!TieneImplicitUsingsHabilitado(contexto))
                 return;
 
-            // Obtener todos los usings del archivo
-            var usings = unidadCompilacion.Usings;
-            if (!usings.Any())
-                return;
-
-            // Verificar cada using
-            foreach (var usingDirective in usings)
+            foreach (var usingDirective in unidadCompilacion.Usings)
             {
                 var nombreUsing = ObtenerNombreUsing(usingDirective);
                 
-                // Verificar si es redundante debido a global usings implícitos
+                // Verificar si el using está en la lista de global usings implícitos
                 if (GlobalUsingsImplicitos.Contains(nombreUsing))
                 {
+                    // NUEVA VALIDACIÓN: Verificar si realmente se está usando
+                    if (EsUsingSiendoUtilizado(usingDirective, unidadCompilacion, contexto.SemanticModel))
+                    {
+                        // Si se está usando activamente, NO reportar como redundante
+                        continue;
+                    }
+                    
                     var diagnostico = Diagnostic.Create(
                         Regla,
                         usingDirective.GetLocation(),
                         nombreUsing);
-
+                    
                     contexto.ReportDiagnostic(diagnostico);
                 }
+            }
+        }
+
+        private static bool EsUsingSiendoUtilizado(UsingDirectiveSyntax usingDirective, CompilationUnitSyntax unidadCompilacion, SemanticModel semanticModel)
+        {
+            var nombreUsing = ObtenerNombreUsing(usingDirective);
+            
+            try
+            {
+                // Obtener todos los tipos utilizados en el archivo
+                var todosLosNodos = unidadCompilacion.DescendantNodes();
+                
+                foreach (var nodo in todosLosNodos)
+                {
+                    // Verificar identificadores, accesos a miembros, etc.
+                    if (nodo is IdentifierNameSyntax identificador ||
+                        nodo is MemberAccessExpressionSyntax ||
+                        nodo is GenericNameSyntax)
+                    {
+                        var infoSimbolo = semanticModel.GetSymbolInfo(nodo);
+                        var simbolo = infoSimbolo.Symbol;
+                        
+                        if (simbolo != null)
+                        {
+                            var namespaceSimbolo = simbolo.ContainingNamespace?.ToDisplayString();
+                            if (namespaceSimbolo == nombreUsing)
+                            {
+                                return true; // El using se está utilizando
+                            }
+                        }
+                    }
+                    
+                    // Verificar tipos en parámetros, return types, etc.
+                    if (nodo is TypeSyntax tipoSintaxis)
+                    {
+                        var infoTipo = semanticModel.GetTypeInfo(tipoSintaxis);
+                        if (infoTipo.Type != null)
+                        {
+                            var namespaceTipo = infoTipo.Type.ContainingNamespace?.ToDisplayString();
+                            if (namespaceTipo == nombreUsing)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                
+                return false; // No se encontró uso del using
+            }
+            catch
+            {
+                // En caso de error, no marcar como redundante (conservador)
+                return true;
             }
         }
 

@@ -11,31 +11,48 @@ namespace Japdeva.APIMovil.Estandar
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ValidarNomenclaturaClasesMiddlewares : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JAPDEVA018";
+        public const string DiagnosticIdClase = "JAPDEVA018";
+        public const string DiagnosticIdInterfaz = "JAPDEVA074";
 
-        private const string Titulo = "Clase en carpeta Middlewares debe usar PascalCase y terminar en Middleware";
-        private const string FormatoMensaje = "La clase '{0}' en la carpeta Middlewares debe seguir la convenciÛn PascalCase y terminar en 'Middleware' (ejemplo: '{1}')";
-        private const string Descripcion = "Las clases ubicadas en la carpeta Middlewares deben usar la convenciÛn PascalCase y terminar con la palabra 'Middleware' para identificar claramente su propÛsito y mantener la consistencia del cÛdigo.";
+        private const string TituloClase = "Clase en carpeta Middlewares debe usar PascalCase y terminar en Middleware";
+        private const string FormatoMensajeClase = "La clase '{0}' en la carpeta Middlewares debe seguir la convenci√≥n PascalCase y terminar en 'Middleware' (ejemplo: '{1}')";
+        private const string DescripcionClase = "Las clases ubicadas en la carpeta Middlewares deben usar la convenci√≥n PascalCase y terminar con la palabra 'Middleware' para identificar claramente su prop√≥sito y mantener la consistencia del c√≥digo.";
+        
+        private const string TituloInterfaz = "Interfaz en carpeta Middlewares debe usar PascalCase, empezar con I y terminar en Middleware";
+        private const string FormatoMensajeInterfaz = "La interfaz '{0}' en la carpeta Middlewares debe seguir la convenci√≥n PascalCase, empezar con 'I' y terminar en 'Middleware' (ejemplo: '{1}')";
+        private const string DescripcionInterfaz = "Las interfaces ubicadas en la carpeta Middlewares deben usar la convenci√≥n PascalCase, empezar con 'I' y terminar con 'Middleware' para identificar claramente su prop√≥sito.";
+        
         private const string Categoria = "Style";
 
-        private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
-            DiagnosticId,
-            Titulo,
-            FormatoMensaje,
+        private static readonly DiagnosticDescriptor ReglaClase = new DiagnosticDescriptor(
+            DiagnosticIdClase,
+            TituloClase,
+            FormatoMensajeClase,
             Categoria,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
-            description: Descripcion,
+            description: DescripcionClase,
+            helpLinkUri: "https://docs.microsoft.com/aspnet/core/fundamentals/middleware/write");
+
+        private static readonly DiagnosticDescriptor ReglaInterfaz = new DiagnosticDescriptor(
+            DiagnosticIdInterfaz,
+            TituloInterfaz,
+            FormatoMensajeInterfaz,
+            Categoria,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: DescripcionInterfaz,
             helpLinkUri: "https://docs.microsoft.com/aspnet/core/fundamentals/middleware/write");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(Regla);
+            ImmutableArray.Create(ReglaClase, ReglaInterfaz);
 
         public override void Initialize(AnalysisContext contexto)
         {
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             contexto.RegisterSyntaxNodeAction(AnalizarClase, SyntaxKind.ClassDeclaration);
+            contexto.RegisterSyntaxNodeAction(AnalizarInterfaz, SyntaxKind.InterfaceDeclaration);
         }
 
         private static void AnalizarClase(SyntaxNodeAnalysisContext contexto)
@@ -43,12 +60,25 @@ namespace Japdeva.APIMovil.Estandar
             var clase = (ClassDeclarationSyntax)contexto.Node;
             var nombreClase = clase.Identifier.ValueText;
 
-            // Verificar si la clase est· en la carpeta Middlewares
+            // Verificar si la clase est√° en la carpeta Middlewares
             if (!EstaEnCarpetaMiddlewares(contexto))
                 return;
 
             // Validar nomenclatura de la clase
             ValidarNomenclaturaClaseMiddleware(contexto, clase, nombreClase);
+        }
+
+        private static void AnalizarInterfaz(SyntaxNodeAnalysisContext contexto)
+        {
+            var interfaz = (InterfaceDeclarationSyntax)contexto.Node;
+            var nombreInterfaz = interfaz.Identifier.ValueText;
+
+            // Verificar si la interfaz est√° en la carpeta Middlewares
+            if (!EstaEnCarpetaMiddlewares(contexto))
+                return;
+
+            // Validar nomenclatura de la interfaz
+            ValidarNomenclaturaInterfazMiddleware(contexto, interfaz, nombreInterfaz);
         }
 
         private static bool EstaEnCarpetaMiddlewares(SyntaxNodeAnalysisContext contexto)
@@ -58,7 +88,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(rutaArchivo))
                 return false;
 
-            // Normalizar la ruta para comparaciÛn
+            // Normalizar la ruta para comparaciÔøΩn
             var rutaNormalizada = rutaArchivo.Replace('\\', '/');
             
             // Verificar si contiene "Middlewares" en la ruta
@@ -78,7 +108,7 @@ namespace Japdeva.APIMovil.Estandar
                 var nombreSugerido = ObtenerNombreSugerido(nombreClase);
                 
                 var diagnostico = Diagnostic.Create(
-                    Regla,
+                    ReglaClase,
                     clase.Identifier.GetLocation(),
                     nombreClase,
                     nombreSugerido);
@@ -87,9 +117,65 @@ namespace Japdeva.APIMovil.Estandar
             }
         }
 
+        private static void ValidarNomenclaturaInterfazMiddleware(SyntaxNodeAnalysisContext contexto, 
+            InterfaceDeclarationSyntax interfaz, string nombreInterfaz)
+        {
+            if (!EsInterfazMiddlewareEspecial(nombreInterfaz, interfaz) && 
+                (!EsNombrePascalCase(nombreInterfaz) || !nombreInterfaz.StartsWith("I", System.StringComparison.Ordinal) || 
+                !nombreInterfaz.EndsWith("Middleware", System.StringComparison.Ordinal)))
+            {
+                var nombreSugerido = ObtenerNombreSugeridoInterfaz(nombreInterfaz);
+                
+                var diagnostico = Diagnostic.Create(
+                    ReglaInterfaz,
+                    interfaz.Identifier.GetLocation(),
+                    nombreInterfaz,
+                    nombreSugerido);
+
+                contexto.ReportDiagnostic(diagnostico);
+            }
+        }
+
+        private static bool EsInterfazMiddlewareEspecial(string nombreInterfaz, InterfaceDeclarationSyntax interfaz)
+        {
+            // Excluir interfaces que ya siguen la convenci√≥n correcta
+            if (EsNombrePascalCase(nombreInterfaz) && nombreInterfaz.StartsWith("I", System.StringComparison.Ordinal) 
+                && nombreInterfaz.EndsWith("Middleware", System.StringComparison.Ordinal))
+                return true;
+
+            // Excluir interfaces con atributos especiales
+            if (interfaz.AttributeLists.Any())
+            {
+                foreach (var listaAtributos in interfaz.AttributeLists)
+                {
+                    foreach (var atributo in listaAtributos.Attributes)
+                    {
+                        var nombreAtributoClase = atributo.Name.ToString();
+                        
+                        var atributosEspeciales = new[]
+                        {
+                            "Obsolete", "GeneratedCode", "EditorBrowsable"
+                        };
+
+                        if (atributosEspeciales.Any(a => 
+                            nombreAtributoClase.IndexOf(a, System.StringComparison.OrdinalIgnoreCase) != -1))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Excluir interfaces internas o anidadas
+            if (EsInterfazAnidada(interfaz) || EsInterfazInterna(interfaz))
+                return true;
+
+            return false;
+        }
+
         private static bool EsClaseMiddlewareEspecial(string nombreClase, ClassDeclarationSyntax clase)
         {
-            // Excluir clases que ya siguen la convenciÛn correcta
+            // Excluir clases que ya siguen la convenciÔøΩn correcta
             if (EsNombrePascalCase(nombreClase) && nombreClase.EndsWith("Middleware", System.StringComparison.Ordinal))
                 return true;
 
@@ -102,7 +188,7 @@ namespace Japdeva.APIMovil.Estandar
                     return true;
             }
 
-            // Excluir clases est·ticas (middleware utilities)
+            // Excluir clases estÔøΩticas (middleware utilities)
             if (clase.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
                 return true;
 
@@ -131,11 +217,11 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
-            // Excluir clases que implementan IMiddleware especÌficamente
+            // Excluir clases que implementan IMiddleware especÔøΩficamente
             if (ImplementaIMiddleware(clase))
                 return true;
 
-            // Excluir clases internas o anidadas que pueden tener propÛsitos especiales
+            // Excluir clases internas o anidadas que pueden tener propÔøΩsitos especiales
             if (EsClaseAnidada(clase) || EsClaseInterna(clase))
                 return true;
 
@@ -160,7 +246,7 @@ namespace Japdeva.APIMovil.Estandar
             {
                 var tipoString = tipo.ToString();
                 
-                // Interfaces tÌpicas de middleware
+                // Interfaces tÔøΩpicas de middleware
                 var interfacesMiddleware = new[]
                 {
                     "IMiddleware", "IApplicationMiddleware", "IRequestMiddleware"
@@ -228,10 +314,10 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return false;
 
-            // PatrÛn para PascalCase:
-            // - Empieza con letra may˙scula
-            // - Puede contener letras, n˙meros
-            // - Las palabras siguientes empiezan con may˙scula
+            // PatrÔøΩn para PascalCase:
+            // - Empieza con letra mayÔøΩscula
+            // - Puede contener letras, nÔøΩmeros
+            // - Las palabras siguientes empiezan con mayÔøΩscula
             var patron = @"^[A-Z][a-zA-Z0-9]*$";
             
             return Regex.IsMatch(nombre, patron);
@@ -270,7 +356,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return "CustomMiddleware";
 
-            // Si ya est· en formato correcto, no cambiar
+            // Si ya estÔøΩ en formato correcto, no cambiar
             if (EsNombrePascalCase(nombre))
                 return nombre;
 
@@ -331,6 +417,54 @@ namespace Japdeva.APIMovil.Estandar
             }
 
             return resultado;
+        }
+
+        private static string ObtenerNombreSugeridoInterfaz(string nombreInterfaz)
+        {
+            var nombreBase = nombreInterfaz;
+
+            // Remover el prefijo "I" si existe
+            if (nombreBase.StartsWith("I", System.StringComparison.Ordinal) && nombreBase.Length > 1)
+            {
+                nombreBase = nombreBase.Substring(1);
+            }
+
+            // Remover sufijos incorrectos comunes
+            var sufijosIncorrectos = new[] { "middleware", "Middleware", "MW", "mw" };
+            foreach (var sufijo in sufijosIncorrectos)
+            {
+                if (nombreBase.EndsWith(sufijo, System.StringComparison.OrdinalIgnoreCase) && 
+                    !nombreBase.EndsWith("Middleware", System.StringComparison.Ordinal))
+                {
+                    nombreBase = nombreBase.Substring(0, nombreBase.Length - sufijo.Length);
+                    break;
+                }
+            }
+
+            // Convertir a PascalCase
+            var nombrePascal = ConvertirAPascalCase(nombreBase);
+
+            // Agregar prefijo "I" y sufijo "Middleware"
+            if (!nombrePascal.EndsWith("Middleware", System.StringComparison.Ordinal))
+            {
+                nombrePascal += "Middleware";
+            }
+
+            return "I" + nombrePascal;
+        }
+
+        private static bool EsInterfazAnidada(InterfaceDeclarationSyntax interfaz)
+        {
+            return interfaz.Parent is ClassDeclarationSyntax || 
+                   interfaz.Parent is StructDeclarationSyntax ||
+                   interfaz.Parent is InterfaceDeclarationSyntax;
+        }
+
+        private static bool EsInterfazInterna(InterfaceDeclarationSyntax interfaz)
+        {
+            return interfaz.Modifiers.Any(m => m.IsKind(SyntaxKind.InternalKeyword)) ||
+                   interfaz.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)) ||
+                   interfaz.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword));
         }
     }
 }

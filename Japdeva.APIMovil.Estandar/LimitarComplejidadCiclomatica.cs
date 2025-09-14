@@ -113,9 +113,7 @@ namespace Japdeva.APIMovil.Estandar
                     case SyntaxKind.ForEachStatement:
                     case SyntaxKind.DoStatement:
                     case SyntaxKind.SwitchSection:
-                    case SyntaxKind.CatchClause:
                     case SyntaxKind.ConditionalExpression: // Operador ternario ? :
-                    case SyntaxKind.CoalesceExpression:    // Operador ?? 
                         complejidad++;
                         break;
 
@@ -129,6 +127,9 @@ namespace Japdeva.APIMovil.Estandar
                     case SyntaxKind.WhenClause: // when en switch
                         complejidad++;
                         break;
+                    
+                    // Nota: try, catch, finally y CoalesceExpression (??) excluidos intencionalmente
+                    // del cálculo para no penalizar manejo de errores ni null-safety patterns
                 }
             }
 

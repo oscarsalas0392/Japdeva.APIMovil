@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticId = "JAPDEVA008";
 
         private const string Titulo = "Variable debe usar camelCase";
-        private const string FormatoMensaje = "La variable '{0}' debe seguir la convención camelCase (ejemplo: '{1}')";
-        private const string Descripcion = "Las variables locales y parámetros de métodos deben usar la convención camelCase (primera letra minúscula, palabras siguientes con primera letra mayúscula) para mantener la consistencia del código.";
+        private const string FormatoMensaje = "La variable '{0}' debe seguir la convenciï¿½n camelCase (ejemplo: '{1}')";
+        private const string Descripcion = "Las variables locales y parï¿½metros de mï¿½todos deben usar la convenciï¿½n camelCase (primera letra minï¿½scula, palabras siguientes con primera letra mayï¿½scula) para mantener la consistencia del cï¿½digo.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -45,17 +45,17 @@ namespace Japdeva.APIMovil.Estandar
         {
             var metodo = (MethodDeclarationSyntax)contexto.Node;
 
-            // Validar parámetros del método
+            // Validar parï¿½metros del mï¿½todo
             ValidarParametros(contexto, metodo.ParameterList);
 
-            // Validar variables locales en el cuerpo del método
+            // Validar variables locales en el cuerpo del mï¿½todo
             if (metodo.Body != null)
             {
                 ValidarVariablesLocales(contexto, metodo.Body);
             }
             else if (metodo.ExpressionBody != null)
             {
-                // Para métodos con expression body, no hay variables locales que validar
+                // Para mï¿½todos con expression body, no hay variables locales que validar
                 return;
             }
         }
@@ -64,7 +64,7 @@ namespace Japdeva.APIMovil.Estandar
         {
             var constructor = (ConstructorDeclarationSyntax)contexto.Node;
 
-            // Validar parámetros del constructor
+            // Validar parï¿½metros del constructor
             ValidarParametros(contexto, constructor.ParameterList);
 
             // Validar variables locales en el cuerpo del constructor
@@ -93,6 +93,10 @@ namespace Japdeva.APIMovil.Estandar
             foreach (var parametro in parametros.Parameters)
             {
                 var nombreParametro = parametro.Identifier.ValueText;
+
+                // Validar que el nombre no estÃ© vacÃ­o
+                if (string.IsNullOrEmpty(nombreParametro))
+                    continue;
 
                 if (!EsParametroEspecial(nombreParametro, parametro) && 
                     !EsNombreCamelCase(nombreParametro))
@@ -145,6 +149,10 @@ namespace Japdeva.APIMovil.Estandar
             {
                 var nombreVariable = variable.Identifier.ValueText;
 
+                // Validar que el nombre no estÃ© vacÃ­o
+                if (string.IsNullOrEmpty(nombreVariable))
+                    continue;
+
                 if (!EsVariableEspecial(nombreVariable, variable) && 
                     !EsNombreCamelCase(nombreVariable))
                 {
@@ -164,6 +172,10 @@ namespace Japdeva.APIMovil.Estandar
         private static void ValidarVariableForEach(SyntaxNodeAnalysisContext contexto, ForEachStatementSyntax forEachStatement)
         {
             var nombreVariable = forEachStatement.Identifier.ValueText;
+
+            // Validar que el nombre no estÃ© vacÃ­o
+            if (string.IsNullOrEmpty(nombreVariable))
+                return;
 
             if (!EsVariableEspecialSimple(nombreVariable) && 
                 !EsNombreCamelCase(nombreVariable))
@@ -187,6 +199,10 @@ namespace Japdeva.APIMovil.Estandar
                 foreach (var variable in forStatement.Declaration.Variables)
                 {
                     var nombreVariable = variable.Identifier.ValueText;
+
+                    // Validar que el nombre no estÃ© vacÃ­o
+                    if (string.IsNullOrEmpty(nombreVariable))
+                        continue;
 
                     if (!EsVariableEspecial(nombreVariable, variable) && 
                         !EsNombreCamelCase(nombreVariable))
@@ -213,6 +229,10 @@ namespace Japdeva.APIMovil.Estandar
                 {
                     var nombreVariable = variable.Identifier.ValueText;
 
+                    // Validar que el nombre no estÃ© vacÃ­o
+                    if (string.IsNullOrEmpty(nombreVariable))
+                        continue;
+
                     if (!EsVariableEspecial(nombreVariable, variable) && 
                         !EsNombreCamelCase(nombreVariable))
                     {
@@ -238,6 +258,10 @@ namespace Japdeva.APIMovil.Estandar
                 {
                     var nombreVariable = catchClause.Declaration.Identifier.ValueText;
 
+                    // Validar que el nombre no estÃ© vacÃ­o
+                    if (string.IsNullOrEmpty(nombreVariable))
+                        continue;
+
                     if (!EsVariableEspecialSimple(nombreVariable) && 
                         !EsNombreCamelCase(nombreVariable))
                     {
@@ -257,15 +281,15 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsParametroEspecial(string nombreParametro, ParameterSyntax parametro)
         {
-            // Excluir parámetros que comienzan con underscore (descartables)
+            // Excluir parï¿½metros que comienzan con underscore (descartables)
             if (nombreParametro.StartsWith("_"))
                 return true;
 
-            // Excluir parámetros comunes de una sola letra (por convención)
+            // Excluir parï¿½metros comunes de una sola letra (por convenciï¿½n)
             if (nombreParametro.Length == 1 && char.IsLower(nombreParametro[0]))
                 return true;
 
-            // Excluir parámetros con atributos especiales
+            // Excluir parï¿½metros con atributos especiales
             if (parametro.AttributeLists.Any())
                 return true;
 
@@ -313,17 +337,17 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return false;
 
-            // Patrón para camelCase:
-            // - Empieza con letra minúscula
-            // - Puede contener letras, números
-            // - Las palabras siguientes empiezan con mayúscula
+            // Patrï¿½n para camelCase:
+            // - Empieza con letra minï¿½scula
+            // - Puede contener letras, nï¿½meros
+            // - Las palabras siguientes empiezan con mayï¿½scula
             var patron = @"^[a-z][a-zA-Z0-9]*$";
             
             if (!Regex.IsMatch(nombre, patron))
                 return false;
 
-            // Verificar que no sea todo minúsculas con números (ej: "variable1")
-            // debe tener al menos una mayúscula después de la primera letra si tiene más de una palabra
+            // Verificar que no sea todo minï¿½sculas con nï¿½meros (ej: "variable1")
+            // debe tener al menos una mayï¿½scula despuï¿½s de la primera letra si tiene mï¿½s de una palabra
             return true;
         }
 
@@ -332,7 +356,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return nombre;
 
-            // Si ya está en formato correcto, no cambiar
+            // Si ya estï¿½ en formato correcto, no cambiar
             if (EsNombreCamelCase(nombre))
                 return nombre;
 

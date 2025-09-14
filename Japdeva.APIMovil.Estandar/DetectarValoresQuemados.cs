@@ -131,6 +131,9 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoRoute(literal))
                         continue;
 
+                    if (EstaEnAtributoAuthorizeRoles(literal))
+                        continue;
+
                     // Verificar si este literal es parte de una expresión unaria (como -10)
                     var padreUnario = literal.Parent as PrefixUnaryExpressionSyntax;
                     if (padreUnario != null && padreUnario.IsKind(SyntaxKind.UnaryMinusExpression))
@@ -260,7 +263,7 @@ namespace Japdeva.APIMovil.Estandar
                 return true;
 
             // Mensajes de error espec�ficos
-            if (valorLiteral.Length > 20 && (valorLiteral.Contains("Error") || 
+            if (valorLiteral.Length > 20 && (valorLiteral.Contains("Error") ||
                 valorLiteral.Contains("Exception") || valorLiteral.Contains("Invalid")))
                 return true;
 
@@ -347,6 +350,39 @@ namespace Japdeva.APIMovil.Estandar
 
             var nombre = atributo.Name.ToString();
             return nombre.IndexOf("Route", System.StringComparison.OrdinalIgnoreCase) != -1;
+        }
+
+        private static bool EstaEnAtributoAuthorizeRoles(SyntaxNode nodo)
+        {
+            var atributo = nodo.Ancestors().OfType<AttributeSyntax>().FirstOrDefault();
+            if (atributo == null)
+                return false;
+
+            var nombre = atributo.Name.ToString();
+            if (nombre.IndexOf("Authorize", System.StringComparison.OrdinalIgnoreCase) == -1)
+                return false;
+
+            // Verificar si el literal está en un argumento "Roles"
+            var argumento = nodo.Ancestors().OfType<AttributeArgumentSyntax>().FirstOrDefault();
+            if (argumento?.NameEquals?.Name?.ToString() == "Roles")
+                return true;
+
+            // También verificar si está en una lista de argumentos donde se usa Roles = "..."
+            var listaArgumentos = nodo.Ancestors().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
+            if (listaArgumentos != null)
+            {
+                foreach (var arg in listaArgumentos.Arguments)
+                {
+                    if (arg.NameEquals?.Name?.ToString() == "Roles")
+                    {
+                        // Verificar si nuestro nodo está dentro de este argumento
+                        if (arg.Expression.Span.Contains(nodo.Span))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private class LiteralInfo

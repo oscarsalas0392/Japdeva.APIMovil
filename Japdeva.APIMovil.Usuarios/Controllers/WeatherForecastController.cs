@@ -1,21 +1,22 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Japdeva.APIMovil.Usuarios.Controller 
+namespace Japdeva.APIMovil.Usuarios.Controllers
 {
 
     /// <summary>
     /// Controlador para obtener pronósticos meteorológicos.
     /// </summary>
-        [ApiController]
-        [Route("api/weatherForecast")]
-        public class WeatherForecastController : ControllerBase
+    [ApiController]
+    [Authorize(Roles = "Usuarios")]
+    [Route("api/weatherForecast")]
+    public class WeatherForecastController : ControllerBase
     {
         private const string PRUEBA = "Freezing";
         private const int DEFAULT_MAX_TEMPERATURE = 55;
         private const int DEFAULT_MIN_TEMPERATURE = -10;
         private const int DEFAULT_NUMBER_OF_DAYS = 5;
         private const int DEFAULT_START_INDEX = 1;
-     
         private static readonly string[] Summaries = new[]
         {
             PRUEBA

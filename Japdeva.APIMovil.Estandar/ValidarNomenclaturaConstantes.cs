@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticId = "JAPDEVA007";
 
         private const string Titulo = "Constante debe usar SCREAMING_SNAKE_CASE";
-        private const string FormatoMensaje = "La constante '{0}' debe seguir la convención SCREAMING_SNAKE_CASE (ejemplo: '{1}')";
-        private const string Descripcion = "Las constantes deben usar la convención SCREAMING_SNAKE_CASE (todas las letras en mayúsculas separadas por guiones bajos) para distinguirlas claramente de otras variables.";
+        private const string FormatoMensaje = "La constante '{0}' debe seguir la convenciï¿½n SCREAMING_SNAKE_CASE (ejemplo: '{1}')";
+        private const string Descripcion = "Las constantes deben usar la convenciï¿½n SCREAMING_SNAKE_CASE (todas las letras en mayï¿½sculas separadas por guiones bajos) para distinguirlas claramente de otras variables.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -47,7 +47,7 @@ namespace Japdeva.APIMovil.Estandar
             if (!esConstante)
                 return;
 
-            // Analizar cada variable en la declaración del campo
+            // Analizar cada variable en la declaraciï¿½n del campo
             foreach (var variable in campo.Declaration.Variables)
             {
                 var nombreConstante = variable.Identifier.ValueText;
@@ -74,11 +74,11 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsNombreScreamingSnakeCase(string nombre)
         {
-            // Patrón para SCREAMING_SNAKE_CASE:
-            // - Solo letras mayúsculas, números y guiones bajos
-            // - No puede empezar o terminar con guión bajo
+            // PatrÃ³n para SCREAMING_SNAKE_CASE:
+            // - Solo letras mayÃºsculas (incluyendo acentuadas), nÃºmeros y guiones bajos
+            // - No puede empezar o terminar con guiÃ³n bajo
             // - No puede tener guiones bajos consecutivos
-            var patron = @"^[A-Z]([A-Z0-9]*(_[A-Z0-9]+)*)?$";
+            var patron = @"^[\p{Lu}][\p{Lu}0-9]*(_[\p{Lu}0-9]+)*$";
             return Regex.IsMatch(nombre, patron);
         }
 
@@ -90,10 +90,10 @@ namespace Japdeva.APIMovil.Estandar
             // Convertir PascalCase/camelCase a SCREAMING_SNAKE_CASE
             var resultado = Regex.Replace(nombre, @"([a-z])([A-Z])", "$1_$2");
             
-            // Convertir a mayúsculas
+            // Convertir a mayï¿½sculas
             resultado = resultado.ToUpperInvariant();
             
-            // Limpiar guiones bajos múltiples
+            // Limpiar guiones bajos mï¿½ltiples
             resultado = Regex.Replace(resultado, @"_+", "_");
             
             // Limpiar guiones bajos al inicio y final
