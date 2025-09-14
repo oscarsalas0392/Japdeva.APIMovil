@@ -77,18 +77,16 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     }
                 }
                 
-                if (string.IsNullOrEmpty(rutaEncontrada))
+                if (!string.IsNullOrEmpty(rutaEncontrada))
                 {
-                    throw new ArgumentException(ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA);
+                    if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience) || string.IsNullOrEmpty(claveSecreta) || string.IsNullOrEmpty(rol))
+                    {
+                        throw new ArgumentException(ERROR_VARIABLES_ENTORNO + rutaEncontrada);
+                    }
+                    string token = this._generarTokenService.GenerarToken(traceId, issuer, audience, claveSecreta, rol);
+                    token = $"{BEARER_PREFIX} {token}";
+                    context.Request.Headers.Append(AUTHORIZATION_HEADER, token);              
                 }
-
-                if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience) || string.IsNullOrEmpty(claveSecreta) || string.IsNullOrEmpty(rol))
-                {
-                    throw new ArgumentException(ERROR_VARIABLES_ENTORNO + rutaEncontrada);
-                }
-                string token = this._generarTokenService.GenerarToken(traceId, issuer, audience, claveSecreta, rol);
-                token = $"{BEARER_PREFIX} {token}";
-                context.Request.Headers.Append(AUTHORIZATION_HEADER, token);
                 await this._next(context);
             }
             catch (Exception ex)

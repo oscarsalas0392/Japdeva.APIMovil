@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.DependencyInjection;
 using Japdeva.APIMovil.Common.Services;
-using Japdeva.APIMovil.Common.Services.EncriptarService;
 using Japdeva.APIMovil.Common.Services.DesencriptarService;
 using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
+using Japdeva.APIMovil.Common.Services.EncriptarService;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
