@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Japdeva.APIMovil.Usuarios.Controllers
@@ -7,6 +8,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     /// Controlador para obtener pronósticos meteorológicos.
     /// </summary>
     [ApiController]
+    [Authorize(Roles = "Usuarios")]
     [Route("api/weatherForecast")]
     public class WeatherForecastController : ControllerBase
     {

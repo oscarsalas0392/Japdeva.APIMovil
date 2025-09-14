@@ -30,7 +30,6 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<RecibirTraceIdMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();  
