@@ -28,7 +28,6 @@ namespace Japdeva.APIMovil.Common.Middlewares.RecibirTraceIdMiddleware
         /// Middleware para recibir y establecer el TraceId en el contexto de la solicitud HTTP.
         /// </summary>
         /// <param name="context">El contexto de la solicitud HTTP.</param>
-        /// <returns>Una tarea que representa la operación asíncrona.</returns>
         public async Task InvokeAsync(HttpContext context)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

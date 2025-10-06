@@ -25,10 +25,10 @@ namespace Japdeva.APIMovil.Common.Middlewares.EnviarTraceIdMiddleware
         }
 
         /// <summary>
+        /// <summary>
         /// Procesa la solicitud HTTP y agrega el TraceId a la respuesta.
         /// </summary>
         /// <param name="context">El contexto HTTP de la solicitud.</param>
-        /// <returns>Una tarea que representa el procesamiento de la solicitud.</returns>
         /// <exception cref="ArgumentNullException">Se lanza cuando el contexto es null.</exception>
         public async Task InvokeAsync(HttpContext context)
         {

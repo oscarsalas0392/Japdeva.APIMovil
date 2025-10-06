@@ -27,6 +27,8 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
         /// </summary>
+        /// <param name="builder">El builder de la aplicación web</param>
+        /// <returns>El builder de la aplicación web configurado</returns>
         public static WebApplicationBuilder AgregarServiciosMicroservicios(this WebApplicationBuilder builder)
         {
             try
@@ -63,6 +65,8 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// <summary>
         /// Agrega los servicios necesarios para el gateway a la aplicación.
         /// </summary>
+        /// <param name="builder">El builder de la aplicación web</param>
+        /// <returns>El builder de la aplicación web configurado</returns>
         public static WebApplicationBuilder AgregarServiciosGateway(this WebApplicationBuilder builder)
         {
             try

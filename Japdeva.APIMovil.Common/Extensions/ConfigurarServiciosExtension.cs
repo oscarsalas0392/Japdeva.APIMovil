@@ -44,6 +44,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// Configura los servicios para el gateway utilizando Ocelot.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
+        /// <returns>Una tarea que representa la operación asíncrona. El valor de la tarea contiene la aplicación web configurada.</returns>
         public static async Task<WebApplication> ConfigurarServiciosGatewayAsync(this WebApplication app)
         {
             try

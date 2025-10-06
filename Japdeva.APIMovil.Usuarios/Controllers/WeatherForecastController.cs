@@ -12,18 +12,17 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     [Route("api/weatherForecast")]
     public class WeatherForecastController : ControllerBase
     {
+        private static readonly string[] Summaries = new[]
+        {
+            PRUEBA
+        };
+        private readonly ILogger<WeatherForecastController> _logger;
         private const string PRUEBA = "Freezing";
         private const int DEFAULT_MAX_TEMPERATURE = 55;
         private const int DEFAULT_MIN_TEMPERATURE = -10;
         private const int DEFAULT_NUMBER_OF_DAYS = 5;
         private const int DEFAULT_START_INDEX = 1;
-        private static readonly string[] Summaries = new[]
-        {
-            PRUEBA
-        };
-
-        private readonly ILogger<WeatherForecastController> _logger;
-
+      
         /// <summary>
         /// Inicializa una nueva instancia del controlador WeatherForecast
         /// </summary>
