@@ -60,6 +60,10 @@ namespace Japdeva.APIMovil.Estandar
 
         private static void AnalizarTipoParaVariablesQuemadas(SyntaxNodeAnalysisContext contexto, TypeDeclarationSyntax tipoDeclaracion)
         {
+            // Verificar si la clase tiene atributo [Table] - si lo tiene, excluir toda la clase
+            if (TieneAtributoTable(tipoDeclaracion))
+                return;
+
             var valoresLiterales = new Dictionary<string, List<LiteralInfo>>();
             var constantesExistentes = new HashSet<string>();
 
@@ -134,6 +138,14 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoAuthorizeRoles(literal))
                         continue;
 
+                    // Excluir literales que están dentro de un atributo Table
+                    if (EstaEnAtributoTable(literal))
+                        continue;
+
+                    // Excluir literales que están dentro de un atributo Column
+                    if (EstaEnAtributoColumn(literal))
+                        continue;
+
                     // Verificar si este literal es parte de una expresión unaria (como -10)
                     var padreUnario = literal.Parent as PrefixUnaryExpressionSyntax;
                     if (padreUnario != null && padreUnario.IsKind(SyntaxKind.UnaryMinusExpression))
@@ -155,6 +167,14 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoRoute(unary))
                         continue;
 
+                    // Excluir expresiones unarias que están dentro de un atributo Table
+                    if (EstaEnAtributoTable(unary))
+                        continue;
+
+                    // Excluir expresiones unarias que están dentro de un atributo Column
+                    if (EstaEnAtributoColumn(unary))
+                        continue;
+
                     // Verificar si esta expresión unaria está siendo asignada a una variable local
                     if (EstaEnAsignacionVariableUnaria(unary))
                         continue;
@@ -167,6 +187,14 @@ namespace Japdeva.APIMovil.Estandar
                     foreach (var contenido in cadenaInterpolada.Contents.OfType<InterpolatedStringTextSyntax>())
                     {
                         if (EstaEnAtributoRoute(contenido))
+                            continue;
+
+                        // Excluir contenido de cadenas interpoladas que están dentro de un atributo Table
+                        if (EstaEnAtributoTable(contenido))
+                            continue;
+
+                        // Excluir contenido de cadenas interpoladas que están dentro de un atributo Column
+                        if (EstaEnAtributoColumn(contenido))
                             continue;
 
                         var textoParcial = contenido.TextToken.ValueText;
@@ -382,6 +410,42 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
 
+            return false;
+        }
+
+        private static bool EstaEnAtributoTable(SyntaxNode nodo)
+        {
+            var atributo = nodo.Ancestors().OfType<AttributeSyntax>().FirstOrDefault();
+            if (atributo == null)
+                return false;
+
+            var nombre = atributo.Name.ToString();
+            return nombre.IndexOf("Table", System.StringComparison.OrdinalIgnoreCase) != -1;
+        }
+
+        private static bool EstaEnAtributoColumn(SyntaxNode nodo)
+        {
+            var atributo = nodo.Ancestors().OfType<AttributeSyntax>().FirstOrDefault();
+            if (atributo == null)
+                return false;
+
+            var nombre = atributo.Name.ToString();
+            return nombre.IndexOf("Column", System.StringComparison.OrdinalIgnoreCase) != -1;
+        }
+
+        private static bool TieneAtributoTable(TypeDeclarationSyntax tipoDeclaracion)
+        {
+            foreach (var listaAtributos in tipoDeclaracion.AttributeLists)
+            {
+                foreach (var atributo in listaAtributos.Attributes)
+                {
+                    var nombre = atributo.Name.ToString();
+                    if (nombre.IndexOf("Table", System.StringComparison.OrdinalIgnoreCase) != -1)
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
