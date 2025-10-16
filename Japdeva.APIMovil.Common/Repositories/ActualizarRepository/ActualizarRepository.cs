@@ -7,10 +7,10 @@ namespace Japdeva.APIMovil.Common.Repositories.ActualizarRepository
     /// <summary>
     /// Repositorio para actualizar entidades de tipo T en la base de datos.
     /// </summary>
-    public class ActualizarRepository<T> : IActualizarRepository<T> where T : class
+    public class ActualizarRepository : IActualizarRepository
     {
         private readonly DbContext _context;
-        private readonly ILogger<ActualizarRepository<T>> _logger;
+        private readonly ILogger<ActualizarRepository> _logger;
         private const string MENSAJE_ERROR_ACTUALIZAR = "No se pudo actualizar la entidad {0} en la base de datos.";
         private const string MENSAJE_ERROR_ENTIDAD_NULA = "La entidad no puede ser nula.";   
         private const string MENSAJE_ERROR_TRACE_ID_VACIO = "El traceId no puede estar vacío.";
@@ -22,10 +22,10 @@ namespace Japdeva.APIMovil.Common.Repositories.ActualizarRepository
         /// <param name="logger">El logger para registrar operaciones.</param>
         /// <param name="context">El contexto de la base de datos.</param>
         /// <exception cref="ArgumentNullException">Cuando logger o context son null.</exception>
-        public ActualizarRepository(ILogger<ActualizarRepository<T>> logger, DbContext context)
+        public ActualizarRepository(ILogger<ActualizarRepository> logger, DbContext context)
         {
-            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._context = context ?? throw new ArgumentNullException(nameof(context));
+            this._logger = logger; 
+            this._context = context;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ActualizarRepository
         /// <exception cref="ArgumentNullException">Cuando la entidad es nula.</exception>
         /// <exception cref="ArgumentException">Cuando el traceId está vacío.</exception>
         /// <exception cref="InvalidOperationException">Cuando no se puede actualizar la entidad.</exception>
-        public async Task ActualizarAsync(string traceId, T entidad)
+        public async Task ActualizarAsync<T>(string traceId, T entidad) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try

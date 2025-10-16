@@ -5,7 +5,6 @@ using Ocelot.Middleware;
 using Japdeva.APIMovil.Common.Middlewares;
 using Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware;
 using Japdeva.APIMovil.Common.Middlewares.EnviarTraceIdMiddleware;
-using Japdeva.APIMovil.Common.Middlewares.RecibirTraceIdMiddleware;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -30,7 +29,6 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                app.UseMiddleware<RecibirTraceIdMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();  
             }

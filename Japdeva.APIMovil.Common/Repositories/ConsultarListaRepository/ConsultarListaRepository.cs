@@ -13,10 +13,10 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
     /// Repositorio para consultar listas de entidades con paginación y filtros.
     /// </summary>
     /// <typeparam name="T">Tipo de entidad a consultar</typeparam>
-    public class ConsultarListaRepository<T> : IConsultarListaRepository<T> where T : class
+    public class ConsultarListaRepository : IConsultarListaRepository
     {
         private readonly DbContext _dbContext;
-        private readonly ILogger<ConsultarListaRepository<T>> _logger;
+        private readonly ILogger<ConsultarListaRepository> _logger;
         private const string ERROR_PAGINA_MENOR_QUE_CERO = "El número de página debe ser mayor que cero.";
         private const int PAGINA_MINIMA = 0;
         private const int TAMANIO_PAGINA = 50;
@@ -26,7 +26,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         /// </summary>
         /// <param name="logger">Logger para registro de eventos</param>
         /// <param name="dbContext">Contexto de base de datos</param>
-        public ConsultarListaRepository(ILogger<ConsultarListaRepository<T>> logger, DbContext dbContext)
+        public ConsultarListaRepository(ILogger<ConsultarListaRepository> logger, DbContext dbContext)
         {
             this._logger = logger;
             this._dbContext = dbContext;
@@ -40,7 +40,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         /// <param name="pagina">Número de página a consultar (1-based)</param>
         /// <param name="filtro">Expresión de filtro para la consulta</param>
         /// <returns>Modelo de respuesta con la lista paginada y metadatos</returns>
-        public async Task<RespuestaListaModel<T>> ConsultarListaAsync(string traceId, int pagina, Expression<Func<T, bool>>? filtro = null)
+        public async Task<RespuestaListaModel<T>> ConsultarListaAsync<T>(string traceId, int pagina, Expression<Func<T, bool>>? filtro = null) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try

@@ -4,7 +4,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ActualizarRepository
     /// Interfaz para repositorio de actualización de entidades
     /// </summary>
     /// <typeparam name="T">Tipo de entidad a actualizar</typeparam>
-    public interface IActualizarRepository<T>
+    public interface IActualizarRepository
     {
         /// <summary>
         /// Actualiza una entidad existente en el repositorio
@@ -12,6 +12,6 @@ namespace Japdeva.APIMovil.Common.Repositories.ActualizarRepository
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="entidad">Entidad a actualizar</param>
         /// <returns>Task que representa la operación asíncrona</returns>
-        Task ActualizarAsync(string traceId, T entidad);
+        Task ActualizarAsync<T>(string traceId, T entidad) where T : class;
     }
 }

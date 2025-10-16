@@ -38,6 +38,8 @@ namespace Japdeva.APIMovil.Estandar
             contexto.RegisterSyntaxNodeAction(AnalizarClase, SyntaxKind.ClassDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarStruct, SyntaxKind.StructDeclaration);
             contexto.RegisterSyntaxNodeAction(AnalizarRecord, SyntaxKind.RecordDeclaration);
+            // Agregar análisis de métodos para detectar valores quemados dentro de métodos
+            contexto.RegisterSyntaxNodeAction(AnalizarMetodo, SyntaxKind.MethodDeclaration);
         }
 
         private static void AnalizarClase(SyntaxNodeAnalysisContext contexto)
@@ -54,8 +56,55 @@ namespace Japdeva.APIMovil.Estandar
 
         private static void AnalizarRecord(SyntaxNodeAnalysisContext contexto)
         {
-            var record = (RecordDeclarationSyntax)contexto.Node;
-            AnalizarTipoParaVariablesQuemadas(contexto, record);
+            var recordDeclaracion = (RecordDeclarationSyntax)contexto.Node;
+            AnalizarTipoParaVariablesQuemadas(contexto, recordDeclaracion);
+        }
+
+        private static void AnalizarMetodo(SyntaxNodeAnalysisContext contexto)
+        {
+            var metodoDeclaracion = (MethodDeclarationSyntax)contexto.Node;
+            
+            // Verificar si el método está en una clase que tiene atributo [Table] - si lo tiene, excluir todo el método
+            var claseContenedora = metodoDeclaracion.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            if (claseContenedora != null && TieneAtributoTable(claseContenedora))
+                return;
+
+            var valoresLiterales = new Dictionary<string, List<LiteralInfo>>();
+            
+            // Recopilar todos los valores literales en el método
+            RecopilarValoresLiterales(metodoDeclaracion, valoresLiterales);
+
+            // Analizar y reportar valores quemados
+            foreach (var valor in valoresLiterales)
+            {
+                var valorLiteral = valor.Key;
+                var ubicaciones = valor.Value;
+
+                // Para métodos, no necesitamos verificar constantes existentes ya que 
+                // los valores en métodos generalmente deben ser constantes o parámetros
+                if (DeberiaSerConstanteEnMetodo(valorLiteral, ubicaciones))
+                {
+                    foreach (var ubicacion in ubicaciones)
+                    {
+                        var diagnostico = Diagnostic.Create(
+                            Regla,
+                            ubicacion.Ubicacion,
+                            valorLiteral);
+
+                        contexto.ReportDiagnostic(diagnostico);
+                    }
+                }
+            }
+        }
+
+        private static bool DeberiaSerConstanteEnMetodo(string valorLiteral, List<LiteralInfo> ubicaciones)
+        {
+            // Excluir valores que realmente no necesitan ser constantes
+            if (EsValorExcluido(valorLiteral))
+                return false;
+
+            // Todos los demás valores literales en métodos deben ser detectados como hardcodeados
+            return true;
         }
 
         private static void AnalizarTipoParaVariablesQuemadas(SyntaxNodeAnalysisContext contexto, TypeDeclarationSyntax tipoDeclaracion)
@@ -265,12 +314,16 @@ namespace Japdeva.APIMovil.Estandar
             {
                 "null",
                 "\"\"",  // cadena vacía
-                "\" \""  // cadena con solo espacio
+                "\" \"",  // cadena con solo espacio
+                "0",     // cero es común y a menudo aceptable
+                "false", // booleanos básicos
+                "true"
             };
 
             if (valoresExcluidos.Contains(valorLiteral))
                 return true;
 
+            // NO excluir números enteros como 1, 2, 3, etc. - estos DEBEN ser detectados
             return false;
         }
 
@@ -348,6 +401,13 @@ namespace Japdeva.APIMovil.Estandar
             if (literal.Token.IsKind(SyntaxKind.StringLiteralToken))
                 return false;
 
+            // NO excluir si está en un inicializador de objeto (como { Id = 1 })
+            var inicializadorObjeto = literal.Ancestors().OfType<InitializerExpressionSyntax>().FirstOrDefault();
+            if (inicializadorObjeto != null)
+            {
+                return false; // Debe ser detectado aunque esté en inicializador
+            }
+
             // Buscar si este literal está en una asignación de variable local
             var variableDeclaration = literal.Ancestors().OfType<VariableDeclarationSyntax>().FirstOrDefault();
             if (variableDeclaration != null)
@@ -364,7 +424,12 @@ namespace Japdeva.APIMovil.Estandar
             var assignment = literal.Ancestors().OfType<AssignmentExpressionSyntax>().FirstOrDefault();
             if (assignment != null && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
-                return true; // Es una asignación simple, excluir (excepto strings)
+                // Solo excluir si NO está dentro de un inicializador de objeto
+                var enInicializador = assignment.Ancestors().OfType<InitializerExpressionSyntax>().Any();
+                if (!enInicializador)
+                {
+                    return true; // Es una asignación simple fuera de inicializador, excluir
+                }
             }
 
             return false; // No está en asignación de variable, debe ser detectado

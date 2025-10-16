@@ -31,12 +31,11 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.AgregarLog4Net();
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
-                builder.Services.AddScoped(typeof(IActualizarRepository<>), typeof(ActualizarRepository<>));
-                builder.Services.AddScoped(typeof(IAgregarRepository<>), typeof(AgregarRepository<>));
-                builder.Services.AddScoped(typeof(IConsultarListaRepository<>), typeof(ConsultarListaRepository<>));
-                builder.Services.AddScoped(typeof(IConsultarRepository<>), typeof(ConsultarRepository<>));
+                builder.Services.AddScoped<IActualizarRepository, ActualizarRepository>();
+                builder.Services.AddScoped<IAgregarRepository, AgregarRepository>();
+                builder.Services.AddScoped<IConsultarListaRepository, ConsultarListaRepository>();
+                builder.Services.AddScoped<IConsultarRepository, ConsultarRepository>();
                 builder.AddJwtAuthentication();
-               
                 return builder;
             }
             catch (Exception)

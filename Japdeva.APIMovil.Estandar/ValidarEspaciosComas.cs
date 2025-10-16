@@ -28,7 +28,7 @@ namespace Japdeva.APIMovil.Estandar
             TituloSinEspacio,
             FormatoMensajeSinEspacio,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: DescripcionSinEspacio,
             helpLinkUri: "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/",

@@ -8,10 +8,10 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
     /// <summary>
     /// Repositorio para agregar entidades de tipo T a la base de datos.
     /// </summary>
-    public class AgregarRepository<T> : IAgregarRepository<T> where T : class
+    public class AgregarRepository: IAgregarRepository
     {
         private readonly DbContext _context;
-        private readonly ILogger<AgregarRepository<T>> _logger;
+        private readonly ILogger<AgregarRepository> _logger;
         private const string MENSAJE_ERROR_AGREGAR = "No se pudo agregar la entidad {0} a la base de datos.";
         private const string MENSAJE_ERROR_ENTIDAD_NULA = "La entidad no puede ser nula.";
         private const int MINIMO_REGISTROS_AFECTADOS = 0;
@@ -20,7 +20,7 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
         /// Inicializa una nueva instancia de la clase <see cref="AgregarRepository{T}"/>.
         /// </summary>
         /// <param name="context">El contexto de la base de datos.</param>
-        public AgregarRepository(ILogger<AgregarRepository<T>> logger, DbContext context)
+        public AgregarRepository(ILogger<AgregarRepository> logger, DbContext context)
         {
             _context = context;
             _logger = logger; 
@@ -31,7 +31,7 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
         /// </summary>
         /// <param name="entidad">La entidad a agregar.</param>
         /// <param name="traceId">Identificador de trazabilidad de la operación.</param>
-        public async Task AgregarAsync(string traceId, T entidad)
+        public async Task AgregarAsync<T>(string traceId, T entidad) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try

@@ -25,7 +25,7 @@ namespace Japdeva.APIMovil.Estandar
             Titulo,
             FormatoMensaje,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: Descripcion,
             helpLinkUri: "https://docs.microsoft.com/dotnet/core/testing/");

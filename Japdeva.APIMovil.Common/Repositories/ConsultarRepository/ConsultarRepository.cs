@@ -7,10 +7,10 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarRepository
     /// <summary>
     /// Repositorio para consultar entidades de tipo T desde la base de datos.
     /// </summary>
-    public class ConsultarRepository<T> : IConsultarRepository<T> where T : class
+    public class ConsultarRepository : IConsultarRepository
     {
         private readonly DbContext _context;
-        private readonly ILogger<ConsultarRepository<T>> _logger;
+        private readonly ILogger<ConsultarRepository> _logger;
         private const string MENSAJE_ERROR_TRACE_ID_VACIO = "El traceId no puede estar vacío.";
         private const string MENSAJE_ERROR_FILTRO_NULO = "El filtro no puede ser nulo.";
 
@@ -18,7 +18,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarRepository
         /// Inicializa una nueva instancia de la clase <see cref="ConsultarRepository{T}"/>.
         /// </summary>
         /// <param name="context">El contexto de la base de datos.</param>
-        public ConsultarRepository(ILogger<ConsultarRepository<T>> logger, DbContext context)
+        public ConsultarRepository(ILogger<ConsultarRepository> logger, DbContext context)
         {
             _context = context;
             _logger = logger; 
@@ -30,7 +30,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarRepository
         /// <param name="traceId">El identificador de seguimiento.</param>
         /// <param name="filtro">El filtro para encontrar la entidad.</param>
         /// <returns>La entidad encontrada o null si no existe.</returns>
-        public async Task<T?> ConsultarAsync(string traceId, System.Linq.Expressions.Expression<Func<T, bool>> filtro)
+        public async Task<T?> ConsultarAsync<T>(string traceId, System.Linq.Expressions.Expression<Func<T, bool>> filtro) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try

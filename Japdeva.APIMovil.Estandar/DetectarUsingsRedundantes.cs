@@ -22,7 +22,7 @@ namespace Japdeva.APIMovil.Estandar
             Titulo,
             FormatoMensaje,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: Descripcion);
 
