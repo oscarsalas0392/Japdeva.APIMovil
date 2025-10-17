@@ -55,12 +55,6 @@ namespace Japdeva.APIMovil.Common.Extensions
 
                 // Registrar también como DbContext base para los repositorios
                 builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<TDbContext>());
-                    {
-                        options.EnableSensitiveDataLogging();
-                        options.EnableDetailedErrors();
-                    }
-                });
-
                 return builder;
             }
             catch (Exception)
