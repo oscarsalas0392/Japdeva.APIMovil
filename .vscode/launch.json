@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Usuarios API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Japdeva.APIMovil.Usuarios/bin/Debug/net9.0/Japdeva.APIMovil.Usuarios.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Japdeva.APIMovil.Usuarios",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ISSUER": "https://localhost:7075",
+                "AUDIENCE": "apiUsuarios",
+                "CLAVE_SECRETA": "MiClaveSecretaSuperSeguraDeAlMenos32Caracteres2024!",
+                "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Administracion;Username=postgres;Password=1234"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "Launch Gateway API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Japdeva.APIMovil.Gateway/bin/Debug/net9.0/Japdeva.APIMovil.Gateway.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Japdeva.APIMovil.Gateway",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "RUTAS_CON_TOKEN": "Usuarios",
+                "ISSUER_USUARIOS": "https://localhost:7075",
+                "AUDIENCE_USUARIOS": "apiUsuarios",
+                "CLAVE_SECRETA_USUARIOS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+                "ROL_USUARIOS": "Usuarios",
+                "CLAVE_ENCRIPTACION_RESPUESTA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch All Microservices",
+            "configurations": [
+                "Launch Usuarios API",
+                "Launch Gateway API"
+            ],
+            "stopAll": true
+        }
+    ]
+}

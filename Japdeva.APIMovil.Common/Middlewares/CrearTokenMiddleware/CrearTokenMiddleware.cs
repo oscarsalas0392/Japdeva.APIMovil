@@ -11,6 +11,10 @@ namespace Japdeva.APIMovil.Common.Middlewares
     public class CrearTokenMiddleware : ICrearTokenMiddleware
     {
     
+        private readonly RequestDelegate _next;
+        private readonly IGenerarTokenService _generarTokenService;
+        private readonly ILogger<CrearTokenMiddleware> _logger;
+        private readonly string _rutas = Environment.GetEnvironmentVariable(RUTAS_CON_TOKEN_ENV) ?? string.Empty;
         private const string ISSUER_ENV = "ISSUER_";
         private const string AUDIENCE_ENV = "AUDIENCE_";
         private const string CLAVE_SECRETA_ENV = "CLAVE_SECRETA_";
@@ -20,10 +24,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string ERROR_RUTAS_CON_TOKEN_NO_CONFIGURADA = "La variable de entorno RUTAS_CON_TOKEN no está configurada.";
         private const string AUTHORIZATION_HEADER = "Authorization";
         private const string BEARER_PREFIX = "Bearer";
-        private readonly RequestDelegate _next;
-        private readonly IGenerarTokenService _generarTokenService;
-        private readonly ILogger<CrearTokenMiddleware> _logger;
-        private readonly string _rutas = Environment.GetEnvironmentVariable(RUTAS_CON_TOKEN_ENV) ?? string.Empty;
+        
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ValidarTokenMiddleware"/>.
@@ -42,7 +43,6 @@ namespace Japdeva.APIMovil.Common.Middlewares
         /// Procesa una solicitud HTTP y valida el token JWT si está presente.
         /// </summary>
         /// <param name="context">El contexto de la solicitud HTTP.</param>
-        /// <returns>Una tarea que representa el procesamiento de la solicitud.</returns>
         public async Task InvokeAsync(HttpContext context)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

@@ -39,7 +39,7 @@ namespace Japdeva.APIMovil.Estandar
             TituloLlamada,
             FormatoMensajeLlamada,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: DescripcionLlamada,
             helpLinkUri: "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0055");

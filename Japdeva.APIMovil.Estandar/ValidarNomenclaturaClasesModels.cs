@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Estandar
         public const string DiagnosticId = "JAPDEVA024";
 
         private const string Titulo = "Clase en carpeta Models debe usar PascalCase y terminar en Model";
-        private const string FormatoMensaje = "La clase '{0}' en la carpeta Models debe seguir la convención PascalCase y terminar en 'Model' (ejemplo: '{1}')";
-        private const string Descripcion = "Las clases ubicadas en la carpeta Models deben usar la convención PascalCase y terminar con la palabra 'Model' para identificar claramente su propósito y mantener la consistencia del código.";
+        private const string FormatoMensaje = "La clase '{0}' en la carpeta Models debe seguir la convenciï¿½n PascalCase y terminar en 'Model' (ejemplo: '{1}')";
+        private const string Descripcion = "Las clases ubicadas en la carpeta Models deben usar la convenciï¿½n PascalCase y terminar con la palabra 'Model' para identificar claramente su propï¿½sito y mantener la consistencia del cï¿½digo.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -43,7 +43,7 @@ namespace Japdeva.APIMovil.Estandar
             var clase = (ClassDeclarationSyntax)contexto.Node;
             var nombreClase = clase.Identifier.ValueText;
 
-            // Verificar si la clase está en la carpeta Models
+            // Verificar si la clase estï¿½ en la carpeta Models
             if (!EstaEnCarpetaModels(contexto))
                 return;
 
@@ -58,7 +58,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(rutaArchivo))
                 return false;
 
-            // Normalizar la ruta para comparación
+            // Normalizar la ruta para comparaciï¿½n
             var rutaNormalizada = rutaArchivo.Replace('\\', '/');
             
             // Verificar si contiene "Models" en la ruta
@@ -67,7 +67,6 @@ namespace Japdeva.APIMovil.Estandar
             return partesRuta.Any(parte => 
                 parte.Equals("Models", System.StringComparison.OrdinalIgnoreCase) ||
                 parte.Equals("Model", System.StringComparison.OrdinalIgnoreCase) ||
-                parte.Equals("Entities", System.StringComparison.OrdinalIgnoreCase) ||
                 parte.Equals("DTOs", System.StringComparison.OrdinalIgnoreCase) ||
                 parte.Equals("ViewModels", System.StringComparison.OrdinalIgnoreCase));
         }
@@ -92,7 +91,7 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool EsClaseModelEspecial(string nombreClase, ClassDeclarationSyntax clase)
         {
-            // Excluir clases que ya siguen la convención correcta
+            // Excluir clases que ya siguen la convenciï¿½n correcta
             if (EsNombrePascalCase(nombreClase) && nombreClase.EndsWith("Model", System.StringComparison.Ordinal))
                 return true;
 
@@ -106,7 +105,7 @@ namespace Japdeva.APIMovil.Estandar
                     return true;
             }
 
-            // Excluir clases estáticas (model utilities)
+            // Excluir clases estï¿½ticas (model utilities)
             if (clase.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
                 return true;
 
@@ -131,14 +130,14 @@ namespace Japdeva.APIMovil.Estandar
                         if (atributosEspeciales.Any(a => 
                             nombreAtributoClase.IndexOf(a, System.StringComparison.OrdinalIgnoreCase) != -1))
                         {
-                            // Para entidades con atributos específicos, permitir nombres sin sufijo
+                            // Para entidades con atributos especï¿½ficos, permitir nombres sin sufijo
                             if (nombreAtributoClase.IndexOf("Entity", System.StringComparison.OrdinalIgnoreCase) != -1 ||
                                 nombreAtributoClase.IndexOf("Table", System.StringComparison.OrdinalIgnoreCase) != -1)
                             {
                                 return true;
                             }
                             
-                            // Solo excluir si también tiene el sufijo correcto
+                            // Solo excluir si tambiï¿½n tiene el sufijo correcto
                             return nombreClase.EndsWith("Model", System.StringComparison.Ordinal);
                         }
                     }
@@ -149,7 +148,7 @@ namespace Japdeva.APIMovil.Estandar
             if (ImplementaIModel(clase))
                 return true;
 
-            // Excluir clases internas o anidadas que pueden tener propósitos especiales
+            // Excluir clases internas o anidadas que pueden tener propï¿½sitos especiales
             if (EsClaseAnidada(clase) || EsClaseInterna(clase))
                 return true;
 
@@ -161,7 +160,7 @@ namespace Japdeva.APIMovil.Estandar
             if (EsExtensionModel(clase, nombreClase))
                 return true;
 
-            // Excluir DTOs y ViewModels que pueden tener sufijos específicos
+            // Excluir DTOs y ViewModels que pueden tener sufijos especï¿½ficos
             if (EsDTO(nombreClase) || EsViewModel(nombreClase))
                 return true;
 
@@ -178,7 +177,7 @@ namespace Japdeva.APIMovil.Estandar
             {
                 var tipoString = tipo.ToString();
                 
-                // Interfaces típicas de models
+                // Interfaces tï¿½picas de models
                 var interfacesModel = new[]
                 {
                     "IModel", "IEntity", "IBaseModel", "IViewModel",
@@ -261,10 +260,10 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return false;
 
-            // Patrón para PascalCase:
-            // - Empieza con letra mayúscula
-            // - Puede contener letras, números
-            // - Las palabras siguientes empiezan con mayúscula
+            // Patrï¿½n para PascalCase:
+            // - Empieza con letra mayï¿½scula
+            // - Puede contener letras, nï¿½meros
+            // - Las palabras siguientes empiezan con mayï¿½scula
             var patron = @"^[A-Z][a-zA-Z0-9]*$";
             
             return Regex.IsMatch(nombre, patron);
@@ -311,7 +310,7 @@ namespace Japdeva.APIMovil.Estandar
             if (string.IsNullOrEmpty(nombre))
                 return "CustomModel";
 
-            // Si ya está en formato correcto, no cambiar
+            // Si ya estï¿½ en formato correcto, no cambiar
             if (EsNombrePascalCase(nombre))
                 return nombre;
 

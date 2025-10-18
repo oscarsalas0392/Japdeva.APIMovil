@@ -12,13 +12,13 @@ namespace Japdeva.APIMovil.Common.Middlewares
     /// </summary>
     public class ManejoErroresMiddleware : IManejoErroresMiddleware
     {
+        private readonly RequestDelegate _siguiente;
+        private readonly ILogger<ManejoErroresMiddleware> _logger;
         private const string MENSAJE_TIMEOUT = "La solicitud ha excedido el tiempo de espera.";
         private const string MENSAJE_BAD_REQUEST = "La solicitud contiene datos inválidos.";
         private const string MENSAJE_ERROR_INTERNO = "La solicitud ha fallado.";
         private const string MENSAJE_EXITO = "Solicitud procesada con éxito.";
         private const int POSICION_INICIO_STREAM = 0;
-        private readonly RequestDelegate _siguiente;
-        private readonly ILogger<ManejoErroresMiddleware> _logger;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de manejo de errores.
@@ -35,7 +35,6 @@ namespace Japdeva.APIMovil.Common.Middlewares
         /// Método de invocación del middleware que maneja las excepciones.
         /// </summary>
         /// <param name="contextoHttp">Contexto HTTP de la solicitud.</param>
-        /// <returns>Task que representa la operación asíncrona.</returns>
         public async Task InvokeAsync(HttpContext contextoHttp)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

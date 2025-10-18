@@ -32,7 +32,6 @@ namespace Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware
         /// Invoca el middleware de forma asíncrona.
         /// </summary>
         /// <param name="context">Contexto HTTP actual.</param>
-        /// <returns>Tarea que representa la operación asíncrona.</returns>
         public async Task InvokeAsync(HttpContext context)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

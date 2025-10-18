@@ -5,7 +5,6 @@ using Ocelot.Middleware;
 using Japdeva.APIMovil.Common.Middlewares;
 using Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware;
 using Japdeva.APIMovil.Common.Middlewares.EnviarTraceIdMiddleware;
-using Japdeva.APIMovil.Common.Middlewares.RecibirTraceIdMiddleware;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -30,7 +29,6 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                app.UseMiddleware<RecibirTraceIdMiddleware>();
                 app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();  
             }
@@ -44,6 +42,7 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// Configura los servicios para el gateway utilizando Ocelot.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
+        /// <returns>Una tarea que representa la operación asíncrona. El valor de la tarea contiene la aplicación web configurada.</returns>
         public static async Task<WebApplication> ConfigurarServiciosGatewayAsync(this WebApplication app)
         {
             try

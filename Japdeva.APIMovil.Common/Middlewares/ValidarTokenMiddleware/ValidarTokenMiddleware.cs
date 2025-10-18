@@ -13,6 +13,12 @@ namespace Japdeva.APIMovil.Common.Middlewares
     /// </summary>
     public class ValidarTokenMiddleware : IValidarTokenMiddleware
     {
+        private readonly string _issuer = Environment.GetEnvironmentVariable(ISSUER_ENV_VARIABLE) ?? string.Empty;
+        private readonly string _audience = Environment.GetEnvironmentVariable(AUDIENCE_ENV_VARIABLE) ?? string.Empty;
+        private readonly string _claveSecreta = Environment.GetEnvironmentVariable(CLAVE_SECRETA_ENV_VARIABLE) ?? string.Empty;
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ValidarTokenMiddleware> _logger;
+        private readonly IValidarTokenService _validarTokenService;
         private const string TRACE_ID = "SYSTEM";
         private const string HEADER_AUTHORIZATION = "Authorization";
         private const string MENSAJE_TOKEN_NO_PROPORCIONADO = "Token no proporcionado.";
@@ -21,12 +27,6 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string ISSUER_ENV_VARIABLE = "ISSUER";
         private const string AUDIENCE_ENV_VARIABLE = "AUDIENCE";
         private const string CLAVE_SECRETA_ENV_VARIABLE = "CLAVE_SECRETA";
-        private readonly string _issuer = Environment.GetEnvironmentVariable(ISSUER_ENV_VARIABLE) ?? string.Empty;
-        private readonly string _audience = Environment.GetEnvironmentVariable(AUDIENCE_ENV_VARIABLE) ?? string.Empty;
-        private readonly string _claveSecreta = Environment.GetEnvironmentVariable(CLAVE_SECRETA_ENV_VARIABLE) ?? string.Empty;
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ValidarTokenMiddleware> _logger;
-        private readonly IValidarTokenService _validarTokenService;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de validación de token.
@@ -45,7 +45,6 @@ namespace Japdeva.APIMovil.Common.Middlewares
         /// Método de invocación del middleware que valida el token.
         /// </summary>
         /// <param name="context">Contexto HTTP de la solicitud.</param>
-        /// <returns>Task que representa la operación asíncrona.</returns>
         public async Task InvokeAsync(HttpContext context)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

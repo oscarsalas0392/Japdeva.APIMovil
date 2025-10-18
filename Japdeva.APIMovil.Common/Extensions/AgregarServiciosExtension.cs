@@ -1,9 +1,10 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
+using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
+using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Common.Services;
 using Japdeva.APIMovil.Common.Services.DesencriptarService;
 using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
@@ -17,16 +18,11 @@ namespace Japdeva.APIMovil.Common.Extensions
     public static class AgregarServiciosExtension
     {
 
-        private const string JWT_ISSUER_ENV = "ISSUER";
-        private const string JWT_AUDIENCE_ENV = "AUDIENCE";
-        private const string JWT_CLAVE_SECRETA_ENV = "CLAVE_SECRETA";
-        private const string MENSAJE_ERROR_JWT_ISSUER = "ISSUER no configurado";
-        private const string MENSAJE_ERROR_JWT_AUDIENCE = "AUDIENCE no configurado";
-        private const string MENSAJE_ERROR_JWT_CLAVE = "CLAVE_SECRETA no configurado";
-
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
         /// </summary>
+        /// <param name="builder">El builder de la aplicación web</param>
+        /// <returns>El builder de la aplicación web configurado</returns>
         public static WebApplicationBuilder AgregarServiciosMicroservicios(this WebApplicationBuilder builder)
         {
             try
@@ -35,23 +31,11 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.AgregarLog4Net();
                 builder.Services.AddControllers();
                 builder.Services.AddOpenApi();
-                string issuer = Environment.GetEnvironmentVariable(JWT_ISSUER_ENV) ?? throw new InvalidOperationException(MENSAJE_ERROR_JWT_ISSUER);
-                string audience = Environment.GetEnvironmentVariable(JWT_AUDIENCE_ENV) ?? throw new InvalidOperationException(MENSAJE_ERROR_JWT_AUDIENCE);
-                string claveSecreta = Environment.GetEnvironmentVariable(JWT_CLAVE_SECRETA_ENV) ?? throw new InvalidOperationException(MENSAJE_ERROR_JWT_CLAVE);
-
-                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                  .AddJwtBearer(options =>
-                  {
-                      options.TokenValidationParameters = new TokenValidationParameters();
-                      options.TokenValidationParameters.ValidateIssuer = true;
-                      options.TokenValidationParameters.ValidateAudience = true;
-                      options.TokenValidationParameters.ValidateLifetime = true;
-                      options.TokenValidationParameters.ValidateIssuerSigningKey = true;
-                      options.TokenValidationParameters.ValidIssuer = issuer;
-                      options.TokenValidationParameters.ValidAudience = audience;
-                      options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(claveSecreta));
-                  });
-               
+                builder.Services.AddScoped<IActualizarRepository, ActualizarRepository>();
+                builder.Services.AddScoped<IAgregarRepository, AgregarRepository>();
+                builder.Services.AddScoped<IConsultarListaRepository, ConsultarListaRepository>();
+                builder.Services.AddScoped<IConsultarRepository, ConsultarRepository>();
+                builder.AddJwtAuthentication();
                 return builder;
             }
             catch (Exception)
@@ -63,6 +47,8 @@ namespace Japdeva.APIMovil.Common.Extensions
         /// <summary>
         /// Agrega los servicios necesarios para el gateway a la aplicación.
         /// </summary>
+        /// <param name="builder">El builder de la aplicación web</param>
+        /// <returns>El builder de la aplicación web configurado</returns>
         public static WebApplicationBuilder AgregarServiciosGateway(this WebApplicationBuilder builder)
         {
             try

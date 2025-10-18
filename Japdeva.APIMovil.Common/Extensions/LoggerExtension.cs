@@ -39,11 +39,13 @@ namespace Japdeva.APIMovil.Common.Extensions
 
                 /// <summary>
         /// Registra un error con información contextual del método donde ocurrió la excepción.
+        /// <summary>
+        /// Registra un mensaje de error con información de rastreo y método.
         /// </summary>
         /// <param name="logger">La instancia del logger donde se registrará el error.</param>
         /// <param name="traceId">Identificador único de rastreo para seguimiento de la operación.</param>
         /// <param name="nombreMetodo">Nombre del método donde ocurrió el error.</param>
-        /// <param name="ex">La excepción que se produjo y debe ser registrada.</param>
+        /// <param name="mensaje">El mensaje de error que se debe registrar.</param>
         public static void Error(this ILogger logger, string traceId, string nombreMetodo, string mensaje)
         {
             logger.LogError($"{IDENTIFICADOR} {traceId}, {NOMBRE_METODO} {nombreMetodo}, {ERROR} {mensaje}");
