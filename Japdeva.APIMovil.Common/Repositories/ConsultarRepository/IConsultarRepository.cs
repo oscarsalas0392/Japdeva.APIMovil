@@ -14,5 +14,13 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarRepository
         /// <returns>La entidad encontrada o null si no existe</returns>
         Task<T?> ConsultarAsync<T>(string traceId, System.Linq.Expressions.Expression<Func<T, bool>> filtro) where T : class;
 
+        /// <summary>
+        /// Cuenta el número de entidades que coinciden con el filtro especificado
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad</param>
+        /// <param name="filtro">Expresión de filtro para la consulta</param>
+        /// <returns>Número de entidades que coinciden con el filtro</returns>
+        Task<int> ContarAsync<T>(string traceId, System.Linq.Expressions.Expression<Func<T, bool>> filtro) where T : class;
+
     }
 }

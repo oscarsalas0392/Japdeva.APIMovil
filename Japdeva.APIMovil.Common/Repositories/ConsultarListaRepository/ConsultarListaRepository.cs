@@ -20,6 +20,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         private const string ERROR_PAGINA_MENOR_QUE_CERO = "El número de página debe ser mayor que cero.";
         private const int PAGINA_MINIMA = 0;
         private const int TAMANIO_PAGINA = 50;
+        private const int AJUSTE_PAGINA_BASE_CERO = 1;
         
         /// <summary>
         /// Constructor para el repositorio de consulta de listas.
@@ -61,11 +62,12 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
                 }
 
                 int totalRegistros = await query.CountAsync();
-                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / TAMANIO_PAGINA);
                 var resultados = await query
-                    .Skip((pagina - 1) * TAMANIO_PAGINA)
+                    .Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
                     .Take(TAMANIO_PAGINA)
                     .ToListAsync();
+                    
+                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / TAMANIO_PAGINA);
 
                 respuesta.Lista = resultados;
                 respuesta.TotalRegistros = totalRegistros;

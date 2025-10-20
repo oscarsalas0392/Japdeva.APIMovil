@@ -24,6 +24,9 @@ public class ValidarNomenclaturaClasesEntities : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeEnum, SyntaxKind.EnumDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeInterface, SyntaxKind.InterfaceDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeStruct, SyntaxKind.StructDeclaration);
     }
 
     private static void AnalyzeClass(SyntaxNodeAnalysisContext context)
@@ -46,6 +49,60 @@ public class ValidarNomenclaturaClasesEntities : DiagnosticAnalyzer
 
         // Validar nomenclatura
         ValidarNomenclaturaClaseEntity(context, classDeclaration, className);
+    }
+
+    private static void AnalyzeEnum(SyntaxNodeAnalysisContext context)
+    {
+        var enumDeclaration = (EnumDeclarationSyntax)context.Node;
+        var enumName = enumDeclaration.Identifier.ValueText;
+
+        // Obtener la ruta del archivo
+        var filePath = context.Node.SyntaxTree.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        // Verificar si está en una carpeta "Entities"
+        if (!EstaEnCarpetaEntities(filePath))
+            return;
+
+        // Validar nomenclatura del enum
+        ValidarNomenclaturaEnum(context, enumDeclaration, enumName);
+    }
+
+    private static void AnalyzeInterface(SyntaxNodeAnalysisContext context)
+    {
+        var interfaceDeclaration = (InterfaceDeclarationSyntax)context.Node;
+        var interfaceName = interfaceDeclaration.Identifier.ValueText;
+
+        // Obtener la ruta del archivo
+        var filePath = context.Node.SyntaxTree.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        // Verificar si está en una carpeta "Entities"
+        if (!EstaEnCarpetaEntities(filePath))
+            return;
+
+        // Validar nomenclatura de la interfaz
+        ValidarNomenclaturaInterface(context, interfaceDeclaration, interfaceName);
+    }
+
+    private static void AnalyzeStruct(SyntaxNodeAnalysisContext context)
+    {
+        var structDeclaration = (StructDeclarationSyntax)context.Node;
+        var structName = structDeclaration.Identifier.ValueText;
+
+        // Obtener la ruta del archivo
+        var filePath = context.Node.SyntaxTree.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        // Verificar si está en una carpeta "Entities"
+        if (!EstaEnCarpetaEntities(filePath))
+            return;
+
+        // Validar nomenclatura del struct
+        ValidarNomenclaturaStruct(context, structDeclaration, structName);
     }
 
     private static bool EstaEnCarpetaEntities(string rutaArchivo)
@@ -163,5 +220,59 @@ public class ValidarNomenclaturaClasesEntities : DiagnosticAnalyzer
 
         // Convertir primera letra a mayúscula
         return char.ToUpper(nombre[0]) + nombre.Substring(1);
+    }
+
+    private static void ValidarNomenclaturaEnum(SyntaxNodeAnalysisContext contexto, 
+        EnumDeclarationSyntax enumDeclaracion, string nombreEnum)
+    {
+        // Los enums en carpetas Entities también deben terminar en Entity
+        if (!nombreEnum.EndsWith("Entity", System.StringComparison.Ordinal))
+        {
+            var nombreSugerido = ObtenerNombreSugerido(nombreEnum);
+            
+            var diagnostico = Diagnostic.Create(
+                Regla,
+                enumDeclaracion.Identifier.GetLocation(),
+                nombreEnum,
+                nombreSugerido);
+
+            contexto.ReportDiagnostic(diagnostico);
+        }
+    }
+
+    private static void ValidarNomenclaturaInterface(SyntaxNodeAnalysisContext contexto, 
+        InterfaceDeclarationSyntax interfaceDeclaracion, string nombreInterface)
+    {
+        // Las interfaces en carpetas Entities también deben terminar en Entity
+        if (!nombreInterface.EndsWith("Entity", System.StringComparison.Ordinal))
+        {
+            var nombreSugerido = ObtenerNombreSugerido(nombreInterface);
+            
+            var diagnostico = Diagnostic.Create(
+                Regla,
+                interfaceDeclaracion.Identifier.GetLocation(),
+                nombreInterface,
+                nombreSugerido);
+
+            contexto.ReportDiagnostic(diagnostico);
+        }
+    }
+
+    private static void ValidarNomenclaturaStruct(SyntaxNodeAnalysisContext contexto, 
+        StructDeclarationSyntax structDeclaracion, string nombreStruct)
+    {
+        // Los structs en carpetas Entities también deben terminar en Entity
+        if (!nombreStruct.EndsWith("Entity", System.StringComparison.Ordinal))
+        {
+            var nombreSugerido = ObtenerNombreSugerido(nombreStruct);
+            
+            var diagnostico = Diagnostic.Create(
+                Regla,
+                structDeclaracion.Identifier.GetLocation(),
+                nombreStruct,
+                nombreSugerido);
+
+            contexto.ReportDiagnostic(diagnostico);
+        }
     }
 }

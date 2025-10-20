@@ -36,6 +36,7 @@ namespace Japdeva.APIMovil.Estandar
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             contexto.RegisterSyntaxNodeAction(AnalizarClase, SyntaxKind.ClassDeclaration);
+            contexto.RegisterSyntaxNodeAction(AnalizarEnum, SyntaxKind.EnumDeclaration);
         }
 
         private static void AnalizarClase(SyntaxNodeAnalysisContext contexto)
@@ -49,6 +50,19 @@ namespace Japdeva.APIMovil.Estandar
 
             // Validar nomenclatura de la clase
             ValidarNomenclaturaClaseModel(contexto, clase, nombreClase);
+        }
+
+        private static void AnalizarEnum(SyntaxNodeAnalysisContext contexto)
+        {
+            var enumDeclaration = (EnumDeclarationSyntax)contexto.Node;
+            var nombreEnum = enumDeclaration.Identifier.ValueText;
+
+            // Verificar si el enum está en la carpeta Models
+            if (!EstaEnCarpetaModels(contexto))
+                return;
+
+            // Validar nomenclatura del enum
+            ValidarNomenclaturaEnumModel(contexto, enumDeclaration, nombreEnum);
         }
 
         private static bool EstaEnCarpetaModels(SyntaxNodeAnalysisContext contexto)
@@ -83,6 +97,23 @@ namespace Japdeva.APIMovil.Estandar
                     Regla,
                     clase.Identifier.GetLocation(),
                     nombreClase,
+                    nombreSugerido);
+
+                contexto.ReportDiagnostic(diagnostico);
+            }
+        }
+
+        private static void ValidarNomenclaturaEnumModel(SyntaxNodeAnalysisContext contexto, 
+            EnumDeclarationSyntax enumDeclaration, string nombreEnum)
+        {
+            if (!EsNombrePascalCase(nombreEnum) || !nombreEnum.EndsWith("Model", System.StringComparison.Ordinal))
+            {
+                var nombreSugerido = ObtenerNombreSugerido(nombreEnum);
+                
+                var diagnostico = Diagnostic.Create(
+                    Regla,
+                    enumDeclaration.Identifier.GetLocation(),
+                    nombreEnum,
                     nombreSugerido);
 
                 contexto.ReportDiagnostic(diagnostico);

@@ -40,9 +40,9 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
                 {
                     throw new ArgumentNullException(MENSAJE_ERROR_ENTIDAD_NULA);
                 }
-                
+
                 this._logger.Inicio(traceId, nombreMetodo);
-                this._context.Set<T>().Add(entidad); 
+                this._context.Set<T>().Add(entidad);
                 int exitosa = await this._context.SaveChangesAsync();
                 if (exitosa <= MINIMO_REGISTROS_AFECTADOS)
                 {
@@ -56,7 +56,42 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
             }
             finally
             {
-                this._logger.Fin(traceId, nombreMetodo);    
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+        
+        /// <summary>
+        /// Agrega múltiples entidades a la base de datos.
+        /// </summary>
+        /// <typeparam name="T">El tipo de las entidades a agregar.</typeparam>
+        /// <param name="traceId">Identificador de trazabilidad de la operación.</param>
+        /// <param name="entidades">La lista de entidades a agregar.</param>
+        public async Task AgregarVariosAsync<T>(string traceId, List<T> entidades) where T : class
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                if (entidades is null || !entidades.Any())
+                {
+                    throw new ArgumentNullException(MENSAJE_ERROR_ENTIDAD_NULA);
+                }
+
+                this._logger.Inicio(traceId, nombreMetodo);
+                this._context.Set<T>().AddRange(entidades);
+                int exitosa = await this._context.SaveChangesAsync();
+                if (exitosa <= MINIMO_REGISTROS_AFECTADOS)
+                {
+                    throw new InvalidOperationException(string.Format(MENSAJE_ERROR_AGREGAR, typeof(T).Name));
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
             }
         }
     }

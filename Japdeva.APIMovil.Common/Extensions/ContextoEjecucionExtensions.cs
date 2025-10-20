@@ -10,6 +10,7 @@ namespace Japdeva.APIMovil.Common.Extensions
     public static class ContextoEjecucionExtension
     {
         private const string CONTEXTO_DESCONOCIDO = "Desconocido";
+        private const int FRAME_NIVEL_LLAMADOR = 1;
         /// <summary>
         /// Obtiene el nombre completo del método actual incluyendo namespace, clase y método.
         /// </summary>
@@ -19,7 +20,8 @@ namespace Japdeva.APIMovil.Common.Extensions
         {
             try
             {
-                StackFrame? frame = new StackFrame(1);
+                StackFrame? frame = new StackFrame(FRAME_NIVEL_LLAMADOR);
+
                 MethodBase? metodo = frame.GetMethod();
 
                 if (metodo is not null)

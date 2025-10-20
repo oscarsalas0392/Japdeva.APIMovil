@@ -13,5 +13,12 @@ namespace Japdeva.APIMovil.Common.Repositories.AgregarRepository
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="entidad">Entidad a agregar</param>
         Task AgregarAsync<T>(string traceId, T entidad) where T : class;
+
+        /// <summary>
+        /// Agrega múltiples entidades al repositorio en una sola operación
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad</param>
+        /// <param name="entidades">Lista de entidades a agregar</param>
+        Task AgregarVariosAsync<T>(string traceId, List<T> entidades) where T : class;
     }
 }
