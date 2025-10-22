@@ -1,6 +1,7 @@
 
-using Japdeva.APIMovil.Colas.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Colas.Models;
+
 
 namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
 {
@@ -15,7 +16,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje a enviar</param>
         /// <returns>Resultado de la operación de envío</returns>
-        Task<MensajeColaEntity> EnviarMensajeAsync(string traceId, EnviarMensajeModel mensaje);
+        Task<IActionResult> EnviarMensajeAsync(string traceId, EnviarMensajeSolicitudModel mensaje);
 
     }
 }

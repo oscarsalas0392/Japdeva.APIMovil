@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Colas.Models;
+
 
 namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
 {
@@ -13,6 +15,6 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje en proceso a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        Task<MensajeColasRespuestaModel> ActualizarMensajeEnProcesoAsync(string traceId, ActualizarMensajeModel mensaje);
+        Task<IActionResult> ActualizarMensajeEnProcesoAsync(string traceId, EnviarMensajeSolicitudModel mensaje);
     }
 }

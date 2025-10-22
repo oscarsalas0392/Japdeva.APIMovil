@@ -1,5 +1,6 @@
-using Japdeva.APIMovil.Colas.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Colas.Models;
+
 
 namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
 {
@@ -14,6 +15,6 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje fallido a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        Task<MensajeColaEntity?> ActualizarMensajeFallidoAsync(string traceId, ActualizarMensajeModel mensaje);
+        Task<IActionResult> ActualizarMensajeFallidoAsync(string traceId, EnviarMensajeSolicitudModel mensaje);
     }
 }

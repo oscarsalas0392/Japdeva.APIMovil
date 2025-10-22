@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
@@ -6,6 +7,7 @@ using Japdeva.APIMovil.Colas.Services.ColaService;
 using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
+
 
 namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
 {
@@ -19,6 +21,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         private readonly IEstadoMensajeService _estadoMensajeService;
         private readonly IColaService _colaService;
         private const int NUMERO_REINTENTOS = 3;
+        private const int INICIO_REINTENTOS = 0; 
         private const string NUMERO_REINTENTOS_ENV_VAR = "NUMERO_REINTENTOS";
         private const string MENSAJE_ERROR_COLA_VACIO = "La cola no puede estar vacía.";
         private const string MENSAJE_ERROR_MENSAJE_VACIO = "El contenido del mensaje no puede estar vacío.";
@@ -46,7 +49,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje a enviar</param>
         /// <returns>Resultado de la operación de envío</returns>
-        public async Task<MensajeColaEntity> EnviarMensajeAsync(string traceId, EnviarMensajeModel mensaje)
+        public async Task<IActionResult> EnviarMensajeAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -56,7 +59,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 if (string.IsNullOrEmpty(mensaje.ContenidoMensaje)) throw new ArgumentException(MENSAJE_ERROR_MENSAJE_VACIO);
 
                 if (string.IsNullOrEmpty(mensaje.NombreCola)) throw new ArgumentException(MENSAJE_ERROR_COLA_VACIO);
-
+                
                 var estadoCola = this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Pendiente);
                 if (estadoCola is null) throw new Exception(MENSAJE_ERROR_ESTADO_INVALIDO);
                             
@@ -82,10 +85,18 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeEntity.MaximoReintentos = reintentos;
                 mensajeEntity.FechaRegistro = DateTime.UtcNow;
                                 mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? string.Empty;
-                mensajeEntity.ContadorReintentos = mensaje.ContadorReintentos;
+                mensajeEntity.ContadorReintentos = INICIO_REINTENTOS;
                 mensajeEntity.TraceId = mensaje.TraceId;
                 await this._agregarRepository.AgregarAsync(traceId, mensajeEntity);
-                return mensajeEntity;
+
+                MensajeColasRespuestaModel mensajeColasRespuestaModel = new MensajeColasRespuestaModel();
+                mensajeColasRespuestaModel.Id = mensajeEntity.Id;
+                mensajeColasRespuestaModel.Cola = mensajeEntity.ColaId;
+                mensajeColasRespuestaModel.Mensaje = mensajeEntity.ContenidoMensaje;
+                mensajeColasRespuestaModel.Estado = mensajeEntity.EstadoId;
+                mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId;
+                mensajeColasRespuestaModel.TraceIdDiferente = false;
+                return new OkObjectResult(mensajeColasRespuestaModel);
             }
             catch (Exception ex)
             {

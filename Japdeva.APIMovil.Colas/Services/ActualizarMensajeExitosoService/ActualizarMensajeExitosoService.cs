@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
@@ -53,12 +54,13 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<MensajeColaEntity?> ActualizarMensajeExitosoAsync(string traceId, ActualizarMensajeModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeExitosoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                 var respuesta = new MensajeColasRespuestaModel();
                 if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
 
                 var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
@@ -73,8 +75,15 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
                 mensajeExistente.TraceId = Guid.NewGuid().ToString();
 
                 await this._actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
+
+                respuesta.Id = mensajeExistente.Id;
+                respuesta.Cola = mensajeExistente.ColaId;
+                respuesta.Mensaje = mensajeExistente.ContenidoMensaje;
+                respuesta.TraceId = mensajeExistente.TraceId;
+                respuesta.Estado = mensajeExistente.EstadoId;
+                respuesta.MetaDatos = mensajeExistente.Metadatos;
                 
-                return mensajeExistente;
+                return new OkObjectResult(respuesta);
             }
             catch (Exception ex)
             {

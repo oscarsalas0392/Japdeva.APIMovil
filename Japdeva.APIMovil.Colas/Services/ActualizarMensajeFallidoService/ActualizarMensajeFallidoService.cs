@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
@@ -5,6 +6,7 @@ using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
+
 
 namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
 {
@@ -49,12 +51,13 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje fallido a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<MensajeColaEntity?> ActualizarMensajeFallidoAsync(string traceId, ActualizarMensajeModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeFallidoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                var respuesta = new MensajeColasRespuestaModel();
                 
                 if (mensaje.Id <= ID_INVALIDO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
 
@@ -81,8 +84,15 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
                     mensajeExistente.ContadorReintentos++;
                 }
                 await this._actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
-                
-                return mensajeExistente;
+
+                respuesta.Id = mensajeExistente.Id;
+                respuesta.Cola = mensajeExistente.ColaId;
+                respuesta.Mensaje = mensajeExistente.ContenidoMensaje;
+                respuesta.TraceId = mensajeExistente.TraceId;
+                respuesta.Estado = mensajeExistente.EstadoId;
+                respuesta.MetaDatos = mensajeExistente.Metadatos;
+
+                return new OkObjectResult(respuesta);
             }
             catch (Exception ex)
             {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
@@ -5,6 +6,7 @@ using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
+
 
 namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
 {
@@ -19,6 +21,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         private readonly IEstadoMensajeService _estadoMensajeService;
 
         private const string MENSAJE_ERROR_ID_INVALIDO = "El identificador del mensaje no es válido.";
+        private const string MENSAJE_ERROR_TRACEID_INVALIDO = "El TraceId del mensaje no es válido.";
         private const string MENSAJE_ERROR_ESTADO_ENPROCESO = "No se pudo obtener el estado 'EnProceso' para actualizar el mensaje.";
         private const bool TRACE_ID_VALIDO_INICIAL = true;
         private const int MENSAJE_ID_MINIMO = 0;
@@ -33,8 +36,8 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         public ActualizarMensajeEnProcesoService(
             ILogger<ActualizarMensajeEnProcesoService> logger,
             IActualizarRepository actualizarRepository,
-            IConsultarRepository consultarRepository,
-            IEstadoMensajeService estadoMensajeService)
+            IEstadoMensajeService estadoMensajeService,
+            IConsultarRepository consultarRepository)
         {
             this._logger = logger;
             this._actualizarRepository = actualizarRepository;
@@ -48,7 +51,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje en proceso a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<MensajeColasRespuestaModel> ActualizarMensajeEnProcesoAsync(string traceId, ActualizarMensajeModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeEnProcesoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -58,6 +61,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 var respuesta = new MensajeColasRespuestaModel();
 
                 if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
+                if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(MENSAJE_ERROR_TRACEID_INVALIDO);
 
                 var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
                 if (mensajeExistente is null) throw new KeyNotFoundException(MENSAJE_ERROR_ID_INVALIDO);
@@ -84,7 +88,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 respuesta.Estado = mensajeExistente.EstadoId;
                 respuesta.Mensaje = mensajeExistente.ContenidoMensaje;
                  
-                return respuesta;
+                return new OkObjectResult(respuesta);
             }
             catch (Exception ex)
             {
