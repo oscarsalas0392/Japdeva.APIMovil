@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
+using Japdeva.APIMovil.Colas.Repositories.MensajesColaRepository;
 using Japdeva.APIMovil.Colas.Services.ColaService;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 
 namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
@@ -13,31 +13,29 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
     /// </summary>
     public class MensajeColaService : IMensajeColaService
     {
-        private readonly IConsultarListaRepository _consultarListaRepository;
         private readonly IConsultarRepository _consultarRepository;
+        private readonly IMensajesColaRepository _mensajesColaRepository;
         private readonly IColaService _colaService;
         private readonly ILogger<MensajeColaService> _logger;
         private readonly List<MensajeColaEntity> _mensajesCache = new List<MensajeColaEntity>();
         private const string MENSAJE_ERROR_NOMBRE_COLA_INVALIDO = "El nombre de cola proporcionado no es válido.";
-        private const int PAGINA_INICIAL = 1;
-        
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase MensajeColaService.
         /// </summary>
-        /// <param name="consultarListaRepository">Repositorio para consultas de listas de datos.</param>
-        /// <param name="consultarRepository">Repositorio para consultas individuales.</param>
+        /// <param name="consultarRepository">Repositorio para gestionar consultas.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
+        /// <param name="mensajesColaRepository">Repositorio para gestionar mensajes en colas.</param>
         /// <param name="colaService">Servicio para gestionar operaciones de colas.</param>
         public MensajeColaService(
-            IConsultarListaRepository consultarListaRepository,
             IConsultarRepository consultarRepository,
+            IMensajesColaRepository mensajesColaRepository,
             ILogger<MensajeColaService> logger, IColaService colaService)
         {
-            this._consultarListaRepository = consultarListaRepository;
-            this._consultarRepository = consultarRepository;
             this._logger = logger;
             this._colaService = colaService;
+            this._mensajesColaRepository = mensajesColaRepository;
+            this._consultarRepository = consultarRepository;
         }
 
         /// <summary>
@@ -50,18 +48,14 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                var mensajes = await this._mensajesColaRepository.ObtenerMensajesPendientesAsync(traceId);
 
-                int pagina = PAGINA_INICIAL;
-                var mensajes = await this._consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
-                traceId, pagina, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Pendiente ||
-                                          mensaje.EstadoId == (int)EstadoMensajeModel.Fallido);
-
-                if (mensajes is null || !mensajes.Lista.Any()) return;
+                if (mensajes is null || !mensajes.Any()) return;
 
                 lock (this._mensajesCache)
                 {
                     this._mensajesCache.Clear();
-                    this._mensajesCache.AddRange(mensajes.Lista);
+                    this._mensajesCache.AddRange(mensajes);
                 }
             }
             catch (Exception ex)
@@ -114,7 +108,6 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
                 int totalMensajes = await this._consultarRepository.ContarAsync<MensajeColaEntity>(
                     traceId, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Pendiente ||
                                        mensaje.EstadoId == (int)EstadoMensajeModel.Fallido);

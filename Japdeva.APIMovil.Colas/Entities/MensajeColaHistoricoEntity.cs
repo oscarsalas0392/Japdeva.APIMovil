@@ -7,29 +7,36 @@ namespace Japdeva.APIMovil.Colas.Entities
     /// <summary>
     /// Entidad que representa un mensaje en cola para persistencia en base de datos.
     /// </summary>
-    [Table("queue_messages")]
+    [Table("Tbl_MensajeColaHistorico")]
     public class MensajeColaHistoricoEntity
     {
+
         /// <summary>
-        /// Obtiene o establece el identificador único del mensaje en cola.
+        /// Obtiene o establece el identificador único del registro en el historial.
         /// </summary>
         [Key]
         [Column("id")]
-        public Int64 Id { get; set; }
+        public long Id { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el identificador único del mensaje en cola.
+        /// </summary>
+        [Column("idMensajeCola")]
+        public long IdMensajeCola { get; set; }
 
         /// <summary>
         /// Obtiene o establece el nombre de la cola de destino.
         /// </summary>
         [Required]
-        [MaxLength(100)]
-        [Column("cola")]
-        public Int64 ColaId { get; set; } 
+        [Column("colaId")]
+        public long ColaId { get; set; }
 
         /// <summary>
         /// Obtiene o establece el contenido del mensaje en formato JSON.
         /// </summary>
         [Required]
         [Column("contenidoMensaje")]
+        [MaxLength(4000)]
         public string ContenidoMensaje { get; set; } = string.Empty;
 
         /// <summary>
@@ -42,8 +49,9 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// <summary>
         /// Obtiene o establece la prioridad del mensaje (1=Alta, 2=Media, 3=Baja).
         /// </summary>
+        [Required]
         [Column("prioridadId")]
-        public int Prioridad { get; set; } = 2;
+        public int PrioridadId { get; set; } = 2;
 
         /// <summary>
         /// Obtiene o establece el número de intentos de procesamiento.
@@ -52,14 +60,9 @@ namespace Japdeva.APIMovil.Colas.Entities
         public int ContadorReintentos { get; set; } = 0;
 
         /// <summary>
-        /// Obtiene o establece el número máximo de reintentos permitidos.
-        /// </summary>
-        [Column("MaximoReintentos")]
-        public int MaximoReintentos { get; set; } = 3;
-
-        /// <summary>
         /// Obtiene o establece la fecha y hora de creación del mensaje.
         /// </summary>
+        [Required]
         [Column("fechaRegistro")]
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
@@ -67,13 +70,7 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// Obtiene o establece la fecha y hora de la última actualización.
         /// </summary>
         [Column("fechaEdicion")]
-        public DateTime FechaEdicion { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// Obtiene o establece la fecha y hora del próximo intento de procesamiento.
-        /// </summary>
-        [Column("proximoReintento")]
-        public DateTime? ProximoReintento { get; set; }
+        public DateTime? FechaEdicion { get; set; }
 
         /// <summary>
         /// Obtiene o establece el mensaje de error en caso de fallo.
@@ -84,7 +81,8 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// <summary>
         /// Obtiene o establece el identificador de trazabilidad para seguimiento.
         /// </summary>
-        [MaxLength(100)]
+        [Required]
+        [MaxLength(200)]
         [Column("traceId")]
         public string TraceId { get; set; } = string.Empty;
 
@@ -92,6 +90,15 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// Obtiene o establece metadatos adicionales en formato JSON.
         /// </summary>
         [Column("metadatos")]
+        [MaxLength(4000)]
         public string Metadatos { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece la fecha y hora de archivo del mensaje.
+        /// </summary>
+        [Required]
+        [Column("fechaArchivado")]
+        public DateTime FechaArchivado { get; set; }
+
     }
 }

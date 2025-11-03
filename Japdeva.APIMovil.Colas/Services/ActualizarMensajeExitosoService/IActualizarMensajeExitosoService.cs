@@ -15,7 +15,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        Task<IActionResult> ActualizarMensajeExitosoAsync(string traceId, EnviarMensajeSolicitudModel mensaje);
+        Task<IActionResult> ActualizarMensajeExitosoAsync(string traceId, ActualizarMensajeSolicitudModel mensaje);
 
     }
 }

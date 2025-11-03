@@ -30,5 +30,10 @@ namespace Japdeva.APIMovil.Colas.Models
         /// </summary>
         Cancelado = 5,
 
+        /// <summary>
+        /// Mensaje expirado por tiempo de vida.
+        /// </summary>
+        Expirado = 6
+
     }
 }

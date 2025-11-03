@@ -4,6 +4,8 @@ using Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService;
 using Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService;
 using Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService;
 using Japdeva.APIMovil.Colas.Services.EnviarMensajeService;
+using Japdeva.APIMovil.Colas.Services.ObtenerMensajesPorColaService;
+
 
 namespace Japdeva.APIMovil.Colas.Controllers
 {
@@ -14,6 +16,7 @@ namespace Japdeva.APIMovil.Colas.Controllers
     [Route("api/[controller]")]
     public class MensajeColaController : Controller
     {
+        private const string NOMBRE_COLA_QUERY_PARAMETER = "nombre-cola";
         /// <summary>
         /// Envía un mensaje a la cola de mensajería.
         /// </summary>
@@ -32,7 +35,7 @@ namespace Japdeva.APIMovil.Colas.Controllers
         /// <param name="mensaje">Modelo con los datos del mensaje a actualizar.</param>
         /// <returns>Respuesta de la actualización del mensaje.</returns>
         [HttpPut("ActualizarMensajeExitoso")]
-        public Task<IActionResult> ActualizarMensajeExitosoAsync([FromServices] IActualizarMensajeExitosoService actualizarMensajeExitosoService, [FromBody] EnviarMensajeSolicitudModel mensaje) =>
+        public Task<IActionResult> ActualizarMensajeExitosoAsync([FromServices] IActualizarMensajeExitosoService actualizarMensajeExitosoService, [FromBody] ActualizarMensajeSolicitudModel mensaje) =>
             actualizarMensajeExitosoService.ActualizarMensajeExitosoAsync(HttpContext.TraceIdentifier, mensaje);
 
         /// <summary>
@@ -42,7 +45,7 @@ namespace Japdeva.APIMovil.Colas.Controllers
         /// <param name="mensaje">Modelo con los datos del mensaje a actualizar.</param>
         /// <returns>Respuesta de la actualización del mensaje.</returns>
         [HttpPut("ActualizarMensajeEnProceso")]
-        public Task<IActionResult> ActualizarMensajeEnProcesoAsync([FromServices] IActualizarMensajeEnProcesoService actualizarMensajeEnProcesoService, [FromBody] EnviarMensajeSolicitudModel mensaje) =>
+        public Task<IActionResult> ActualizarMensajeEnProcesoAsync([FromServices] IActualizarMensajeEnProcesoService actualizarMensajeEnProcesoService, [FromBody] ActualizarMensajeSolicitudModel mensaje) =>
             actualizarMensajeEnProcesoService.ActualizarMensajeEnProcesoAsync(HttpContext.TraceIdentifier, mensaje);
 
 
@@ -53,8 +56,18 @@ namespace Japdeva.APIMovil.Colas.Controllers
         /// <param name="mensaje">Modelo con los datos del mensaje a actualizar.</param>
         /// <returns>Respuesta de la actualización del mensaje.</returns>
         [HttpPut("ActualizarMensajeFallido")]
-        public Task<IActionResult> ActualizarMensajeFallidoAsync([FromServices] IActualizarMensajeFallidoService actualizarMensajeFallidoService, [FromBody] EnviarMensajeSolicitudModel mensaje) =>
+        public Task<IActionResult> ActualizarMensajeFallidoAsync([FromServices] IActualizarMensajeFallidoService actualizarMensajeFallidoService, [FromBody] ActualizarMensajeSolicitudModel mensaje) =>
             actualizarMensajeFallidoService.ActualizarMensajeFallidoAsync(HttpContext.TraceIdentifier, mensaje);
+
+        /// <summary>
+        /// Obtiene los mensajes pendientes de una cola específica.
+        /// </summary>
+        /// <param name="obtenerMensajesPorColaService">Servicio para obtener mensajes por cola.</param>
+        /// <param name="nombreCola">Nombre de la cola de la cual obtener los mensajes pendientes.</param>
+        /// <returns>Respuesta con los mensajes pendientes de la cola.</returns>
+        [HttpGet("ObtenerMensajesPendientes")]
+        public Task<IActionResult> ObtenerMensajesPendientesAsync([FromServices] IObtenerMensajesPorColaService obtenerMensajesPorColaService, [FromQuery(Name = NOMBRE_COLA_QUERY_PARAMETER)] string nombreCola) =>
+            obtenerMensajesPorColaService.ObtenerMensajesPorColaAsync(HttpContext.TraceIdentifier, nombreCola);
 
     }
 }

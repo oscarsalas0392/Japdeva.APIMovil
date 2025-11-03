@@ -15,7 +15,7 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         private readonly IPrioridadService _prioridadesService;
         private readonly IEstadoMensajeService _estadoMensajeService;
         private readonly IColaService _colaService;
-        private const int DELAY_MINUTES = 5;
+        private const int DELAY_MINUTES = 10;
         private const string TRACE_ID = "N/A";
 
         /// <summary>

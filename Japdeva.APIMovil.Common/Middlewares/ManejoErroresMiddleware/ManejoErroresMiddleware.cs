@@ -67,7 +67,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Mensaje = MENSAJE_BAD_REQUEST;
+                respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }

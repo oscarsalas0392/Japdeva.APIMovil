@@ -6,7 +6,7 @@ namespace Japdeva.APIMovil.Colas.Entities
     /// <summary>
     /// Entidad que representa los estados posibles de los mensajes en cola.
     /// </summary>
-    [Table("estados_mensaje")]
+    [Table("Tbl_EstadoMensaje")]
     public class EstadoMensajeEntity
     {
         /// <summary>
@@ -29,7 +29,7 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// </summary>
         [MaxLength(200)]
         [Column("descripcion")]
-        public string? Descripcion { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
 
         /// <summary>
         /// Obtiene o establece si el estado está activo.

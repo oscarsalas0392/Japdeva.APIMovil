@@ -21,8 +21,9 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
         private readonly IEstadoMensajeService _estadoMensajeService;
         private const int ID_INVALIDO = 0;
         private const int NUMERO_REINTENTOS = 3;
-        private const string NUMERO_REINTENTOS_ENV_VAR = "NUMERO_REINTENTOS";
-        private const string MENSAJE_ERROR_ID_INVALIDO = "El identificador del mensaje no es válido.";
+        private const string NUMERO_MAXIMO_REINTENTOS_ENV_VAR = "NUMERO_MAXIMO_REINTENTOS";
+        private const string MENSAJE_ERROR_CAMPO_REQUERIDO = "El {0} del mensaje es requerido.";
+        private const string MENSAJE_ERROR_ID_INVALIDO = "El Id: {0} del mensaje no se encuentra.";
         private const string MENSAJE_ERROR_TRACEID_NO_COINCIDE = "El TraceId del mensaje con ID {0} no coincide.";
         private const string MENSAJE_ERROR_ESTADO_FALLIDO = "No se pudo obtener el estado 'Fallido' para actualizar el mensaje.";
 
@@ -51,34 +52,35 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje fallido a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<IActionResult> ActualizarMensajeFallidoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeFallidoAsync(string traceId, ActualizarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 var respuesta = new MensajeColasRespuestaModel();
-                
-                if (mensaje.Id <= ID_INVALIDO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
+
+                if (mensaje.Id <= ID_INVALIDO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
+                if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
                 var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
-                if (mensajeExistente is null) throw new KeyNotFoundException(MENSAJE_ERROR_ID_INVALIDO);
+                if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
-                if (mensajeExistente.TraceId != mensaje.TraceId) throw new Exception(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
-                
-                bool esNumero = int.TryParse(Environment.GetEnvironmentVariable(NUMERO_REINTENTOS_ENV_VAR), out int reintentos);
-                reintentos = esNumero ? reintentos : NUMERO_REINTENTOS;
+                if (mensajeExistente.TraceId != mensaje.TraceId) throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
 
-                var estado = mensajeExistente.ContadorReintentos == reintentos
+                bool esNumero = int.TryParse(Environment.GetEnvironmentVariable(NUMERO_MAXIMO_REINTENTOS_ENV_VAR), out int numeroMaximoReintentos);
+                numeroMaximoReintentos = esNumero ? numeroMaximoReintentos : NUMERO_REINTENTOS;
+
+                var estado = mensajeExistente.ContadorReintentos == numeroMaximoReintentos
                             ? this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Cancelado)
                             : this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Fallido);
 
                 if (estado is null) throw new Exception(MENSAJE_ERROR_ESTADO_FALLIDO);
 
                 mensajeExistente.EstadoId = estado.Id;
-                mensajeExistente.MensajeError = mensaje.MensajeError;
                 mensajeExistente.FechaEdicion = DateTime.UtcNow;
                 mensajeExistente.TraceId = Guid.NewGuid().ToString();
+                mensajeExistente.PrioridadId = (int)PrioridadModel.Baja;
                 if (estado.Id == (int)EstadoMensajeModel.Fallido)
                 {
                     mensajeExistente.ContadorReintentos++;
@@ -93,6 +95,11 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
                 respuesta.MetaDatos = mensajeExistente.Metadatos;
 
                 return new OkObjectResult(respuesta);
+            }
+            catch (ArgumentException ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
             }
             catch (Exception ex)
             {

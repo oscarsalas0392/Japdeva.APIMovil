@@ -20,7 +20,6 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
         private readonly IEliminarRepository _eliminarRepository;
         private readonly ILogger<GuardarMensajesHistoricoService> _logger;
         private const int PAGINA_INICIAL = 1;
-
         /// <summary>
         /// Inicializa una nueva instancia de la clase GuardarMensajesHistoricoService.
         /// </summary>
@@ -65,19 +64,18 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
                 foreach (var mensaje in mensajes.Lista)
                 {
                     MensajeColaHistoricoEntity mensajeColaHistoricoEntity = new MensajeColaHistoricoEntity();
-                    mensajeColaHistoricoEntity.Id = mensaje.Id;
+                    mensajeColaHistoricoEntity.IdMensajeCola = mensaje.Id;
                     mensajeColaHistoricoEntity.ColaId = mensaje.ColaId;
                     mensajeColaHistoricoEntity.ContadorReintentos = mensaje.ContadorReintentos;
                     mensajeColaHistoricoEntity.ContenidoMensaje = mensaje.ContenidoMensaje;
                     mensajeColaHistoricoEntity.EstadoId = mensaje.EstadoId;
                     mensajeColaHistoricoEntity.FechaEdicion = mensaje.FechaEdicion;
                     mensajeColaHistoricoEntity.FechaRegistro = mensaje.FechaRegistro;
-                    mensajeColaHistoricoEntity.MaximoReintentos = mensaje.MaximoReintentos;
                     mensajeColaHistoricoEntity.MensajeError = mensaje.MensajeError;
-                    mensajeColaHistoricoEntity.Prioridad = mensaje.Prioridad;
+                    mensajeColaHistoricoEntity.PrioridadId = mensaje.PrioridadId;
                     mensajeColaHistoricoEntity.Metadatos = mensaje.Metadatos;
-                    mensajeColaHistoricoEntity.ProximoReintento = mensaje.ProximoReintento;
                     mensajeColaHistoricoEntity.TraceId = mensaje.TraceId;
+                    mensajeColaHistoricoEntity.FechaArchivado = DateTime.UtcNow;
                     mensajesHistorico.Add(mensajeColaHistoricoEntity);
                 }
                 

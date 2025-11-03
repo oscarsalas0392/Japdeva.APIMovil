@@ -14,9 +14,15 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         private readonly ILogger<MensajesHistoricoBackgroundService> _logger;
         private readonly IGuardarMensajesHistoricoService _guardarMensajesHistoricoService;
         private readonly IConsultarRepository _consultarRepository;
-        private const int DELAY_MINUTOS = 5;
         private const string TRACE_ID = "N/A";
         private const int CANTIDAD_MENSAJES_MINIMA = 0;
+        private const int UMBRAL_MUCHA_CARGA = 5000;
+        private const int UMBRAL_CARGA_NORMAL = 1000;
+        private const int UMBRAL_POCA_CARGA = 100;
+        private const int DELAY_MUCHA_CARGA = 1;
+        private const int DELAY_CARGA_NORMAL = 2;
+        private const int DELAY_POCA_CARGA = 5;
+        private const int DELAY_SIN_CARGA = 10;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MensajesHistoricoBackgroundService"/> class.
@@ -46,13 +52,22 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
                 {
                     int cantidadMensajesProcesados = await this._consultarRepository.ContarAsync<MensajeColaEntity>(TRACE_ID,
                                               mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
+
                                               mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
 
                     if (cantidadMensajesProcesados > CANTIDAD_MENSAJES_MINIMA)
                     {
                         await this._guardarMensajesHistoricoService.MoverMensajesAHistoricoAsync(TRACE_ID);
                     }
-                    await Task.Delay(TimeSpan.FromMinutes(DELAY_MINUTOS), stoppingToken);
+
+                    int delayMinutos = cantidadMensajesProcesados switch
+                    {
+                            > UMBRAL_MUCHA_CARGA => DELAY_MUCHA_CARGA,    // Mucha carga: archivar cada minuto
+                            > UMBRAL_CARGA_NORMAL => DELAY_CARGA_NORMAL,    // Carga normal: cada 2 minutos  
+                            > UMBRAL_POCA_CARGA => DELAY_POCA_CARGA,     // Poca carga: cada 5 minutos
+                            _ => DELAY_SIN_CARGA         // Sin carga: cada 10 minutos
+                    };
+                    await Task.Delay(TimeSpan.FromMinutes(delayMinutos), stoppingToken);
                 }
             }
             catch (Exception ex)

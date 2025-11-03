@@ -6,7 +6,7 @@ namespace Japdeva.APIMovil.Colas.Entities
     /// <summary>
     /// Entidad que representa una cola para el manejo de mensajes en el sistema.
     /// </summary>
-    [Table("queue")]
+    [Table("Tbl_Cola")]
     public class ColaEntity
     {
         /// <summary>
@@ -14,14 +14,14 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// </summary>
         [Key]
         [Column("id")]
-        public Int64 Id { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// Obtiene o establece el nombre de la cola.
         /// </summary>
         [Column("nombre")]
         [Required]
-        [MaxLength(255)]
+        [MaxLength(100)]
         public string Nombre { get; set; } = string.Empty;
 
         /// <summary>

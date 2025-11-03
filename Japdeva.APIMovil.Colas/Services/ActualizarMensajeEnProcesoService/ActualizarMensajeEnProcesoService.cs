@@ -20,8 +20,8 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         private readonly IConsultarRepository _consultarRepository;
         private readonly IEstadoMensajeService _estadoMensajeService;
 
-        private const string MENSAJE_ERROR_ID_INVALIDO = "El identificador del mensaje no es válido.";
-        private const string MENSAJE_ERROR_TRACEID_INVALIDO = "El TraceId del mensaje no es válido.";
+        private const string MENSAJE_ERROR_CAMPO_REQUERIDO = "El {0} del mensaje es requerido.";
+        private const string MENSAJE_ERROR_ID_INVALIDO = "El Id: {0} del mensaje no se encuentra.";
         private const string MENSAJE_ERROR_ESTADO_ENPROCESO = "No se pudo obtener el estado 'EnProceso' para actualizar el mensaje.";
         private const bool TRACE_ID_VALIDO_INICIAL = true;
         private const int MENSAJE_ID_MINIMO = 0;
@@ -51,7 +51,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje en proceso a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<IActionResult> ActualizarMensajeEnProcesoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeEnProcesoAsync(string traceId, ActualizarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -60,18 +60,18 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 this._logger.Inicio(traceId, nombreMetodo);
                 var respuesta = new MensajeColasRespuestaModel();
 
-                if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
-                if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(MENSAJE_ERROR_TRACEID_INVALIDO);
+                if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
+                if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
                 var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
-                if (mensajeExistente is null) throw new KeyNotFoundException(MENSAJE_ERROR_ID_INVALIDO);
+                if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
                 if (mensajeExistente.TraceId != mensaje.TraceId) traceIdValido = false;
-                
-                if(traceIdValido) 
+
+                if (traceIdValido)
                 {
                     var estado = this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.EnProceso);
-                    if (estado is null) throw new Exception(MENSAJE_ERROR_ESTADO_ENPROCESO);
+                    if (estado is null) throw new KeyNotFoundException(MENSAJE_ERROR_ESTADO_ENPROCESO);
                     mensajeExistente.EstadoId = estado.Id;
                     mensajeExistente.FechaEdicion = DateTime.UtcNow;
                     mensajeExistente.TraceId = Guid.NewGuid().ToString();
@@ -79,7 +79,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 }
                 else
                 {
-                   respuesta.TraceIdDiferente = !traceIdValido;
+                    respuesta.TraceIdDiferente = !traceIdValido;
                 }
 
                 respuesta.Id = mensajeExistente.Id;
@@ -87,8 +87,13 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 respuesta.TraceId = mensajeExistente.TraceId;
                 respuesta.Estado = mensajeExistente.EstadoId;
                 respuesta.Mensaje = mensajeExistente.ContenidoMensaje;
-                 
+
                 return new OkObjectResult(respuesta);
+            }
+            catch (ArgumentException ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
             }
             catch (Exception ex)
             {

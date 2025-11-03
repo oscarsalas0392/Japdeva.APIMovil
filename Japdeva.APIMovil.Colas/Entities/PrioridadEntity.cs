@@ -6,7 +6,7 @@ namespace Japdeva.APIMovil.Colas.Entities
     /// <summary>
     /// Entidad que representa la prioridad de un mensaje en cola para persistencia en base de datos.
     /// </summary>
-    [Table("queue_messages")]
+    [Table("Tbl_Prioridad")]
     public class PrioridadEntity
     {
         /// <summary>

@@ -10,8 +10,8 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
     {
         private readonly ILogger<MensajesBackgroundService> _logger;
         private readonly IMensajeColaService _mensajeColaService;
-        private const int DELAY_MILISEGUNDOS = 500;
-        private const int DELAY_SEGUNDOS = 5;
+        private const int DELAY_MILISEGUNDOS = 100;
+        private const int DELAY_SEGUNDOS = 2;
         private const string TRACE_ID = "N/A";
         private const int CANTIDAD_MENSAJES_MINIMA = 0;
 

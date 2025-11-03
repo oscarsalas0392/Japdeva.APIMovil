@@ -21,7 +21,8 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
         private readonly IConsultarRepository _consultarRepository;
         private readonly IEstadoMensajeService _estadoMensajeService;
 
-        private const string MENSAJE_ERROR_ID_INVALIDO = "El identificador del mensaje no es válido.";
+        private const string MENSAJE_ERROR_CAMPO_REQUERIDO = "El {0} del mensaje es requerido.";
+        private const string MENSAJE_ERROR_ID_INVALIDO = "El Id: {0} del mensaje no se encuentra.";
         private const string MENSAJE_ERROR_TRACEID_NO_COINCIDE = "El TraceId del mensaje con ID {0} no coincide.";
         private const string MENSAJE_ERROR_ESTADO_PROCESADO = "No se pudo obtener el estado 'Procesado' para actualizar el mensaje.";
         private const int MENSAJE_ID_MINIMO = 0;
@@ -54,23 +55,24 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="mensaje">Datos del mensaje a actualizar</param>
         /// <returns>La entidad del mensaje actualizado</returns>
-        public async Task<IActionResult> ActualizarMensajeExitosoAsync(string traceId, EnviarMensajeSolicitudModel mensaje)
+        public async Task<IActionResult> ActualizarMensajeExitosoAsync(string traceId, ActualizarMensajeSolicitudModel mensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                 var respuesta = new MensajeColasRespuestaModel();
-                if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_INVALIDO);
+                var respuesta = new MensajeColasRespuestaModel();
+                if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
+                if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
                 var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
-                if (mensajeExistente is null) throw new KeyNotFoundException(MENSAJE_ERROR_ID_INVALIDO);
+                if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
-                if (mensajeExistente.TraceId != mensaje.TraceId) throw new Exception(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
-                
+                if (mensajeExistente.TraceId != mensaje.TraceId) throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
+
                 var estado = this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Procesado);
-                if (estado is null) throw new Exception(MENSAJE_ERROR_ESTADO_PROCESADO);
-                
+                if (estado is null) throw new KeyNotFoundException(MENSAJE_ERROR_ESTADO_PROCESADO);
+
                 mensajeExistente.EstadoId = estado.Id;
                 mensajeExistente.TraceId = Guid.NewGuid().ToString();
 
@@ -82,8 +84,13 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
                 respuesta.TraceId = mensajeExistente.TraceId;
                 respuesta.Estado = mensajeExistente.EstadoId;
                 respuesta.MetaDatos = mensajeExistente.Metadatos;
-                
+
                 return new OkObjectResult(respuesta);
+            }
+            catch (ArgumentException ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
             }
             catch (Exception ex)
             {

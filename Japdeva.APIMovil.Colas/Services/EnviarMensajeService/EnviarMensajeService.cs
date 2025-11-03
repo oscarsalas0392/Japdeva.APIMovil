@@ -59,10 +59,10 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 if (string.IsNullOrEmpty(mensaje.ContenidoMensaje)) throw new ArgumentException(MENSAJE_ERROR_MENSAJE_VACIO);
 
                 if (string.IsNullOrEmpty(mensaje.NombreCola)) throw new ArgumentException(MENSAJE_ERROR_COLA_VACIO);
-                
+
                 var estadoCola = this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Pendiente);
                 if (estadoCola is null) throw new Exception(MENSAJE_ERROR_ESTADO_INVALIDO);
-                            
+
                 var cola = await this._colaService.ObtenerColaPorNombreAsync(traceId, mensaje.NombreCola);
 
                 if (cola is null)
@@ -73,7 +73,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                     cola.Activo = true;
                     await this._agregarRepository.AgregarAsync<ColaEntity>(traceId, cola);
                 }
-                
+
                 bool esNumero = int.TryParse(Environment.GetEnvironmentVariable(NUMERO_REINTENTOS_ENV_VAR), out int reintentos);
                 reintentos = esNumero ? reintentos : NUMERO_REINTENTOS;
 
@@ -81,10 +81,9 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeEntity.ColaId = cola.Id;
                 mensajeEntity.ContenidoMensaje = mensaje.ContenidoMensaje;
                 mensajeEntity.EstadoId = estadoCola.Id;
-                mensajeEntity.Prioridad = mensaje.Prioridad;
-                mensajeEntity.MaximoReintentos = reintentos;
+                mensajeEntity.PrioridadId = mensaje.Prioridad;
                 mensajeEntity.FechaRegistro = DateTime.UtcNow;
-                                mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? string.Empty;
+                mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? string.Empty;
                 mensajeEntity.ContadorReintentos = INICIO_REINTENTOS;
                 mensajeEntity.TraceId = mensaje.TraceId;
                 await this._agregarRepository.AgregarAsync(traceId, mensajeEntity);
@@ -97,6 +96,11 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId;
                 mensajeColasRespuestaModel.TraceIdDiferente = false;
                 return new OkObjectResult(mensajeColasRespuestaModel);
+            }
+            catch (ArgumentException ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
             }
             catch (Exception ex)
             {

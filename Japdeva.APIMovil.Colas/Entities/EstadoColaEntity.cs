@@ -6,7 +6,7 @@ namespace Japdeva.APIMovil.Colas.Entities
     /// <summary>
     /// Entidad que representa el estado de una cola en el sistema.
     /// </summary>
-    [Table("queue_status")]
+    [Table("Tbl_EstadoCola")]
     public class EstadoColaEntity
     {
         /// <summary>
@@ -14,15 +14,15 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// </summary>
         [Key]
         [Column("id")]
-        public Int64 Id { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador de la cola.
         /// </summary>
         [Required]
         [MaxLength(100)]
-        [Column("cola")]
-        public Int64 ColaId { get; set; }
+        [Column("colaId")]
+        public long ColaId { get; set; }
 
         /// <summary>
         /// Obtiene o establece el número total de mensajes en la cola.
@@ -37,6 +37,12 @@ namespace Japdeva.APIMovil.Colas.Entities
         public int MensajesPendientes { get; set; } = 0;
 
         /// <summary>
+        /// Obtiene o establece el número de mensajes en proceso.
+        /// </summary>
+        [Column("mensajesEnProceso")]
+        public int MensajesEnProceso { get; set; } = 0;
+
+        /// <summary>
         /// Obtiene o establece el número de mensajes procesados exitosamente.
         /// </summary>
         [Column("mensajesProcesados")]
@@ -49,16 +55,28 @@ namespace Japdeva.APIMovil.Colas.Entities
         public int MensajesFallidos { get; set; } = 0;
 
         /// <summary>
+        /// Obtiene o establece el número de mensajes cancelados.
+        /// </summary>
+        [Column("mensajesCancelados")]
+        public int MensajesCancelados { get; set; } = 0;
+
+        /// <summary>
+        /// Obtiene o establece el número de mensajes expirados.
+        /// </summary>
+        [Column("mensajesExpirados")]
+        public int MensajesExpirados { get; set; } = 0;
+
+        /// <summary>
         /// Obtiene o establece la fecha y hora de la última actualización.
         /// </summary>
         [Column("fechaEdicion")]
-        public DateTime fechaEdicion { get; set; } = DateTime.UtcNow;
+        public DateTime? fechaEdicion { get; set; }
 
         /// <summary>
         /// Obtiene o establece la fecha y hora del último procesamiento.
         /// </summary>
         [Column("fechaRegistro")]
-        public DateTime? fechaRegistro { get; set; }
+        public DateTime fechaRegistro { get; set; }
 
     }
 }
