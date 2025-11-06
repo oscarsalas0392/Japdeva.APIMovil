@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
-using Japdeva.APIMovil.Colas.Services.ColaService;
 using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
@@ -16,9 +15,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
     public class ActualizarMensajeExitosoService : IActualizarMensajeExitosoService
     {
         private readonly ILogger<ActualizarMensajeExitosoService> _logger;
-        private readonly IActualizarRepository _actualizarRepository;
-        private readonly IColaService _colaService;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IEstadoMensajeService _estadoMensajeService;
 
         private const string MENSAJE_ERROR_CAMPO_REQUERIDO = "El {0} del mensaje es requerido.";
@@ -31,22 +28,16 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
         /// Inicializa una nueva instancia de la clase ActualizarMensajeService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="actualizarRepository">Repositorio para actualizar entidades.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
         /// <param name="estadoMensajeService">Servicio para gestionar estados de mensajes.</param>
-        /// <param name="colaService">Servicio para gestionar colas del sistema.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para crear ámbitos de dependencias.</param>
         public ActualizarMensajeExitosoService(
             ILogger<ActualizarMensajeExitosoService> logger,
-            IActualizarRepository actualizarRepository,
-            IConsultarRepository consultarRepository,
-            IEstadoMensajeService estadoMensajeService, IColaService colaService)
+            IEstadoMensajeService estadoMensajeService, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._actualizarRepository = actualizarRepository;
-            this._consultarRepository = consultarRepository;
             this._estadoMensajeService = estadoMensajeService;
-            this._colaService = colaService;
-
+            this._estadoMensajeService = estadoMensajeService;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -60,12 +51,15 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                 using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();   
                 this._logger.Inicio(traceId, nombreMetodo);
                 var respuesta = new MensajeColasRespuestaModel();
                 if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
                 if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
-                var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
+                var mensajeExistente = await consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
                 if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
                 if (mensajeExistente.TraceId != mensaje.TraceId) throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
@@ -76,7 +70,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
                 mensajeExistente.EstadoId = estado.Id;
                 mensajeExistente.TraceId = Guid.NewGuid().ToString();
 
-                await this._actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
+                await actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
 
                 respuesta.Id = mensajeExistente.Id;
                 respuesta.Cola = mensajeExistente.ColaId;

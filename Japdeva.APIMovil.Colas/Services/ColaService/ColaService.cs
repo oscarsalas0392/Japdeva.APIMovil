@@ -11,9 +11,8 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
     /// </summary>
     public class ColaService : IColaService
     {
-        private readonly IConsultarListaRepository _consultarListaRepository;
-        private readonly IConsultarRepository _consultarRepository;
         private readonly ILogger<ColaService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly List<ColaEntity> _colasCache = new List<ColaEntity>();
         private const int PAGINA_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
@@ -21,14 +20,12 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
         /// <summary>
         /// Inicializa una nueva instancia de la clase ColaService.
         /// </summary>
-        /// <param name="consultarListaRepository">Repositorio para consultas de datos.</param>
-        /// <param name="consultarRepository">Repositorio para consultas individuales.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para inyección de dependencias.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
-        public ColaService(IConsultarListaRepository consultarListaRepository, IConsultarRepository consultarRepository, ILogger<ColaService> logger)
+        public ColaService(IServiceProvider serviceProvider, ILogger<ColaService> logger)
         {
-            _consultarListaRepository = consultarListaRepository;
-            _consultarRepository = consultarRepository;
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -40,9 +37,10 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
-
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>(); 
                 this._logger.Inicio(traceId, nombreMetodo);
-                var colas = await this._consultarListaRepository.ConsultarListaAsync<ColaEntity>(
+                var colas = await consultarListaRepository.ConsultarListaAsync<ColaEntity>(
                     traceId, PAGINA_INICIAL, c => c.Activo == ESTADO_ACTIVO);
 
                 if (colas is null || !colas.Lista.Any()) return;
@@ -85,7 +83,9 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
 
                 if (cola is null)
                 {
-                    cola = await this._consultarRepository.ConsultarAsync<ColaEntity>(
+                    using var scope = this._serviceProvider.CreateScope();
+                    var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                    cola = await consultarRepository.ConsultarAsync<ColaEntity>(
                         traceId,
                         c => c.Nombre == nombreCola && c.Activo);
                 }
@@ -116,7 +116,9 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                return await this._consultarRepository.ContarAsync<ColaEntity>(
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                return await consultarRepository.ContarAsync<ColaEntity>(
                     traceId,
                     c => c.Activo);
 

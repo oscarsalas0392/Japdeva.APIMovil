@@ -13,9 +13,8 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
     /// </summary>
     public class MensajeColaService : IMensajeColaService
     {
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IMensajesColaRepository _mensajesColaRepository;
         private readonly IColaService _colaService;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MensajeColaService> _logger;
         private readonly List<MensajeColaEntity> _mensajesCache = new List<MensajeColaEntity>();
         private const string MENSAJE_ERROR_NOMBRE_COLA_INVALIDO = "El nombre de cola proporcionado no es válido.";
@@ -23,19 +22,16 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
         /// <summary>
         /// Inicializa una nueva instancia de la clase MensajeColaService.
         /// </summary>
-        /// <param name="consultarRepository">Repositorio para gestionar consultas.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolución de dependencias.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
-        /// <param name="mensajesColaRepository">Repositorio para gestionar mensajes en colas.</param>
         /// <param name="colaService">Servicio para gestionar operaciones de colas.</param>
         public MensajeColaService(
-            IConsultarRepository consultarRepository,
-            IMensajesColaRepository mensajesColaRepository,
+            IServiceProvider serviceProvider,
             ILogger<MensajeColaService> logger, IColaService colaService)
         {
             this._logger = logger;
             this._colaService = colaService;
-            this._mensajesColaRepository = mensajesColaRepository;
-            this._consultarRepository = consultarRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -48,7 +44,10 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                var mensajes = await this._mensajesColaRepository.ObtenerMensajesPendientesAsync(traceId);
+
+                using var scope = this._serviceProvider.CreateScope();
+                var mensajesColaRepository = scope.ServiceProvider.GetRequiredService<IMensajesColaRepository>();
+                var mensajes = await mensajesColaRepository.ObtenerMensajesPendientesAsync(traceId);
 
                 if (mensajes is null || !mensajes.Any()) return;
 
@@ -108,7 +107,10 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                int totalMensajes = await this._consultarRepository.ContarAsync<MensajeColaEntity>(
+
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                int totalMensajes = await consultarRepository.ContarAsync<MensajeColaEntity>(
                     traceId, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Pendiente ||
                                        mensaje.EstadoId == (int)EstadoMensajeModel.Fallido);
 

@@ -10,8 +10,8 @@ namespace Japdeva.APIMovil.Colas.Services.PrioridadService
     /// </summary>
     public class PrioridadService : IPrioridadService
     {
-        private readonly IConsultarListaRepository _consultarRepository;
         private readonly ILogger<PrioridadService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly List<PrioridadEntity> _prioridadesCache = new List<PrioridadEntity>();
         private const int PAGINA_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
@@ -19,12 +19,12 @@ namespace Japdeva.APIMovil.Colas.Services.PrioridadService
         /// <summary>
         /// Inicializa una nueva instancia de la clase PrioridadService.
         /// </summary>
-        /// <param name="consultarRepository">Repositorio para consultas de datos.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
-        public PrioridadService(IConsultarListaRepository consultarRepository, ILogger<PrioridadService> logger)
+        public PrioridadService(IServiceProvider serviceProvider, ILogger<PrioridadService> logger)
         {
-            _consultarRepository = consultarRepository;
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -36,9 +36,11 @@ namespace Japdeva.APIMovil.Colas.Services.PrioridadService
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
- 
+
                 this._logger.Inicio(traceId, nombreMetodo);
-                var prioridades = await this._consultarRepository.ConsultarListaAsync<PrioridadEntity>(
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var prioridades = await consultarRepository.ConsultarListaAsync<PrioridadEntity>(
                     traceId, PAGINA_INICIAL, p => p.Activo == ESTADO_ACTIVO);
 
                 if (prioridades is null || !prioridades.Lista.Any()) return;

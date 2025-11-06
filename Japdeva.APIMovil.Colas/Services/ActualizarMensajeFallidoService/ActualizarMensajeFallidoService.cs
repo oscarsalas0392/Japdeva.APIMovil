@@ -16,9 +16,8 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
     public class ActualizarMensajeFallidoService : IActualizarMensajeFallidoService
     {
         private readonly ILogger<ActualizarMensajeFallidoService> _logger;
-        private readonly IActualizarRepository _actualizarRepository;
-        private readonly IConsultarRepository _consultarRepository;
         private readonly IEstadoMensajeService _estadoMensajeService;
+        private readonly IServiceProvider _serviceProvider;
         private const int ID_INVALIDO = 0;
         private const int NUMERO_REINTENTOS = 3;
         private const string NUMERO_MAXIMO_REINTENTOS_ENV_VAR = "NUMERO_MAXIMO_REINTENTOS";
@@ -31,19 +30,15 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
         /// Inicializa una nueva instancia de la clase ActualizarMensajeFallidoService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="actualizarRepository">Repositorio para actualizar entidades.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
         /// <param name="estadoMensajeService">Servicio para gestionar estados de mensajes.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
         public ActualizarMensajeFallidoService(
             ILogger<ActualizarMensajeFallidoService> logger,
-            IActualizarRepository actualizarRepository,
-            IConsultarRepository consultarRepository,
-            IEstadoMensajeService estadoMensajeService)
+            IEstadoMensajeService estadoMensajeService, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._actualizarRepository = actualizarRepository;
-            this._consultarRepository = consultarRepository;
             this._estadoMensajeService = estadoMensajeService;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -58,12 +53,16 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
                 var respuesta = new MensajeColasRespuestaModel();
 
                 if (mensaje.Id <= ID_INVALIDO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
                 if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
-                var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
+                var mensajeExistente = await consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
                 if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
                 if (mensajeExistente.TraceId != mensaje.TraceId) throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
@@ -85,7 +84,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService
                 {
                     mensajeExistente.ContadorReintentos++;
                 }
-                await this._actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
+                await actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
 
                 respuesta.Id = mensajeExistente.Id;
                 respuesta.Cola = mensajeExistente.ColaId;

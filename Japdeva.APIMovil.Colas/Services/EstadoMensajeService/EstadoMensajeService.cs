@@ -10,8 +10,8 @@ namespace Japdeva.APIMovil.Colas.Services.EstadoMensajeService
     /// </summary>
     public class EstadoMensajeService : IEstadoMensajeService
     {
-        private readonly IConsultarListaRepository _consultarRepository;
         private readonly ILogger<EstadoMensajeService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly List<EstadoMensajeEntity> _estadosCache = new List<EstadoMensajeEntity>();
         private const int PAGINA_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
@@ -19,12 +19,12 @@ namespace Japdeva.APIMovil.Colas.Services.EstadoMensajeService
         /// <summary>
         /// Inicializa una nueva instancia de la clase EstadoMensajeService.
         /// </summary>
-        /// <param name="consultarRepository">Repositorio para consultas de datos.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
-        public EstadoMensajeService(IConsultarListaRepository consultarRepository, ILogger<EstadoMensajeService> logger)
+        public EstadoMensajeService(IServiceProvider serviceProvider, ILogger<EstadoMensajeService> logger)
         {
-            _consultarRepository = consultarRepository;
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -37,7 +37,10 @@ namespace Japdeva.APIMovil.Colas.Services.EstadoMensajeService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                var estadosMensaje = await this._consultarRepository.ConsultarListaAsync<EstadoMensajeEntity>(
+
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var estadosMensaje = await consultarListaRepository.ConsultarListaAsync<EstadoMensajeEntity>(
                     traceId, PAGINA_INICIAL, e => e.Activo == ESTADO_ACTIVO);
 
                 if (estadosMensaje is null || !estadosMensaje.Lista.Any()) return;

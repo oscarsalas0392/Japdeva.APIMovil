@@ -13,7 +13,7 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
     {
         private readonly ILogger<MensajesHistoricoBackgroundService> _logger;
         private readonly IGuardarMensajesHistoricoService _guardarMensajesHistoricoService;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string TRACE_ID = "N/A";
         private const int CANTIDAD_MENSAJES_MINIMA = 0;
         private const int UMBRAL_MUCHA_CARGA = 5000;
@@ -29,12 +29,12 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         /// </summary>
         /// <param name="logger">The logger instance.</param>
         /// <param name="guardarMensajesHistoricoService">The service for saving historic messages.</param>
-        /// <param name="consultarRepository">The repository for querying data.</param>
-        public MensajesHistoricoBackgroundService(ILogger<MensajesHistoricoBackgroundService> logger, IGuardarMensajesHistoricoService guardarMensajesHistoricoService, IConsultarRepository consultarRepository)
+        /// <param name="serviceProvider">The service provider for dependency injection.</param>
+        public MensajesHistoricoBackgroundService(ILogger<MensajesHistoricoBackgroundService> logger, IGuardarMensajesHistoricoService guardarMensajesHistoricoService, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _guardarMensajesHistoricoService = guardarMensajesHistoricoService;
-            _consultarRepository = consultarRepository;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -50,7 +50,9 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
                 this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    int cantidadMensajesProcesados = await this._consultarRepository.ContarAsync<MensajeColaEntity>(TRACE_ID,
+                    using var scope = this._serviceProvider.CreateScope();
+                    var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                    int cantidadMensajesProcesados = await consultarRepository.ContarAsync<MensajeColaEntity>(TRACE_ID,
                                               mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
 
                                               mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);

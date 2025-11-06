@@ -3,8 +3,7 @@ using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
-using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
-using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;   
 using Japdeva.APIMovil.Common.Repositories.EliminarRepository;
 
 namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
@@ -14,32 +13,21 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
     /// </summary>
     public class GuardarMensajesHistoricoService : IGuardarMensajesHistoricoService
     {
-        private readonly IConsultarListaRepository _consultarListaRepository;
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IEliminarRepository _eliminarRepository;
+
         private readonly ILogger<GuardarMensajesHistoricoService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private const int PAGINA_INICIAL = 1;
         /// <summary>
         /// Inicializa una nueva instancia de la clase GuardarMensajesHistoricoService.
         /// </summary>
-        /// <param name="consultarListaRepository">Repositorio para consultas de listas de datos.</param>
-        /// <param name="consultarRepository">Repositorio para consultas individuales.</param>
-        /// <param name="agregarRepository"></param>
-        /// <param name="eliminarRepository"></param>
+        /// <param name="serviceProvider">Proveedor de servicios para la inyección de dependencias.</param>
         /// <param name="logger">Instancia de logger para registrar eventos.</param>
         public GuardarMensajesHistoricoService(
-            IConsultarListaRepository consultarListaRepository,
-            IConsultarRepository consultarRepository,
-            IAgregarRepository agregarRepository,
-            IEliminarRepository eliminarRepository,
+            IServiceProvider serviceProvider,
             ILogger<GuardarMensajesHistoricoService> logger)
         {
-            this._consultarListaRepository = consultarListaRepository;
-            this._consultarRepository = consultarRepository;
-            this._agregarRepository = agregarRepository;
-            this._eliminarRepository = eliminarRepository;
             this._logger = logger;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -54,8 +42,12 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
                 this._logger.Inicio(traceId, nombreMetodo);
                 List<MensajeColaHistoricoEntity> mensajesHistorico = new List<MensajeColaHistoricoEntity>();
 
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
                 int pagina = PAGINA_INICIAL;
-                var mensajes = await this._consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
+                var mensajes = await consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
                     traceId, pagina, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
                                               mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
 
@@ -78,9 +70,9 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
                     mensajeColaHistoricoEntity.FechaArchivado = DateTime.UtcNow;
                     mensajesHistorico.Add(mensajeColaHistoricoEntity);
                 }
-                
-                await this._agregarRepository.AgregarVariosAsync<MensajeColaHistoricoEntity>(traceId, mensajesHistorico);
-                await this._eliminarRepository.EliminarAsync<MensajeColaEntity>(traceId, mensajes.Lista);
+
+                await agregarRepository.AgregarVariosAsync<MensajeColaHistoricoEntity>(traceId, mensajesHistorico);
+                await eliminarRepository.EliminarAsync<MensajeColaEntity>(traceId, mensajes.Lista);
             }
             catch (Exception ex)
             {

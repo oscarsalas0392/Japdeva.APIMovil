@@ -16,9 +16,8 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
     public class ActualizarMensajeEnProcesoService : IActualizarMensajeEnProcesoService
     {
         private readonly ILogger<ActualizarMensajeEnProcesoService> _logger;
-        private readonly IActualizarRepository _actualizarRepository;
-        private readonly IConsultarRepository _consultarRepository;
         private readonly IEstadoMensajeService _estadoMensajeService;
+        private readonly IServiceProvider _serviceProvider;
 
         private const string MENSAJE_ERROR_CAMPO_REQUERIDO = "El {0} del mensaje es requerido.";
         private const string MENSAJE_ERROR_ID_INVALIDO = "El Id: {0} del mensaje no se encuentra.";
@@ -30,19 +29,15 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
         /// Inicializa una nueva instancia de la clase ActualizarMensajeEnProcesoService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="actualizarRepository">Repositorio para actualizar entidades.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
         /// <param name="estadoMensajeService">Servicio para gestionar estados de mensajes.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para inyección de dependencias.</param>
         public ActualizarMensajeEnProcesoService(
             ILogger<ActualizarMensajeEnProcesoService> logger,
-            IActualizarRepository actualizarRepository,
-            IEstadoMensajeService estadoMensajeService,
-            IConsultarRepository consultarRepository)
+            IEstadoMensajeService estadoMensajeService, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._actualizarRepository = actualizarRepository;
-            this._consultarRepository = consultarRepository;
             this._estadoMensajeService = estadoMensajeService;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -56,6 +51,9 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
                 bool traceIdValido = TRACE_ID_VALIDO_INICIAL;
                 this._logger.Inicio(traceId, nombreMetodo);
                 var respuesta = new MensajeColasRespuestaModel();
@@ -63,7 +61,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                 if (mensaje.Id <= MENSAJE_ID_MINIMO) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.Id)));
                 if (string.IsNullOrEmpty(mensaje.TraceId)) throw new ArgumentException(string.Format(MENSAJE_ERROR_CAMPO_REQUERIDO, nameof(mensaje.TraceId)));
 
-                var mensajeExistente = await this._consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
+                var mensajeExistente = await consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
                 if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
                 if (mensajeExistente.TraceId != mensaje.TraceId) traceIdValido = false;
@@ -75,7 +73,7 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService
                     mensajeExistente.EstadoId = estado.Id;
                     mensajeExistente.FechaEdicion = DateTime.UtcNow;
                     mensajeExistente.TraceId = Guid.NewGuid().ToString();
-                    await this._actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
+                    await actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
                 }
                 else
                 {

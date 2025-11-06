@@ -16,7 +16,6 @@ namespace Japdeva.APIMovil.Colas.Controllers
     [Route("api/[controller]")]
     public class MensajeColaController : Controller
     {
-        private const string NOMBRE_COLA_QUERY_PARAMETER = "nombre-cola";
         /// <summary>
         /// Envía un mensaje a la cola de mensajería.
         /// </summary>
@@ -66,7 +65,7 @@ namespace Japdeva.APIMovil.Colas.Controllers
         /// <param name="nombreCola">Nombre de la cola de la cual obtener los mensajes pendientes.</param>
         /// <returns>Respuesta con los mensajes pendientes de la cola.</returns>
         [HttpGet("ObtenerMensajesPendientes")]
-        public Task<IActionResult> ObtenerMensajesPendientesAsync([FromServices] IObtenerMensajesPorColaService obtenerMensajesPorColaService, [FromQuery(Name = NOMBRE_COLA_QUERY_PARAMETER)] string nombreCola) =>
+        public Task<IActionResult> ObtenerMensajesPendientesAsync([FromServices] IObtenerMensajesPorColaService obtenerMensajesPorColaService, [FromQuery(Name = "nombre-cola")] string nombreCola) =>
             obtenerMensajesPorColaService.ObtenerMensajesPorColaAsync(HttpContext.TraceIdentifier, nombreCola);
 
     }

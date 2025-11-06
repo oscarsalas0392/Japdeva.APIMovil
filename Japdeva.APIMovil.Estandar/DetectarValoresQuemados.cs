@@ -206,6 +206,14 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoHttp(literal))
                         continue;
 
+                    // Excluir literales que están dentro de un atributo JsonProperty
+                    if (EstaEnAtributoJsonProperty(literal))
+                        continue;
+
+                    // Excluir literales que están dentro de un atributo FromQuery
+                    if (EstaEnAtributoFromQuery(literal))
+                        continue;
+
                     // Excluir literales que están dentro de un atributo Table
                     if (EstaEnAtributoTable(literal))
                         continue;
@@ -247,6 +255,14 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoHttp(unary))
                         continue;
 
+                    // Excluir expresiones unarias que están dentro de un atributo JsonProperty
+                    if (EstaEnAtributoJsonProperty(unary))
+                        continue;
+
+                    // Excluir expresiones unarias que están dentro de un atributo FromQuery
+                    if (EstaEnAtributoFromQuery(unary))
+                        continue;
+
                     // Excluir expresiones unarias que están dentro de un atributo Table
                     if (EstaEnAtributoTable(unary))
                         continue;
@@ -275,6 +291,14 @@ namespace Japdeva.APIMovil.Estandar
 
                         // Excluir contenido de cadenas interpoladas que están dentro de atributos HTTP de ASP.NET Core
                         if (EstaEnAtributoHttp(contenido))
+                            continue;
+
+                        // Excluir contenido de cadenas interpoladas que están dentro de un atributo JsonProperty
+                        if (EstaEnAtributoJsonProperty(contenido))
+                            continue;
+
+                        // Excluir contenido de cadenas interpoladas que están dentro de un atributo FromQuery
+                        if (EstaEnAtributoFromQuery(contenido))
                             continue;
 
                         // Excluir contenido de cadenas interpoladas que están dentro de un atributo Table
@@ -568,6 +592,26 @@ namespace Japdeva.APIMovil.Estandar
 
             var nombre = atributo.Name.ToString();
             return nombre.IndexOf("Column", System.StringComparison.OrdinalIgnoreCase) != -1;
+        }
+
+        private static bool EstaEnAtributoJsonProperty(SyntaxNode nodo)
+        {
+            var atributo = nodo.Ancestors().OfType<AttributeSyntax>().FirstOrDefault();
+            if (atributo == null)
+                return false;
+
+            var nombre = atributo.Name.ToString();
+            return nombre.IndexOf("JsonProperty", System.StringComparison.OrdinalIgnoreCase) != -1;
+        }
+
+        private static bool EstaEnAtributoFromQuery(SyntaxNode nodo)
+        {
+            var atributo = nodo.Ancestors().OfType<AttributeSyntax>().FirstOrDefault();
+            if (atributo == null)
+                return false;
+
+            var nombre = atributo.Name.ToString();
+            return nombre.IndexOf("FromQuery", System.StringComparison.OrdinalIgnoreCase) != -1;
         }
 
         private static bool TieneAtributoTable(TypeDeclarationSyntax tipoDeclaracion)

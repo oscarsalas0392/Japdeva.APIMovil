@@ -17,9 +17,9 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
     public class EnviarMensajeService : IEnviarMensajeService
     {
         private readonly ILogger<EnviarMensajeService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
         private readonly IEstadoMensajeService _estadoMensajeService;
         private readonly IColaService _colaService;
+        private readonly IServiceProvider _serviceProvider;
         private const int NUMERO_REINTENTOS = 3;
         private const int INICIO_REINTENTOS = 0; 
         private const string NUMERO_REINTENTOS_ENV_VAR = "NUMERO_REINTENTOS";
@@ -32,15 +32,15 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         /// Inicializa una nueva instancia de la clase EnviarMensajeService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la inyección de dependencias.</param>
         /// <param name="colaService">Servicio para gestionar colas.</param>
         /// <param name="estadoMensajeService">Servicio para gestionar estados de mensajes.</param>
-        public EnviarMensajeService(ILogger<EnviarMensajeService> logger, IAgregarRepository agregarRepository, IColaService colaService, IEstadoMensajeService estadoMensajeService)
+        public EnviarMensajeService(ILogger<EnviarMensajeService> logger, IServiceProvider serviceProvider, IColaService colaService, IEstadoMensajeService estadoMensajeService)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository;
             this._colaService = colaService;
             this._estadoMensajeService = estadoMensajeService;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -64,14 +64,15 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 if (estadoCola is null) throw new Exception(MENSAJE_ERROR_ESTADO_INVALIDO);
 
                 var cola = await this._colaService.ObtenerColaPorNombreAsync(traceId, mensaje.NombreCola);
-
+                using var scope = this._serviceProvider.CreateScope();
                 if (cola is null)
                 {
                     cola = new ColaEntity();
                     cola.Nombre = mensaje.NombreCola;
                     cola.FechaRegistro = DateTime.UtcNow;
                     cola.Activo = true;
-                    await this._agregarRepository.AgregarAsync<ColaEntity>(traceId, cola);
+                    var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                    await agregarRepository.AgregarAsync<ColaEntity>(traceId, cola);
                 }
 
                 bool esNumero = int.TryParse(Environment.GetEnvironmentVariable(NUMERO_REINTENTOS_ENV_VAR), out int reintentos);
@@ -86,7 +87,8 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? string.Empty;
                 mensajeEntity.ContadorReintentos = INICIO_REINTENTOS;
                 mensajeEntity.TraceId = mensaje.TraceId;
-                await this._agregarRepository.AgregarAsync(traceId, mensajeEntity);
+                var _agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                await _agregarRepository.AgregarAsync<MensajeColaEntity>(traceId, mensajeEntity);
 
                 MensajeColasRespuestaModel mensajeColasRespuestaModel = new MensajeColasRespuestaModel();
                 mensajeColasRespuestaModel.Id = mensajeEntity.Id;
