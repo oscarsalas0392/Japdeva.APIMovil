@@ -9,6 +9,7 @@ using Japdeva.APIMovil.Colas.Services.EnviarMensajeService;
 using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
 using Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService;
 using Japdeva.APIMovil.Colas.Services.MensajeColaService;
+using Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService;
 using Japdeva.APIMovil.Colas.Services.ObtenerMensajesPorColaService;
 using Japdeva.APIMovil.Colas.Services.PrioridadService;
 
@@ -43,6 +44,7 @@ namespace Japdeva.APIMovil.Colas.Extensions
                 builder.Services.AddSingleton<IGuardarMensajesHistoricoService, GuardarMensajesHistoricoService>();
                 builder.Services.AddSingleton<IMensajeColaService, MensajeColaService>();
                 builder.Services.AddSingleton<IObtenerMensajesPorColaService, ObtenerMensajesPorColaService>();
+                builder.Services.AddSingleton<IObtenerMensajePorIdRpcService, ObtenerMensajePorIdRpcService>();
                 builder.Services.AddSingleton<IPrioridadService, PrioridadService>();
 
                 // Registrar background services

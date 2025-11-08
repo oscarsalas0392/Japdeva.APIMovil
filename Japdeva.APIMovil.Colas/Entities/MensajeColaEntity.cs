@@ -18,6 +18,13 @@ namespace Japdeva.APIMovil.Colas.Entities
         public long Id { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el identificador único de la llamada RPC.
+        /// </summary>
+        [Column("idRpc")]
+        [MaxLength(100)]
+        public string IdRpc { get; set; } = string.Empty;
+
+        /// <summary>
         /// Obtiene o establece el nombre de la cola de destino.
         /// </summary>
         [Required]

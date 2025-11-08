@@ -4,6 +4,7 @@ using Japdeva.APIMovil.Colas.Services.ActualizarMensajeEnProcesoService;
 using Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService;
 using Japdeva.APIMovil.Colas.Services.ActualizarMensajeFallidoService;
 using Japdeva.APIMovil.Colas.Services.EnviarMensajeService;
+using Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService;
 using Japdeva.APIMovil.Colas.Services.ObtenerMensajesPorColaService;
 
 
@@ -64,9 +65,20 @@ namespace Japdeva.APIMovil.Colas.Controllers
         /// <param name="obtenerMensajesPorColaService">Servicio para obtener mensajes por cola.</param>
         /// <param name="nombreCola">Nombre de la cola de la cual obtener los mensajes pendientes.</param>
         /// <returns>Respuesta con los mensajes pendientes de la cola.</returns>
-        [HttpGet("ObtenerMensajesPendientes")]
-        public Task<IActionResult> ObtenerMensajesPendientesAsync([FromServices] IObtenerMensajesPorColaService obtenerMensajesPorColaService, [FromQuery(Name = "nombre-cola")] string nombreCola) =>
-            obtenerMensajesPorColaService.ObtenerMensajesPorColaAsync(HttpContext.TraceIdentifier, nombreCola);
+    [HttpGet("ObtenerMensajesPendientes")]
+    public Task<IActionResult> ObtenerMensajesPendientesAsync([FromServices] IObtenerMensajesPorColaService obtenerMensajesPorColaService, [FromQuery(Name = "nombre-cola")] string nombreCola) =>
+        obtenerMensajesPorColaService.ObtenerMensajesPorColaAsync(HttpContext.TraceIdentifier, nombreCola);
+
+    /// <summary>
+    /// Obtiene un mensaje específico por su ID RPC.
+    /// </summary>
+    /// <param name="obtenerMensajesPorIdRpcService">Servicio para obtener mensajes por ID RPC.</param>
+    /// <param name="idRpc">ID RPC del mensaje a buscar.</param>
+    /// <param name="nombreCola">Nombre de la cola donde buscar el mensaje.</param>
+    /// <returns>Respuesta con el mensaje encontrado por ID RPC.</returns>
+    [HttpGet("ObtenerMensajesPendientesPorIdRpc")]
+    public Task<IActionResult> ObtenerMensajesPendientesPorIdRpcAsync([FromServices] IObtenerMensajePorIdRpcService obtenerMensajesPorIdRpcService, [FromQuery(Name = "id-rpc")] string idRpc, [FromQuery(Name = "nombre-cola")] string nombreCola) =>
+        obtenerMensajesPorIdRpcService.ObtenerMensajeRpcAsync(HttpContext.TraceIdentifier, idRpc, nombreCola);
 
     }
 }

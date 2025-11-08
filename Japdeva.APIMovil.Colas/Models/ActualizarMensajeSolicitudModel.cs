@@ -11,7 +11,7 @@ namespace Japdeva.APIMovil.Colas.Models
         /// Obtiene o establece el identificador único del mensaje.
         /// </summary>
         [JsonProperty("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador de seguimiento del mensaje.

@@ -59,6 +59,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = false;
                 respuesta.Mensaje = MENSAJE_TIMEOUT;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -67,6 +68,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = false;
                 respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -75,6 +77,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = false;
                 respuesta.Mensaje = MENSAJE_ERROR_INTERNO;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);

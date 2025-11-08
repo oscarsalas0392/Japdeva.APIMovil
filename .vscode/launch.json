@@ -39,9 +39,12 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
+                "ASPNETCORE_URLS": "https://localhost:7077;http://localhost:5077", 
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Colas;Username=postgres;Password=1234",
-                "NUMERO_MAXIMO_REINTENTOS": "3",
+                "ISSUER": "https://localhost:7075",
+                "AUDIENCE": "apiUsuarios",
+                "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+                "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Cola;Username=postgres;Password=1234"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

@@ -16,6 +16,12 @@ namespace Japdeva.APIMovil.Colas.Models
         public int Id { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el identificador RPC del mensaje.
+        /// </summary>
+        [JsonProperty("idRpc")]
+        public string IdRpc { get; set; } = string.Empty;
+
+        /// <summary>
         /// Obtiene o establece el nombre de la cola de destino.
         /// </summary>
         [JsonProperty("nombreCola")]

@@ -11,6 +11,11 @@ namespace Japdeva.APIMovil.Colas.Models
         public long Id { get; set; }
 
         /// <summary>
+        /// Identificador de RPC
+        /// </summary>
+        public string IdRpc { get; set; } = string.Empty;
+
+        /// <summary>
         /// Identificador de la cola
         /// </summary>
         public long Cola { get; set; }

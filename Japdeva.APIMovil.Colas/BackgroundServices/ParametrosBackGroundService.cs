@@ -48,7 +48,6 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
                 {
                     await this._prioridadesService.LlenarCachePrioridadesAsync(TRACE_ID);
                     await this._estadoMensajeService.LlenarCacheEstadosMensajeAsync(TRACE_ID);
-                    await this._colaService.LlenarCacheColasAsync(TRACE_ID);
                     await Task.Delay(TimeSpan.FromMinutes(DELAY_MINUTES), stoppingToken);
                 }
             }
