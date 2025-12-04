@@ -20,7 +20,8 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         private const string ERROR_PAGINA_MENOR_QUE_CERO = "El número de página debe ser mayor que cero.";
         private const int PAGINA_MINIMA = 0;
         private const int TAMANIO_PAGINA = 50;
-        
+        private const int AJUSTE_PAGINA_BASE_CERO = 1;
+
         /// <summary>
         /// Constructor para el repositorio de consulta de listas.
         /// </summary>
@@ -39,7 +40,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="pagina">Número de página a consultar (1-based)</param>
         /// <param name="filtro">Expresión de filtro para la consulta</param>
-        /// <returns>Modelo de respuesta con la lista paginada y metadatos</returns>
+        /// <returns>Una tarea que representa la operación asíncrona que contiene la respuesta con la lista paginada de entidades</returns>
         public async Task<RespuestaListaModel<T>> ConsultarListaAsync<T>(string traceId, int pagina, Expression<Func<T, bool>>? filtro = null) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
@@ -61,11 +62,12 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
                 }
 
                 int totalRegistros = await query.CountAsync();
-                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / TAMANIO_PAGINA);
                 var resultados = await query
-                    .Skip((pagina - 1) * TAMANIO_PAGINA)
+                    .Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
                     .Take(TAMANIO_PAGINA)
                     .ToListAsync();
+
+                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / TAMANIO_PAGINA);
 
                 respuesta.Lista = resultados;
                 respuesta.TotalRegistros = totalRegistros;

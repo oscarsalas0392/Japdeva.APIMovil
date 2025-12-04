@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,29 +31,285 @@ namespace Japdeva.APIMovil.Estandar
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Regla);
 
+        // Cache para conteo de referencias por archivo
+        private static readonly ConcurrentDictionary<string, Dictionary<string, int>> _cacheConteoReferencias = 
+            new ConcurrentDictionary<string, Dictionary<string, int>>();
+
         public override void Initialize(AnalysisContext contexto)
         {
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            contexto.RegisterSyntaxNodeAction(AnalizarMetodo, SyntaxKind.MethodDeclaration);
-            contexto.RegisterSyntaxNodeAction(AnalizarConstructor, SyntaxKind.ConstructorDeclaration);
+            
+            // OPTIMIZACIÓN: Análisis a nivel de documento completo
+            contexto.RegisterSyntaxTreeAction(AnalizarArbolSintactico);
         }
 
-        private static void AnalizarMetodo(SyntaxNodeAnalysisContext contexto)
+        private static void AnalizarArbolSintactico(SyntaxTreeAnalysisContext contexto)
         {
-            var metodo = (MethodDeclarationSyntax)contexto.Node;
-            if (metodo.Body != null)
+            var raiz = contexto.Tree.GetRoot();
+            var cacheKey = contexto.Tree.FilePath + "_" + raiz.GetHashCode();
+            
+            // OPTIMIZACIÓN: Cache de conteo de referencias
+            if (!_cacheConteoReferencias.TryGetValue(cacheKey, out var conteoReferencias))
             {
-                AnalizarBloqueParaVariables(contexto, metodo.Body);
+                conteoReferencias = new Dictionary<string, int>();
+                
+                // Contar todas las referencias de identificadores (variables)
+                var identificadores = raiz.DescendantNodes()
+                    .OfType<IdentifierNameSyntax>()
+                    .Select(id => id.Identifier.ValueText)
+                    .Where(name => !string.IsNullOrEmpty(name));
+                
+                foreach (var referencia in identificadores)
+                {
+                    if (conteoReferencias.ContainsKey(referencia))
+                        conteoReferencias[referencia]++;
+                    else
+                        conteoReferencias[referencia] = 1;
+                }
+                
+                _cacheConteoReferencias.TryAdd(cacheKey, conteoReferencias);
+            }
+
+            // Analizar métodos y constructores para variables no utilizadas
+            var metodosYConstructores = raiz.DescendantNodes().Where(n => 
+                n.IsKind(SyntaxKind.MethodDeclaration) || 
+                n.IsKind(SyntaxKind.ConstructorDeclaration));
+
+            foreach (var metodoOConstructor in metodosYConstructores)
+            {
+                AnalizarMetodoOptimizado(contexto, metodoOConstructor, conteoReferencias);
             }
         }
 
-        private static void AnalizarConstructor(SyntaxNodeAnalysisContext contexto)
+        private static void AnalizarMetodoOptimizado(SyntaxTreeAnalysisContext contexto, SyntaxNode metodoOConstructor, Dictionary<string, int> conteoReferenciasGlobal)
         {
-            var constructor = (ConstructorDeclarationSyntax)contexto.Node;
-            if (constructor.Body != null)
+            BlockSyntax bloque = null;
+            
+            if (metodoOConstructor is MethodDeclarationSyntax metodo)
+                bloque = metodo.Body;
+            else if (metodoOConstructor is ConstructorDeclarationSyntax constructor)
+                bloque = constructor.Body;
+                
+            if (bloque == null) return;
+
+            // Verificar si el método/constructor está en una clase que implementa interfaz
+            var claseContenedora = metodoOConstructor.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            var tieneInterfaz = claseContenedora != null && TipoImplementaInterfaz(claseContenedora);
+
+            // Recopilar variables declaradas en este bloque
+            var variablesDeclaradas = new Dictionary<string, VariableDeclaratorSyntax>();
+            RecopilarDeclaracionesVariablesOptimizado(bloque, variablesDeclaradas);
+
+            // Contar referencias específicamente en este método para las variables declaradas aquí
+            var conteoReferenciasLocal = new Dictionary<string, int>();
+            foreach (var nombreVariable in variablesDeclaradas.Keys)
             {
-                AnalizarBloqueParaVariables(contexto, constructor.Body);
+                conteoReferenciasLocal[nombreVariable] = ContarReferenciasEnBloque(bloque, nombreVariable);
+            }
+
+            // Analizar cada variable declarada
+            foreach (var variable in variablesDeclaradas)
+            {
+                var nombreVariable = variable.Key;
+                var declaradorVariable = variable.Value;
+
+                if (EsVariableEspecial(nombreVariable, declaradorVariable))
+                    continue;
+
+                // Obtener el conteo de referencias para esta variable en este método
+                var numeroReferencias = conteoReferenciasLocal.ContainsKey(nombreVariable) 
+                    ? conteoReferenciasLocal[nombreVariable] 
+                    : 0;
+
+                // Para variables locales, simplificar: debe usarse al menos una vez después de la declaración
+                // Contar solo usos (excluyendo la declaración)
+                var usosRealEs = ContarUsosExcluyendoDeclaracion(bloque, nombreVariable, declaradorVariable);
+                
+                // Aplicar lógica basada en si la clase tiene interfaz o no
+                bool esNoUtilizada = false;
+                
+                if (tieneInterfaz)
+                {
+                    // Si tiene interfaz, debe tener al menos 1 uso real (sin contar declaración)
+                    esNoUtilizada = usosRealEs <= 0;
+                }
+                else
+                {
+                    // Si no tiene interfaz, debe tener al menos 1 uso real (sin contar declaración)
+                    esNoUtilizada = usosRealEs <= 0;
+                }
+
+                if (esNoUtilizada)
+                {
+                    var diagnostico = Diagnostic.Create(
+                        Regla,
+                        declaradorVariable.Identifier.GetLocation(),
+                        nombreVariable);
+
+                    contexto.ReportDiagnostic(diagnostico);
+                }
+            }
+        }
+
+        private static int ContarReferenciasEnBloque(SyntaxNode bloque, string nombreVariable)
+        {
+            var contador = 0;
+            
+            foreach (var nodo in bloque.DescendantNodes())
+            {
+                if (nodo is IdentifierNameSyntax identificador && 
+                    identificador.Identifier.ValueText == nombreVariable)
+                {
+                    contador++;
+                }
+            }
+            
+            return contador;
+        }
+
+        private static int ContarUsosExcluyendoDeclaracion(SyntaxNode bloque, string nombreVariable, VariableDeclaratorSyntax declaracion)
+        {
+            var contador = 0;
+            var lineaDeclaracion = declaracion.GetLocation().GetLineSpan().StartLinePosition.Line;
+            
+            foreach (var nodo in bloque.DescendantNodes())
+            {
+                if (nodo is IdentifierNameSyntax identificador && 
+                    identificador.Identifier.ValueText == nombreVariable)
+                {
+                    var lineaUso = identificador.GetLocation().GetLineSpan().StartLinePosition.Line;
+                    
+                    // Solo contar si no es la misma línea que la declaración
+                    // (o si está después en la misma línea, lo cual indicaría uso real)
+                    if (lineaUso > lineaDeclaracion)
+                    {
+                        contador++;
+                    }
+                    else if (lineaUso == lineaDeclaracion)
+                    {
+                        // Si está en la misma línea, verificar si está después de la declaración
+                        var columnaDeclaracion = declaracion.GetLocation().GetLineSpan().StartLinePosition.Character;
+                        var columnaUso = identificador.GetLocation().GetLineSpan().StartLinePosition.Character;
+                        
+                        if (columnaUso > columnaDeclaracion)
+                        {
+                            contador++;
+                        }
+                    }
+                }
+            }
+            
+            return contador;
+        }
+
+        private static bool TipoImplementaInterfaz(SyntaxNode tipo)
+        {
+            // Verificar si el tipo implementa alguna interfaz
+            BaseListSyntax baseList = null;
+            
+            if (tipo is ClassDeclarationSyntax clase)
+                baseList = clase.BaseList;
+            else if (tipo is StructDeclarationSyntax estructura)
+                baseList = estructura.BaseList;
+            else if (tipo is RecordDeclarationSyntax record)
+                baseList = record.BaseList;
+            
+            if (baseList == null || !baseList.Types.Any())
+                return false;
+
+            // Verificar si alguno de los tipos base es una interfaz
+            // Las interfaces generalmente empiezan con 'I' seguido de mayúscula
+            // o contienen la palabra "Interface" en el nombre
+            foreach (var baseType in baseList.Types)
+            {
+                var nombreTipo = baseType.Type.ToString();
+                
+                // Verificar patrones comunes de interfaces
+                if (nombreTipo.StartsWith("I") && nombreTipo.Length > 1 && 
+                    char.IsUpper(nombreTipo[1]))
+                {
+                    return true;
+                }
+                
+                if (nombreTipo.Contains("Interface"))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        private static void RecopilarDeclaracionesVariablesOptimizado(SyntaxNode nodo, Dictionary<string, VariableDeclaratorSyntax> variablesDeclaradas)
+        {
+            // OPTIMIZACIÓN: Recopilar declaraciones de manera más eficiente
+            foreach (var declaracion in nodo.DescendantNodes())
+            {
+                switch (declaracion)
+                {
+                    case LocalDeclarationStatementSyntax declaracionLocal:
+                        // Manejar todas las declaraciones locales, incluidas las using como: using var pbkdf2 = new Rfc2898DeriveBytes(...)
+                        foreach (var variable in declaracionLocal.Declaration.Variables)
+                        {
+                            var nombreVariable = variable.Identifier.ValueText;
+                            if (!variablesDeclaradas.ContainsKey(nombreVariable))
+                            {
+                                variablesDeclaradas[nombreVariable] = variable;
+                            }
+                        }
+                        break;
+
+                    case ForEachStatementSyntax forEachStatement:
+                        var nombreForEach = forEachStatement.Identifier.ValueText;
+                        if (!variablesDeclaradas.ContainsKey(nombreForEach))
+                        {
+                            var declaradorFicticio = SyntaxFactory.VariableDeclarator(forEachStatement.Identifier);
+                            variablesDeclaradas[nombreForEach] = declaradorFicticio;
+                        }
+                        break;
+
+                    case ForStatementSyntax forStatement:
+                        if (forStatement.Declaration != null)
+                        {
+                            foreach (var variable in forStatement.Declaration.Variables)
+                            {
+                                var nombreVariable = variable.Identifier.ValueText;
+                                if (!variablesDeclaradas.ContainsKey(nombreVariable))
+                                {
+                                    variablesDeclaradas[nombreVariable] = variable;
+                                }
+                            }
+                        }
+                        break;
+
+                    case UsingStatementSyntax usingStatement:
+                        if (usingStatement.Declaration != null)
+                        {
+                            foreach (var variable in usingStatement.Declaration.Variables)
+                            {
+                                var nombreVariable = variable.Identifier.ValueText;
+                                if (!variablesDeclaradas.ContainsKey(nombreVariable))
+                                {
+                                    variablesDeclaradas[nombreVariable] = variable;
+                                }
+                            }
+                        }
+                        break;
+
+                    case CatchClauseSyntax catchClause:
+                        if (catchClause.Declaration?.Identifier != null && 
+                            !catchClause.Declaration.Identifier.IsKind(SyntaxKind.None))
+                        {
+                            var nombreCatch = catchClause.Declaration.Identifier.ValueText;
+                            if (!string.IsNullOrEmpty(nombreCatch) && !variablesDeclaradas.ContainsKey(nombreCatch))
+                            {
+                                var declaradorFicticio = SyntaxFactory.VariableDeclarator(catchClause.Declaration.Identifier);
+                                variablesDeclaradas[nombreCatch] = declaradorFicticio;
+                            }
+                        }
+                        break;
+                }
             }
         }
 
