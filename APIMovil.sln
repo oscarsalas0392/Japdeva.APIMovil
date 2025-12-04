@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Japdeva.APIMovil.Common", "Japdeva.APIMovil.Common\Japdeva.APIMovil.Common.csproj", "{30B262AD-FED5-5D9A-5329-398444A99650}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Japdeva.APIMovil.Usuarios", "Japdeva.APIMovil.Usuarios\Japdeva.APIMovil.Usuarios.csproj", "{83A30B83-4E52-9901-0759-2C9F69579D8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Japdeva.APIMovil.Colas", "Japdeva.APIMovil.Colas\Japdeva.APIMovil.Colas.csproj", "{67D126D8-854A-411D-A382-EE7CA09A07A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Japdeva.APIMovil.Reclamos", "Japdeva.APIMovil.Reclamos\Japdeva.APIMovil.Reclamos.csproj", "{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,18 @@ Global
 		{67D126D8-854A-411D-A382-EE7CA09A07A9}.Release|x64.Build.0 = Release|Any CPU
 		{67D126D8-854A-411D-A382-EE7CA09A07A9}.Release|x86.ActiveCfg = Release|Any CPU
 		{67D126D8-854A-411D-A382-EE7CA09A07A9}.Release|x86.Build.0 = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|x64.Build.0 = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Debug|x86.Build.0 = Debug|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|x64.Build.0 = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|x86.ActiveCfg = Release|Any CPU
+		{D5EA74D3-A021-49A9-BBDF-2E25285A38AB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
