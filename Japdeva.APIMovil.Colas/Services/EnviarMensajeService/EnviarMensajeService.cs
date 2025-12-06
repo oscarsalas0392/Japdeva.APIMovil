@@ -20,12 +20,16 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         private readonly IEstadoMensajeService _estadoMensajeService;
         private readonly IColaService _colaService;
         private readonly IServiceProvider _serviceProvider;
+        
         private const int NUMERO_REINTENTOS = 3;
         private const int INICIO_REINTENTOS = 0; 
         private const string NUMERO_REINTENTOS_ENV_VAR = "NUMERO_REINTENTOS";
         private const string MENSAJE_ERROR_COLA_VACIO = "La cola no puede estar vacía.";
         private const string MENSAJE_ERROR_MENSAJE_VACIO = "El contenido del mensaje no puede estar vacío.";
         private const string MENSAJE_ERROR_ESTADO_INVALIDO = "El estado del mensaje no es válido.";
+        private const bool COLA_ACTIVA = true;
+        private const bool TRACE_ID_DIFERENTE = false;
+        private const string METADATOS_VACIO = "";
 
 
         /// <summary>
@@ -70,7 +74,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                     cola = new ColaEntity();
                     cola.Nombre = mensaje.NombreCola;
                     cola.FechaRegistro = DateTime.UtcNow;
-                    cola.Activo = true;
+                    cola.Activo = COLA_ACTIVA;
                     var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
                     await agregarRepository.AgregarAsync<ColaEntity>(traceId, cola);
                 }
@@ -84,7 +88,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeEntity.EstadoId = estadoCola.Id;
                 mensajeEntity.PrioridadId = mensaje.Prioridad;
                 mensajeEntity.FechaRegistro = DateTime.UtcNow;
-                mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? string.Empty;
+                mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? METADATOS_VACIO;
                 mensajeEntity.ContadorReintentos = INICIO_REINTENTOS;
                 mensajeEntity.TraceId = mensaje.TraceId;
                 var _agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
@@ -96,7 +100,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
                 mensajeColasRespuestaModel.Mensaje = mensajeEntity.ContenidoMensaje;
                 mensajeColasRespuestaModel.Estado = mensajeEntity.EstadoId;
                 mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId;
-                mensajeColasRespuestaModel.TraceIdDiferente = false;
+                mensajeColasRespuestaModel.TraceIdDiferente = TRACE_ID_DIFERENTE;
                 return new OkObjectResult(mensajeColasRespuestaModel);
             }
             catch (ArgumentException ex)

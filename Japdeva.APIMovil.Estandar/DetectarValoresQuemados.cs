@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Estandar
     {
         public const string DiagnosticId = "JAPDEVA005";
         private const string Titulo = "Valor quemado detectado";
-        private const string FormatoMensaje = "El valor '{0}' est� quemado en el c�digo y deber�a ser una constante o readonly";
-        private const string Descripcion = "Los valores literales que se repiten o son significativos deben extraerse como constantes o campos readonly para mejorar el mantenimiento del c�digo.";
+        private const string FormatoMensaje = "El valor '{0}' está quemado en el código y debería ser una constante o readonly";
+        private const string Descripcion = "Los valores literales que se repiten o son significativos deben extraerse como constantes o campos readonly para mejorar el mantenimiento del código.";
         private const string Categoria = "Maintainability";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -70,7 +70,7 @@ namespace Japdeva.APIMovil.Estandar
                 return;
 
             var valoresLiterales = new Dictionary<string, List<LiteralInfo>>();
-            var constantesExistentes = new HashSet<string>();
+            var  constantesExistentes = new HashSet<string>();
 
             // Recopilar constantes existentes de la clase contenedora
             if (claseContenedora != null)
@@ -90,7 +90,8 @@ namespace Japdeva.APIMovil.Estandar
                 // Para métodos, verificar constantes existentes de la clase
                 if (DeberiaSerConstanteEnMetodo(valorLiteral, ubicaciones, constantesExistentes))
                 {
-                    foreach (var ubicacion in ubicaciones)
+                    foreach (var ubicacion in ubicaciones
+)
                     {
                         var diagnostico = Diagnostic.Create(
                             Regla,
@@ -105,14 +106,14 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool DeberiaSerConstanteEnMetodo(string valorLiteral, List<LiteralInfo> ubicaciones, HashSet<string> constantesExistentes)
         {
-            // Ya existe como constante en la clase
-            if (constantesExistentes.Contains(valorLiteral))
-                return false;
-
-            // Si un valor "comúnmente aceptable" ya tiene una constante disponible,
-            // entonces SÍ debe ser detectado como hardcodeado para forzar el uso de la constante
+            // NUEVA LÓGICA: Si un valor literal ya tiene una constante disponible,
+            // entonces SÍ debe ser detectado para forzar el uso de la constante
             if (EsValorExcluidoPeroTieneConstante(valorLiteral, constantesExistentes))
                 return true;
+
+            // Ya existe como constante en la clase (solo si no es un valor común)
+            if (constantesExistentes.Contains(valorLiteral) && !EsValorComun(valorLiteral))
+                return false;
 
             // Excluir valores que realmente no necesitan ser constantes
             if (EsValorExcluido(valorLiteral))
@@ -222,6 +223,10 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoColumn(literal))
                         continue;
 
+                    // NUEVA EXCLUSIÓN: Excluir literales que están en declaraciones de constantes
+                    if (EstaEnDeclaracionConstante(literal))
+                        continue;
+
                     // Verificar si este literal es parte de una expresión unaria (como -10)
                     var padreUnario = literal.Parent as PrefixUnaryExpressionSyntax;
                     if (padreUnario != null && padreUnario.IsKind(SyntaxKind.UnaryMinusExpression))
@@ -238,8 +243,8 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnInicializadorCampoConCero(literal))
                         continue;
 
-                    // Excluir literales que están siendo asignados a variables locales
-                    if (EstaEnAsignacionVariable(literal))
+                    // NUEVA LÓGICA MEJORADA: Solo excluir asignaciones a variables locales, NO a propiedades de objetos
+                    if (EstaEnAsignacionVariableLocal(literal))
                         continue;
 
                     valorLiteral = ObtenerValorLiteral(literal);
@@ -271,12 +276,16 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnAtributoColumn(unary))
                         continue;
 
+                    // NUEVA EXCLUSIÓN: Excluir expresiones unarias que están en declaraciones de constantes
+                    if (EstaEnDeclaracionConstanteUnaria(unary))
+                        continue;
+
                     // Excluir expresiones unarias que están en inicializadores de propiedades (valores por defecto)
                     if (EstaEnInicializadorPropiedadUnaria(unary))
                         continue;
 
-                    // Verificar si esta expresión unaria está siendo asignada a una variable local
-                    if (EstaEnAsignacionVariableUnaria(unary))
+                    // NUEVA LÓGICA MEJORADA: Solo excluir asignaciones a variables locales, NO a propiedades
+                    if (EstaEnAsignacionVariableLocalUnaria(unary))
                         continue;
 
                     valorLiteral = ObtenerValorLiteral(unary);
@@ -358,14 +367,14 @@ namespace Japdeva.APIMovil.Estandar
 
         private static bool DeberiaSerConstante(string valorLiteral, List<LiteralInfo> ubicaciones, HashSet<string> constantesExistentes)
         {
-            // Ya existe como constante
-            if (constantesExistentes.Contains(valorLiteral))
-                return false;
-
             // LÓGICA MEJORADA: Si un valor "comúnmente aceptable" ya tiene una constante disponible,
             // entonces SÍ debe ser detectado como hardcodeado para forzar el uso de la constante
             if (EsValorExcluidoPeroTieneConstante(valorLiteral, constantesExistentes))
                 return true;
+
+            // Ya existe como constante (solo si no es un valor común)
+            if (constantesExistentes.Contains(valorLiteral) && !EsValorComun(valorLiteral))
+                return false;
 
             // Excluir valores que realmente no necesitan ser constantes
             if (EsValorExcluido(valorLiteral))
@@ -382,6 +391,13 @@ namespace Japdeva.APIMovil.Estandar
             var valoresComunes = new HashSet<string> { "0", "1", "-1", "true", "false" };
             
             return valoresComunes.Contains(valorLiteral) && constantesExistentes.Contains(valorLiteral);
+        }
+
+        private static bool EsValorComun(string valorLiteral)
+        {
+            // Valores que son comúnmente usados y para los cuales es normal tener constantes
+            var valoresComunes = new HashSet<string> { "0", "1", "-1", "true", "false" };
+            return valoresComunes.Contains(valorLiteral);
         }
 
         private static bool EsValorExcluido(string valorLiteral)
@@ -416,12 +432,12 @@ namespace Japdeva.APIMovil.Estandar
             if (valorLiteral.Contains("\\") || valorLiteral.Contains("/"))
                 return true;
 
-            // Cadenas de configuraci�n
+            // Cadenas de configuración
             if (valorLiteral.Contains("ConnectionString") || valorLiteral.Contains("AppSettings") ||
                 valorLiteral.Contains("Config") || valorLiteral.Contains("Setting"))
                 return true;
 
-            // Mensajes de error espec�ficos
+            // Mensajes de error específicos
             if (valorLiteral.Length > 20 && (valorLiteral.Contains("Error") ||
                 valorLiteral.Contains("Exception") || valorLiteral.Contains("Invalid")))
                 return true;
@@ -431,11 +447,11 @@ namespace Japdeva.APIMovil.Estandar
             if (Regex.IsMatch(valorLiteral, @"[yMdHmsf]{2,}"))
                 return true;
 
-            // N�meros con significado especial (c�digos, IDs, etc.)
+            // Números con significado especial (códigos, IDs, etc.)
             if (Regex.IsMatch(valorLiteral, @"^\d{3,}$"))
                 return true;
 
-            // Cadenas con patrones especiales (emails, tel�fonos, etc.)
+            // Cadenas con patrones especiales (emails, teléfonos, etc.)
             if (valorLiteral.Contains("@") || Regex.IsMatch(valorLiteral, @"\d{3}-\d{3}-\d{4}"))
                 return true;
 
@@ -446,11 +462,9 @@ namespace Japdeva.APIMovil.Estandar
             return false;
         }
 
-        private static bool EstaEnAsignacionVariableUnaria(PrefixUnaryExpressionSyntax unary)
+        // NUEVA FUNCIÓN MEJORADA: Solo excluir variables locales reales, NO propiedades de objetos
+        private static bool EstaEnAsignacionVariableLocalUnaria(PrefixUnaryExpressionSyntax unary)
         {
-            // YA NO EXCLUIR variables locales - los literales en variables locales también deben ser constantes
-            // Las declaraciones como "int valor = -1;" DEBEN ser detectadas como hardcodeadas
-            
             // Buscar si está en una asignación simple (variable = valor) pero NO en declaración inicial
             var assignment = unary.Ancestors().OfType<AssignmentExpressionSyntax>().FirstOrDefault();
             if (assignment != null && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
@@ -459,14 +473,21 @@ namespace Japdeva.APIMovil.Estandar
                 var enDeclaracion = assignment.Ancestors().OfType<VariableDeclarationSyntax>().Any();
                 if (!enDeclaracion)
                 {
-                    return true; // Es una reasignación simple, excluir
+                    // NUEVA LÓGICA: Solo excluir si es una asignación a variable local simple
+                    // NO excluir asignaciones a propiedades como: objeto.Propiedad = valor
+                    if (assignment.Left is IdentifierNameSyntax)
+                    {
+                        return true; // Es asignación a variable local simple (ej: x = 1), excluir
+                    }
+                    // Si es asignación a miembro (ej: obj.Property = 1), NO excluir
                 }
             }
 
             return false; // No está en asignación excluible, debe ser detectado
         }
 
-        private static bool EstaEnAsignacionVariable(LiteralExpressionSyntax literal)
+        // NUEVA FUNCIÓN MEJORADA: Solo excluir variables locales reales, NO propiedades de objetos  
+        private static bool EstaEnAsignacionVariableLocal(LiteralExpressionSyntax literal)
         {
             // Las strings siempre deben ser detectadas, incluso si están en variables
             if (literal.Token.IsKind(SyntaxKind.StringLiteralToken))
@@ -479,9 +500,6 @@ namespace Japdeva.APIMovil.Estandar
                 return false; // Debe ser detectado aunque esté en inicializador
             }
 
-            // YA NO EXCLUIR variables locales - los literales en variables locales también deben ser constantes
-            // Las declaraciones como "int pagina = 1;" DEBEN ser detectadas como hardcodeadas
-            
             // Buscar si está en una asignación simple (variable = valor) pero NO en declaración inicial
             var assignment = literal.Ancestors().OfType<AssignmentExpressionSyntax>().FirstOrDefault();
             if (assignment != null && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
@@ -503,12 +521,18 @@ namespace Japdeva.APIMovil.Estandar
                         return false; // Es aritmética, DEBE ser detectado como hardcodeado
                     }
 
-                    // Solo excluir si NO está dentro de un inicializador de objeto
-                    var enInicializador = assignment.Ancestors().OfType<InitializerExpressionSyntax>().Any();
-                    if (!enInicializador)
+                    // NUEVA LÓGICA CLAVE: Solo excluir si es una asignación a variable local simple
+                    // NO excluir asignaciones a propiedades como: objeto.Propiedad = valor
+                    if (assignment.Left is IdentifierNameSyntax)
                     {
-                        return true; // Es una reasignación simple fuera de inicializador, excluir
+                        // Solo excluir si NO está dentro de un inicializador de objeto
+                        var enInicializador = assignment.Ancestors().OfType<InitializerExpressionSyntax>().Any();
+                        if (!enInicializador)
+                        {
+                            return true; // Es una reasignación simple a variable local, excluir
+                        }
                     }
+                    // Si es asignación a miembro (ej: obj.Property = 1), NO excluir - DEBE ser detectado
                 }
             }
 
@@ -662,6 +686,50 @@ namespace Japdeva.APIMovil.Estandar
             }
 
             return false; // No está en inicializador de propiedad, debe ser detectado
+        }
+
+        private static bool EstaEnDeclaracionConstante(LiteralExpressionSyntax literal)
+        {
+            // Verificar si el literal está en la inicialización de una constante
+            var equalsValueClause = literal.Ancestors().OfType<EqualsValueClauseSyntax>().FirstOrDefault();
+            if (equalsValueClause != null)
+            {
+                // Verificar si está en una declaración de campo con modificador const
+                var fieldDeclaration = equalsValueClause.Ancestors().OfType<FieldDeclarationSyntax>().FirstOrDefault();
+                if (fieldDeclaration != null)
+                {
+                    // Verificar si tiene el modificador const
+                    var esConstante = fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword));
+                    if (esConstante)
+                    {
+                        return true; // Es inicialización de constante, excluir
+                    }
+                }
+            }
+
+            return false; // No está en declaración de constante, debe ser detectado
+        }
+
+        private static bool EstaEnDeclaracionConstanteUnaria(PrefixUnaryExpressionSyntax unary)
+        {
+            // Verificar si la expresión unaria está en la inicialización de una constante
+            var equalsValueClause = unary.Ancestors().OfType<EqualsValueClauseSyntax>().FirstOrDefault();
+            if (equalsValueClause != null)
+            {
+                // Verificar si está en una declaración de campo con modificador const
+                var fieldDeclaration = equalsValueClause.Ancestors().OfType<FieldDeclarationSyntax>().FirstOrDefault();
+                if (fieldDeclaration != null)
+                {
+                    // Verificar si tiene el modificador const
+                    var esConstante = fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword));
+                    if (esConstante)
+                    {
+                        return true; // Es inicialización de constante, excluir
+                    }
+                }
+            }
+
+            return false; // No está en declaración de constante, debe ser detectado
         }
 
         private static bool EstaEnInicializadorCampoConCero(LiteralExpressionSyntax literal)
