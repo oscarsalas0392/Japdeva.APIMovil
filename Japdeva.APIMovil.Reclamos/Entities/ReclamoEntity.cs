@@ -57,7 +57,13 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// <summary>
         /// Obtiene o establece el indicador de si el reclamo está activo en el sistema.
         /// </summary>
-        [Column("activo")]
-        public bool Activo { get; set; }
+        [Column("idDepartamentoActual")]
+        public long IdDepartamentoActual { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la descripción del departamento actual asociado al reclamo.
+        /// </summary>
+        [Column("descripcionDepartamentoActual")]
+        public string DescripcionDepartamentoActual { get; set; } = string.Empty;
     }
 }

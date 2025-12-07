@@ -10,6 +10,7 @@ namespace Japdeva.APIMovil.Estandar
     /// <summary>
     /// Analizador que detecta inicializadores de objetos complejos que dificultan la detección de errores.
     /// Recomienda separar la inicialización en múltiples líneas para mejor debugging.
+    /// Permite excepciones para transformaciones LINQ como Select.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ValidarInicializadoresComplejos : DiagnosticAnalyzer
@@ -64,6 +65,10 @@ namespace Japdeva.APIMovil.Estandar
 
             var inicializador = creacionObjeto.Initializer;
             
+            // NUEVA LÓGICA: Verificar si está dentro de un Select u otra transformación LINQ
+            if (EstaEnExpresionLinqPermitida(creacionObjeto))
+                return; // No aplicar la regla en transformaciones LINQ
+
             // Contar las expresiones de inicialización
             var expresionesInicializacion = inicializador.Expressions.Count;
 
@@ -92,6 +97,70 @@ namespace Japdeva.APIMovil.Estandar
                     expresionesInicializacion);
 
                 contexto.ReportDiagnostic(diagnostico);
+            }
+        }
+
+        /// <summary>
+        /// Verifica si el inicializador de objeto está dentro de una expresión LINQ permitida.
+        /// </summary>
+        /// <param name="creacionObjeto">La expresión de creación del objeto.</param>
+        /// <returns>True si está dentro de Select, Where, u otras transformaciones LINQ permitidas.</returns>
+        private static bool EstaEnExpresionLinqPermitida(ObjectCreationExpressionSyntax creacionObjeto)
+        {
+            // Buscar hacia arriba en el árbol sintáctico para encontrar expresiones LINQ
+            var nodoActual = creacionObjeto.Parent;
+            
+            while (nodoActual != null)
+            {
+                // Verificar si está en una expresión lambda
+                if (nodoActual is SimpleLambdaExpressionSyntax || nodoActual is ParenthesizedLambdaExpressionSyntax)
+                {
+                    // Verificar si la lambda está en una invocación de método LINQ
+                    var invocacionMetodo = nodoActual.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+                    if (invocacionMetodo != null)
+                    {
+                        var nombreMetodo = ObtenerNombreMetodoInvocado(invocacionMetodo);
+                        
+                        // Lista de métodos LINQ que permiten inicializadores complejos
+                        var metodosLinqPermitidos = new[]
+                        {
+                            "Select", "SelectMany", "Where", "OrderBy", "OrderByDescending",
+                            "ThenBy", "ThenByDescending", "GroupBy", "Join", "GroupJoin"
+                        };
+                        
+                        return metodosLinqPermitidos.Contains(nombreMetodo);
+                    }
+                }
+                
+                nodoActual = nodoActual.Parent;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Obtiene el nombre del método que se está invocando.
+        /// </summary>
+        /// <param name="invocacion">La expresión de invocación del método.</param>
+        /// <returns>El nombre del método como string.</returns>
+        private static string ObtenerNombreMetodoInvocado(InvocationExpressionSyntax invocacion)
+        {
+            try
+            {
+                if (invocacion.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    return memberAccess.Name.Identifier.ValueText;
+                }
+                else if (invocacion.Expression is IdentifierNameSyntax identifier)
+                {
+                    return identifier.Identifier.ValueText;
+                }
+                
+                return string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 

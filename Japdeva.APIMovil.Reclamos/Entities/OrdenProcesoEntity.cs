@@ -43,6 +43,13 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         public long IdUsuarioInterno { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el identificador del departamento.
+        /// Permite identificar cual departamento debe continuar con el proceso del reclamo.
+        /// </summary>
+        [Column("idDepartamento")]
+        public long IdDepartamento { get; set; }
+
+        /// <summary>
         /// Obtiene o establece la fecha y hora de registro de la orden de proceso.
         /// Timestamp de cuando se configuró este paso en el sistema.
         /// </summary>

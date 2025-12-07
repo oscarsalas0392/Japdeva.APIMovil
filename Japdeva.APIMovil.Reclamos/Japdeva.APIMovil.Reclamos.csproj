@@ -11,10 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Japdeva.APIMovil.Common\Japdeva.APIMovil.Common.csproj" />
 	<ProjectReference Include="..\Japdeva.APIMovil.Estandar\Japdeva.APIMovil.Estandar.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

@@ -70,7 +70,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
                     documentosUsuario.Add(documentoUsuario);
                 }
 
-                if(documentosUsuario.Count > MINIMO_REGISTROS) throw new ArgumentNullException(MENSAJE_ERROR_LISTA_NULA);
+                if(documentosUsuario.Count < MINIMO_REGISTROS) throw new ArgumentNullException(MENSAJE_ERROR_LISTA_NULA);
                 await this._agregarRepository.AgregarVariosAsync<DocumentoUsuarioEntity>(traceId, documentosUsuario);
             }
             catch (Exception ex)
