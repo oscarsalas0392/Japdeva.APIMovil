@@ -19,7 +19,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idOrdenProceso">Identificador del orden de proceso a buscar.</param>
+        /// <param name="idEstadoDetalleReclamo">Identificador del estado de detalle de reclamo para buscar la relación específica.</param>
         /// <returns>La entidad del estado de detalle de reclamo por orden de proceso si se encuentra, null en caso contrario.</returns>
-        EstadoDetalleReclamoOrdenProcesoEntity? ObtenerEstadoDetalleReclamoOrdenProceso(string traceId, int idOrdenProceso);
+        EstadoDetalleReclamoOrdenProcesoEntity? ObtenerEstadoDetalleReclamoOrdenProceso(string traceId, int idOrdenProceso, int idEstadoDetalleReclamo);
     }
 }

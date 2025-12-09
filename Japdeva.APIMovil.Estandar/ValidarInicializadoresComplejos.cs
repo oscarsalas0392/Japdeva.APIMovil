@@ -69,6 +69,10 @@ namespace Japdeva.APIMovil.Estandar
             if (EstaEnExpresionLinqPermitida(creacionObjeto))
                 return; // No aplicar la regla en transformaciones LINQ
 
+            // NUEVA EXCLUSIÓN: Verificar si es un DTO/Model (por naming convention)
+            if (EsTipoDTO(creacionObjeto))
+                return; // No aplicar la regla a DTOs/Models
+
             // Contar las expresiones de inicialización
             var expresionesInicializacion = inicializador.Expressions.Count;
 
@@ -101,6 +105,32 @@ namespace Japdeva.APIMovil.Estandar
         }
 
         /// <summary>
+        /// Verifica si el objeto es un DTO/Model basado en naming conventions.
+        /// </summary>
+        /// <param name="creacionObjeto">La expresión de creación del objeto.</param>
+        /// <returns>True si parece ser un DTO/Model.</returns>
+        private static bool EsTipoDTO(ObjectCreationExpressionSyntax creacionObjeto)
+        {
+            try
+            {
+                var nombreTipo = ObtenerNombreTipo(creacionObjeto);
+                
+                // Patrones comunes de DTOs/Models
+                var patronesDTO = new[]
+                {
+                    "Model", "DTO", "Request", "Response", "Solicitud", "Respuesta",
+                    "Entity", "Entidad", "ViewModel", "Contract", "Command", "Query"
+                };
+
+                return patronesDTO.Any(patron => nombreTipo.EndsWith(patron, System.StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Verifica si el inicializador de objeto está dentro de una expresión LINQ permitida.
         /// </summary>
         /// <param name="creacionObjeto">La expresión de creación del objeto.</param>
@@ -115,9 +145,10 @@ namespace Japdeva.APIMovil.Estandar
                 // Verificar si está en una expresión lambda
                 if (nodoActual is SimpleLambdaExpressionSyntax || nodoActual is ParenthesizedLambdaExpressionSyntax)
                 {
-                    // Verificar si la lambda está en una invocación de método LINQ
-                    var invocacionMetodo = nodoActual.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
-                    if (invocacionMetodo != null)
+                    // Buscar invocación de método en toda la jerarquía de ancestros
+                    var ancestros = nodoActual.Ancestors().OfType<InvocationExpressionSyntax>();
+                    
+                    foreach (var invocacionMetodo in ancestros)
                     {
                         var nombreMetodo = ObtenerNombreMetodoInvocado(invocacionMetodo);
                         
@@ -125,10 +156,17 @@ namespace Japdeva.APIMovil.Estandar
                         var metodosLinqPermitidos = new[]
                         {
                             "Select", "SelectMany", "Where", "OrderBy", "OrderByDescending",
-                            "ThenBy", "ThenByDescending", "GroupBy", "Join", "GroupJoin"
+                            "ThenBy", "ThenByDescending", "GroupBy", "Join", "GroupJoin",
+                            "First", "FirstOrDefault", "Single", "SingleOrDefault", 
+                            "Last", "LastOrDefault", "Any", "All", "Count", "Sum", 
+                            "Min", "Max", "Average", "Aggregate", "ToList", "ToArray",
+                            "ToDictionary", "ToLookup", "Cast", "OfType"
                         };
                         
-                        return metodosLinqPermitidos.Contains(nombreMetodo);
+                        if (metodosLinqPermitidos.Contains(nombreMetodo))
+                        {
+                            return true; // Está en una cadena de métodos LINQ
+                        }
                     }
                 }
                 

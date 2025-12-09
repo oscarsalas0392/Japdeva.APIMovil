@@ -70,10 +70,5 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         [Column("fechaEdicion")]
         public DateTime? FechaEdicion { get; set; }
 
-        /// <summary>
-        /// Obtiene o establece el indicador de si el detalle está activo en el sistema.
-        /// </summary>
-        [Column("activo")]
-        public bool Activo { get; set; }
     }
 }

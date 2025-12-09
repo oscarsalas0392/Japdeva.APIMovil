@@ -27,7 +27,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
         private const string MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO = "El estado detalle proceso con Id {0} no fue encontrado.";
 
         private const int VALOR_DEFECTO_ID_USUARIO_INTERNO = 0;
-        private const int VALOR_DEFECTO_ID_ORDEN_PROCESO = 0;
+        private const int VALOR_DEFECTO_ID_ORDEN_PROCESO = 1;
         private const string VALOR_DEFECTO_DESCRIPCION = "";
 
         /// <summary>
@@ -55,17 +55,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo al cual se agregará el detalle.</param>
-        /// <param name="descripcion">Descripción o comentario del detalle a agregar.</param>
-        /// <param name="estadoDetalleReclamoModel">Estado inicial del detalle del reclamo. Valor por defecto: Pendiente.</param>
-        /// <param name="idUsuarioInterno">Identificador del usuario interno que registra el detalle. Valor por defecto: 0.</param>
         /// <param name="idOrdenProceso">Identificador del orden de proceso asociado. Valor por defecto: 0.</param>
-        public async Task AgregarReclamoDetalleAsync(
-            string traceId,
-            long idReclamo,
-            string descripcion= VALOR_DEFECTO_DESCRIPCION,
-            EstadoDetalleReclamoModel estadoDetalleReclamoModel = EstadoDetalleReclamoModel.Pendiente,
-            int idUsuarioInterno = VALOR_DEFECTO_ID_USUARIO_INTERNO,
-            int idOrdenProceso = VALOR_DEFECTO_ID_ORDEN_PROCESO)
+        public async Task AgregarReclamoDetalleAsync(string traceId, long idReclamo, int idOrdenProceso = VALOR_DEFECTO_ID_ORDEN_PROCESO)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -75,18 +66,18 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
                 var reclamo = await this._consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, reclamo => reclamo.Id == idReclamo);
                 if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
 
-                var ordenProceso = this._ordenProcesoCacheService.ObtenerOrdenProceso(traceId, idOrdenProceso);
+                var ordenProceso = this._ordenProcesoCacheService.ObtenerOrdenProcesoPorId(traceId, idOrdenProceso);
                 if(ordenProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_PROCESO_NO_ENCONTRADO, idOrdenProceso));
 
-                var estadoDetalle = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, (int)estadoDetalleReclamoModel);
-                if (estadoDetalle is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO, (int)estadoDetalleReclamoModel));
+                var estadoDetalle = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, (int)EstadoDetalleReclamoModel.Pendiente);
+                if (estadoDetalle is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO, (int)EstadoDetalleReclamoModel.Pendiente));
 
                 DetalleReclamoEntity reclamoDetalle = new DetalleReclamoEntity();
                 reclamoDetalle.IdReclamo = reclamo.Id;
                 reclamoDetalle.IdOrdenProceso = ordenProceso.Id;
-                reclamoDetalle.Descripcion = descripcion;
+                reclamoDetalle.Descripcion = VALOR_DEFECTO_DESCRIPCION;
                 reclamoDetalle.FechaRegistro = DateTime.Now;
-                reclamoDetalle.IdUsuarioInterno = idUsuarioInterno;
+                reclamoDetalle.IdUsuarioInterno = VALOR_DEFECTO_ID_USUARIO_INTERNO;
                 reclamoDetalle.IdEstadoDetalleReclamo = estadoDetalle.Id;
 
                 await this._agregarRepository.AgregarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);

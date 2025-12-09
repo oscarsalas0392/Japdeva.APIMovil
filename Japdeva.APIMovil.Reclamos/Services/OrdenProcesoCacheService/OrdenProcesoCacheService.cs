@@ -68,7 +68,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idOrdenProceso">Identificador de la orden de proceso a buscar.</param>
         /// <returns>La entidad de orden de proceso si se encuentra y está activa, null en caso contrario.</returns>
-        public OrdenProcesoEntity? ObtenerOrdenProceso(string traceId, int idOrdenProceso)
+        public OrdenProcesoEntity? ObtenerOrdenProcesoPorId(string traceId, int idOrdenProceso)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -89,5 +89,35 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }
+
+        /// <summary>
+        /// Obtiene una orden de proceso específica por su número de orden desde el cache en memoria.
+        /// Realiza una búsqueda thread-safe en el cache para encontrar la configuración de una etapa del workflow según el número de orden.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="orden">Número de orden de la etapa del proceso a buscar.</param>
+        /// <returns>La entidad de orden de proceso si se encuentra y está activa, null en caso contrario.</returns>
+        public OrdenProcesoEntity? ObtenerOrdenProcesoPorOrden(string traceId, int orden)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                lock (this._ordenProcesoEntityCache)
+                {
+                    return this._ordenProcesoEntityCache.FirstOrDefault(p => p.Orden == orden && p.Activo == ESTADO_ACTIVO);
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
     }
 }

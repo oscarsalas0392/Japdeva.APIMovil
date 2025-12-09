@@ -67,8 +67,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idOrdenProceso">Identificador de la orden de proceso para buscar sus estados válidos.</param>
+        /// <param name="idEstadoDetalleReclamo">Identificador del estado de detalle de reclamo para buscar la relación específica.</param>
         /// <returns>La entidad de relación estado-orden si se encuentra y está activa, null en caso contrario.</returns>
-        public EstadoDetalleReclamoOrdenProcesoEntity? ObtenerEstadoDetalleReclamoOrdenProceso(string traceId, int idOrdenProceso)
+        public EstadoDetalleReclamoOrdenProcesoEntity? ObtenerEstadoDetalleReclamoOrdenProceso(string traceId, int idOrdenProceso, int idEstadoDetalleReclamo)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -76,7 +77,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
                 this._logger.Inicio(traceId, nombreMetodo);
                 lock (this._estadoDetalleReclamoOrdenProcesoEntityCache)
                 {
-                    return this._estadoDetalleReclamoOrdenProcesoEntityCache.FirstOrDefault(p => p.IdOrdenProceso == idOrdenProceso && p.Activo == ESTADO_ACTIVO);
+                    return this._estadoDetalleReclamoOrdenProcesoEntityCache.FirstOrDefault(p => p.IdOrdenProceso == idOrdenProceso && p.IdEstadoDetalleReclamo == idEstadoDetalleReclamo
+                    && p.Activo == ESTADO_ACTIVO);
                 }
             }
             catch (Exception ex)

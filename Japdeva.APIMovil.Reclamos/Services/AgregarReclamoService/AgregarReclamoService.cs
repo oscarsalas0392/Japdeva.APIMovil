@@ -85,7 +85,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 var estadoReclamo = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, (int)EstadoReclamoModel.Pendiente);
                 if (estadoReclamo is null) throw new Exception(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE);
 
-                var ordenProceso = this._ordenProcesoCacheService.ObtenerOrdenProceso(traceId, ORDEN_INICIAL);
+                var ordenProceso = this._ordenProcesoCacheService.ObtenerOrdenProcesoPorId(traceId, ORDEN_INICIAL);
                 if (ordenProceso is null) throw new Exception(MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE);
 
                 ReclamoEntity reclamoEntity = new ReclamoEntity();
