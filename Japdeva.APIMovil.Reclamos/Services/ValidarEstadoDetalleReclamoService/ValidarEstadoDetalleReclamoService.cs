@@ -1,7 +1,7 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Reclamos.Entities;
-using Japdeva.APIMovil.Reclamos.Services.AgregarDetalleReclamoPorDevolucionService;
-using Japdeva.APIMovil.Reclamos.Services.AgregarDetalleReclamoPorOrdenService;
+using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
 {
@@ -12,52 +12,65 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
     public class ValidarEstadoDetalleReclamoService : IValidarEstadoDetalleReclamoService
     {
         private readonly ILogger<ValidarEstadoDetalleReclamoService> _logger;
-        private readonly IAgregarDetalleReclamoPorOrdenService _agregarReclamoDetallePorOrdenService;
-        private readonly IAgregarDetalleReclamoPorDevolucionService _agregarDetalleReclamoPorDevolucionService;
+        private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
+        private readonly IOrdenNivelProcesoCacheService _ordenNivelProcesoCacheService;
+
+        private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO = "No se encontró la configuración de orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
+        private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION = "No se encontró la configuración de devolución del orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ValidarEstadoDetalleReclamoService"/>.
         /// </summary>
+        /// <param name="logger">Logger para registro de eventos y errores.</param>
+        /// <param name="agregarReclamoDetalleService">Servicio para agregar detalles de reclamo.</param>
         public ValidarEstadoDetalleReclamoService(
             ILogger<ValidarEstadoDetalleReclamoService> logger,
-            IAgregarDetalleReclamoPorOrdenService agregarReclamoDetallePorOrdenService,
-            IAgregarDetalleReclamoPorDevolucionService agregarDetalleReclamoPorDevolucionService
+            IAgregarReclamoDetalleService agregarReclamoDetalleService,
+            IOrdenNivelProcesoCacheService ordenNivelProcesoCacheService
             )
         {
             this._logger = logger;
-            this._agregarReclamoDetallePorOrdenService = agregarReclamoDetallePorOrdenService;
-            this._agregarDetalleReclamoPorDevolucionService = agregarDetalleReclamoPorDevolucionService;
+            this._agregarReclamoDetalleService = agregarReclamoDetalleService;
+            this._ordenNivelProcesoCacheService = ordenNivelProcesoCacheService;
         }
 
         /// <summary>
         /// Valida el estado del detalle de un reclamo y ejecuta las acciones correspondientes según el proceso actual.
-        /// Agrega detalles por devolución u orden, o rechaza el proceso según los valores de la entidad.
+        /// Si el estado indica rechazo o finalización, no realiza ninguna acción adicional.
+        /// Si el estado indica devolución, valida la configuración de devolución en el orden de nivel de proceso.
+        /// Finalmente, agrega un nuevo detalle de reclamo para el siguiente nivel de proceso.
         /// </summary>
-        /// <param name="traceId">Identificador de trazabilidad para el registro de logs.</param>
-        /// <param name="estadoDetalleReclamoEntity">Entidad que representa el estado del detalle del reclamo.</param>
-        /// <param name="idReclamo">Identificador único del reclamo.</param>
-        /// <param name="idOrdenProcesoActual">Identificador del proceso de orden actual.</param>
-        /// <param name="idDevolucionProceso">Identificador del proceso de devolución, si aplica.</param>
-        public async Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalleReclamoEntity, long idReclamo, int idOrdenProcesoActual, int? idDevolucionProceso)
+        /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
+        /// <param name="estadoDetalle">Entidad que representa el estado del detalle del reclamo.</param>
+        /// <param name="idReclamo">Identificador del reclamo.</param>
+        /// <param name="idNivelActual">Identificador del nivel actual del proceso.</param>
+        /// <param name="idNivelSiguienteProceso">Identificador del siguiente nivel del proceso.</param>
+
+        public async Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, int idNivelActual, int idNivelSiguienteProceso)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                if (idDevolucionProceso is not null && estadoDetalleReclamoEntity.DevolucionProceso)
+
+                if (estadoDetalle.RechazaProceso)
                 {
-                    await this._agregarDetalleReclamoPorDevolucionService.AgregarDetalleReclamoPorDevolucionAsync(traceId, idReclamo, idDevolucionProceso.Value);
+                    return;
                 }
 
-                if(estadoDetalleReclamoEntity.ContinuaProceso)
-                { 
-                    await this._agregarReclamoDetallePorOrdenService.AgregarDetalleReclamoPorOrdenAsync(traceId, idReclamo, idOrdenProcesoActual);
+                if (estadoDetalle.FinalizarProceso)
+                {
+                    return;
                 }
 
-                if(estadoDetalleReclamoEntity.RechazaProceso)
+                if (estadoDetalle.DevolucionProceso)
                 {
-                    // Lógica para rechazar el proceso del reclamo
+                    var ordenNivelProceso = this._ordenNivelProcesoCacheService.ObtenerOrdenNivelProcesoCache(traceId, idNivelActual, idNivelSiguienteProceso);
+                    if(ordenNivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO, idNivelActual, idNivelSiguienteProceso));
+                    if(!ordenNivelProceso.DevolucionNivel) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION, idNivelActual, idNivelSiguienteProceso));
                 }
+
+                await this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, idReclamo, idNivelSiguienteProceso);               
             }
             catch (Exception ex)
             {

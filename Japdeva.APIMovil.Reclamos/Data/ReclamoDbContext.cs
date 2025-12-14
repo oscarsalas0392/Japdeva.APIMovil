@@ -55,22 +55,24 @@ namespace Japdeva.APIMovil.Reclamos.Data
         public DbSet<EstadoDetalleReclamoEntity> EstadosDetalleReclamos { get; set; } = null!;
 
         /// <summary>
-        /// Obtiene o establece el conjunto de entidades de órdenes de proceso.
+        /// Obtiene o establece el conjunto de entidades de niveles de proceso.
         /// Representa la configuración de los flujos y secuencias de atención de reclamos.
         /// </summary>
-        public DbSet<OrdenProcesoEntity> OrdenProcesos { get; set; } = null!;
+        public DbSet<NivelProcesoEntity> NivelesProcesos { get; set; } = null!;
+
 
         /// <summary>
-        /// Obtiene o establece el conjunto de entidades de devolución de proceso.
-        /// Representa la configuración de los procesos de devolución y reenvío de reclamos.
+        /// Obtiene o establece el conjunto de entidades de órdenes de niveles de proceso.
+        /// Representa la relación jerárquica y de secuencia entre los diferentes niveles del proceso de atención de reclamos.
         /// </summary>
-        public DbSet<DevolucionProcesoEntity> DevolucionProcesos { get; set; } = null!;
+        public DbSet<OrdenNivelProcesoEntity> OrdenesNivelesProcesos { get; set; } = null!;
+
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades de estado detalle reclamo orden proceso.
         /// Representa la relación entre estados de detalle y órdenes de proceso.
         /// </summary>
-        public DbSet<EstadoDetalleReclamoOrdenProcesoEntity> EstadoDetalleReclamoOrdenProcesos { get; set; } = null!;
+        public DbSet<EstadoDetalleReclamoNivelProcesoEntity> EstadoDetalleReclamoOrdenProcesos { get; set; } = null!;
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades históricas de detalles de reclamos.

@@ -1,9 +1,10 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Reclamos.Services.DevolucionProcesoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
-using Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
+
 
 namespace Japdeva.APIMovil.Reclamos.BackgroundServices
 {
@@ -74,22 +75,22 @@ namespace Japdeva.APIMovil.Reclamos.BackgroundServices
 
                 var estadoReclamoCache = scope.ServiceProvider.GetRequiredService<IEstadoReclamoCacheService>();
                 var estadoDetalleReclamoCache = scope.ServiceProvider.GetRequiredService<IEstadoDetalleReclamoCacheService>();
-                var ordenProcesoCache = scope.ServiceProvider.GetRequiredService<IOrdenProcesoCacheService>();
-                var devolucionProcesoCache = scope.ServiceProvider.GetRequiredService<IDevolucionProcesoCacheService>();
+                var nivelProcesoCache = scope.ServiceProvider.GetRequiredService<INivelProcesoCacheService>();
                 var estadoDetalleOrdenCache = scope.ServiceProvider.GetRequiredService<IEstadoDetalleReclamoOrdenProcesoCacheService>();
+                var ordenNivelProcesoCache = scope.ServiceProvider.GetRequiredService<IOrdenNivelProcesoCacheService>();
 
                 Task tareaEstadoReclamoCache = estadoReclamoCache.LlenarCacheEstadoReclamoAsync(TRACE_ID_BACKGROUND);
                 Task tareaEstadoDetalleReclamoCache = estadoDetalleReclamoCache.LlenarCacheEstadoDetalleReclamoAsync(TRACE_ID_BACKGROUND);
-                Task tareaOrdenProcesoCache = ordenProcesoCache.LlenarCacheOrdenProcesoAsync(TRACE_ID_BACKGROUND);
-                Task tareaDevolucionProcesoCache = devolucionProcesoCache.LlenarCacheDevolucionProcesoAsync(TRACE_ID_BACKGROUND);
+                Task tareaNivelProcesoCache = nivelProcesoCache.LlenarCacheNivelProcesoAsync(TRACE_ID_BACKGROUND);
                 Task tareaEstadoDetalleOrdenCache = estadoDetalleOrdenCache.LlenarCacheEstadoDetalleReclamoOrdenProcesoAsync(TRACE_ID_BACKGROUND);
+                Task tareaOrdenNivelProcesoCache = ordenNivelProcesoCache.LlenarCacheOrdenNivelProcesoAsync(TRACE_ID_BACKGROUND);
 
                 await Task.WhenAll(
                     tareaEstadoReclamoCache,
                     tareaEstadoDetalleReclamoCache,
-                    tareaOrdenProcesoCache,
-                    tareaDevolucionProcesoCache,
-                    tareaEstadoDetalleOrdenCache);
+                    tareaNivelProcesoCache,
+                    tareaEstadoDetalleOrdenCache,
+                    tareaOrdenNivelProcesoCache);
 
             }
             catch (Exception ex)

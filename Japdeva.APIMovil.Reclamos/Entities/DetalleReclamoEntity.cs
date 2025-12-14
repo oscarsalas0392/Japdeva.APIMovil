@@ -27,15 +27,14 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece el identificador del orden de proceso asociado al detalle.
         /// Define el flujo o secuencia del proceso de atención del reclamo.
         /// </summary>
-        [Column("idOrdenProceso")]
-        public int IdOrdenProceso { get; set; }
+        [Column("idNivelProceso")]
+        public int IdNivelProceso { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador de la devolución asociada al detalle.
-        /// Puede ser nulo si no aplica devolución.
+        /// Obtiene o establece el identificador del departamento asociado al detalle de reclamo.
         /// </summary>
-        [Column("idDevolucionProceso")]
-        public int? IdDevolucionProceso { get; set; }
+        [Column("idDepartamento")]
+        public long IdDepartamento { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del estado del detalle de reclamo.

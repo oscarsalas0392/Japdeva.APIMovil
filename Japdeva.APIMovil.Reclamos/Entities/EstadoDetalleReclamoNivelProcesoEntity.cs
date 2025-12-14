@@ -9,7 +9,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
     /// de procesamiento de reclamos, estableciendo las reglas del workflow del sistema.
     /// </summary>
     [Table("Tbl_EstadoDetalleReclamoOrdenProceso")]
-    public class EstadoDetalleReclamoOrdenProcesoEntity
+    public class EstadoDetalleReclamoNivelProcesoEntity
     {
         /// <summary>
         /// Obtiene o establece el identificador único de la relación estado-orden.
@@ -22,8 +22,8 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece el identificador de la orden de proceso en la relación.
         /// Define en qué paso del flujo de trabajo aplica esta configuración de estado.
         /// </summary>
-        [Column("idOrdenProceso")]
-        public int IdOrdenProceso { get; set; } 
+        [Column("idNivelProceso")]
+        public int IdNivelProceso { get; set; } 
 
         /// <summary>
         /// Obtiene o establece el identificador del estado de detalle de reclamo en la relación.

@@ -6,9 +6,9 @@ using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
-using Japdeva.APIMovil.Reclamos.Services.DevolucionProcesoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
@@ -23,15 +23,15 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         private readonly ILogger<EditarReclamoDetalleService> _logger;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
         private readonly IEstadoDetalleReclamoOrdenProcesoCacheService _estadoDetalleReclamoOrdenProcesoCacheService;
-        private readonly IDevolucionProcesoCacheService _devolucionProcesoCacheService;
         private readonly IConsultarRepository _consultarRepository;
         private readonly IActualizarRepository _actualizarRepository;
         private readonly IValidarEstadoDetalleReclamoService _validarEstadoDetalleReclamoService;
         private readonly IGeneralRepository _generalRepository;
+        private readonly INivelProcesoCacheService _nivelProcesoCacheService;
 
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "El detalle de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_ENCONTRADO = "El estado detalle de reclamo con Id {0} no fue encontrado.";
-        private const string MENSAJE_ERROR_DEVOLUCION_DETALLE_RECLAMO_NO_ENCONTRADO = "La devolucion del detalle de reclamo con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO = "La nivel del proceso de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO = "No se encuentra el estado asociado a la orden del detalle de reclamo con Id {0} no fue encontrado.";
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
             IActualizarRepository actualizarRepository,
             IEstadoDetalleReclamoCacheService estadoDetalleReclamoCacheService,
             IEstadoDetalleReclamoOrdenProcesoCacheService estadoDetalleReclamoOrdenProcesoCacheService,
-            IDevolucionProcesoCacheService devolucionProcesoCacheService,
             IValidarEstadoDetalleReclamoService validarEstadoDetalleReclamoService,
-            IGeneralRepository generalRepository
+            IGeneralRepository generalRepository,
+            INivelProcesoCacheService nivelProcesoCacheService
             )
         {
             this._logger = logger;
@@ -60,7 +60,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
             this._actualizarRepository = actualizarRepository;
             this._estadoDetalleReclamoCacheService = estadoDetalleReclamoCacheService;
             this._estadoDetalleReclamoOrdenProcesoCacheService = estadoDetalleReclamoOrdenProcesoCacheService;
-            this._devolucionProcesoCacheService = devolucionProcesoCacheService;
+            this._nivelProcesoCacheService = nivelProcesoCacheService;
             this._generalRepository = generalRepository;
             this._validarEstadoDetalleReclamoService = validarEstadoDetalleReclamoService;
         }
@@ -81,31 +81,24 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
                 transaccion = await this._generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                DevolucionProcesoEntity? devolucionProceso = null;
                 var reclamoDetalle = await this._consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=>x.Id == editarDetalleReclamoSolicitudModel.Id);
                 if (reclamoDetalle is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
-                
+
+                var nivelSiguienteProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso);
+                if (nivelSiguienteProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
+
                 var estadoEstadoDetalleReclamo = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo);
                 if(estadoEstadoDetalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
 
-                var estadoDetalleReclamoOrdenProceso = this._estadoDetalleReclamoOrdenProcesoCacheService.ObtenerEstadoDetalleReclamoOrdenProceso(traceId, reclamoDetalle.IdOrdenProceso, editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo);
-                if(estadoDetalleReclamoOrdenProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdOrdenProceso));
-
-                if (editarDetalleReclamoSolicitudModel.IdDevolucionProceso is not null)
-                {
-                    devolucionProceso = this._devolucionProcesoCacheService.ObtenerDevolucionProceso(traceId,
-                        editarDetalleReclamoSolicitudModel.IdDevolucionProceso.Value);
-                    if (devolucionProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DEVOLUCION_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
-                }
+                var estadoDetalleReclamoOrdenProceso = this._estadoDetalleReclamoOrdenProcesoCacheService.ObtenerEstadoDetalleReclamoOrdenProceso(traceId, reclamoDetalle.IdNivelProceso, editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo);
+                if(estadoDetalleReclamoOrdenProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
 
                 reclamoDetalle.IdEstadoDetalleReclamo = editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo;
-                reclamoDetalle.Descripcion = editarDetalleReclamoSolicitudModel.Descripcion;
-                if (devolucionProceso is not null) reclamoDetalle.IdDevolucionProceso = devolucionProceso.Id;
                 reclamoDetalle.FechaEdicion = DateTime.Now;
                 reclamoDetalle.IdUsuarioInterno = editarDetalleReclamoSolicitudModel.IdUsuarioInterno;
 
                 await this._actualizarRepository.ActualizarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
-                await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, reclamoDetalle.IdReclamo, reclamoDetalle.IdOrdenProceso, editarDetalleReclamoSolicitudModel.IdDevolucionProceso);
+                await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, reclamoDetalle.IdReclamo, reclamoDetalle.IdNivelProceso, nivelSiguienteProceso.Id);
 
                 await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
 

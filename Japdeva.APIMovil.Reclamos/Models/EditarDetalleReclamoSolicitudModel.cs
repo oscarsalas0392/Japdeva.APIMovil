@@ -11,16 +11,17 @@
         public long Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del proceso de devolución asociado al detalle.
-        /// Puede ser nulo si no hay proceso de devolución.
-        /// </summary>
-        public int? IdDevolucionProceso { get; set; }
-
-        /// <summary>
         /// Obtiene o establece el identificador del estado del detalle del reclamo.
         /// Define el estado actual en el que se encuentra el detalle.
         /// </summary>
         public int IdEstadoDetalleReclamo { get; set; }
+
+
+        /// <summary>
+        /// Obtiene o establece el identificador del nivel del siguiente proceso asociado al detalle del reclamo.
+        /// Indica el flujo o etapa a la que avanzará el reclamo tras la acción actual.
+        /// </summary>
+        public int IdNivelSiguienteProceso { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del usuario interno asignado al detalle.
@@ -32,5 +33,7 @@
         /// Obtiene o establece la descripción o comentarios adicionales del detalle del reclamo.
         /// </summary>
         public string Descripcion { get; set; } = string.Empty;
+
+
     }
 }

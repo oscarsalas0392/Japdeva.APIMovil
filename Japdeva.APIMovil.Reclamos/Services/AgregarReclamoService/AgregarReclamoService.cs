@@ -9,7 +9,7 @@ using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
-using Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
 {
@@ -26,10 +26,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
         private readonly IGeneralRepository _generalRepository;
         private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
-        private readonly IOrdenProcesoCacheService _ordenProcesoCacheService;
+        private readonly INivelProcesoCacheService _nivelProcesoCacheService;
 
         private const int MINIMO_REGISTROS = 1;
-        private const int ORDEN_INICIAL = 1;
         private const string MENSAJE_TITULO_REQUERIDO = "El titulo es requerido";
         private const string MENSAJE_DESCRIPCION_REQUERIDA = "El descripcion es requerida";
         private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
@@ -50,7 +49,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             IAgregarReclamoDetalleService agregarReclamoDetalleService,
             IGeneralRepository generalRepository,
             IEstadoReclamoCacheService estadoReclamoCacheService,
-            IOrdenProcesoCacheService _ordenProcesoCacheService)
+            INivelProcesoCacheService nivelProcesoCacheService)
         {
             this._logger = logger;
             this._agregarDocumentoUsuarioService = agregarDocumentoUsuarioService;
@@ -58,7 +57,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             this._agregarReclamoDetalleService = agregarReclamoDetalleService;
             this._generalRepository = generalRepository;
             this._estadoReclamoCacheService = estadoReclamoCacheService;
-            this._ordenProcesoCacheService = _ordenProcesoCacheService;
+            this._nivelProcesoCacheService = nivelProcesoCacheService;
         }
 
         /// <summary>
@@ -85,8 +84,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 var estadoReclamo = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, (int)EstadoReclamoModel.Pendiente);
                 if (estadoReclamo is null) throw new Exception(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE);
 
-                var ordenProceso = this._ordenProcesoCacheService.ObtenerOrdenProcesoPorId(traceId, ORDEN_INICIAL);
-                if (ordenProceso is null) throw new Exception(MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE);
+                var nivelProceso = this._nivelProcesoCacheService.ObtenerPrimerNivel(traceId);
+                if (nivelProceso is null) throw new Exception(MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE);
 
                 ReclamoEntity reclamoEntity = new ReclamoEntity();
                 reclamoEntity.Titulo = reclamo.Titulo;
@@ -94,12 +93,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 reclamoEntity.IdEstadoReclamo = estadoReclamo.Id;
                 reclamoEntity.FechaRegistro = DateTime.Now;
                 reclamoEntity.IdUsuarioExterno = reclamo.IdUsuarioExterno;
-                reclamoEntity.IdDepartamentoActual = ordenProceso.IdDepartamento;
+                reclamoEntity.IdDepartamentoActual = nivelProceso.IdDepartamento;
 
                 await this._agregarRepository.AgregarAsync<ReclamoEntity>(traceId, reclamoEntity);
 
                 Task agregarDocumento = this._agregarDocumentoUsuarioService.AgregarDocumentoUsuarioAsync(traceId, reclamoEntity.Id, reclamo.ListaDocumentos);
-                Task agregarDetalleReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, reclamoEntity.Id);
+                Task agregarDetalleReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, reclamoEntity.Id, nivelProceso.Id);
                 await Task.WhenAll(agregarDocumento, agregarDetalleReclamo);
 
                 await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);

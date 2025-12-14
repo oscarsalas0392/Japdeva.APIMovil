@@ -2,19 +2,20 @@
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 
-namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
+namespace Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService
 {
     /// <summary>
     /// Servicio de cache para la gestión de órdenes de proceso en memoria.
     /// Proporciona acceso rápido a la configuración del workflow de reclamos,
     /// almacenando en cache las etapas y secuencias del proceso de atención para optimizar el rendimiento.
     /// </summary>
-    public class OrdenProcesoCacheService : IOrdenProcesoCacheService
+    public class NivelProcesoCacheService : INivelProcesoCacheService
     {
-        private readonly ILogger<OrdenProcesoCacheService> _logger;
+        private readonly ILogger<NivelProcesoCacheService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly List<OrdenProcesoEntity> _ordenProcesoEntityCache = new List<OrdenProcesoEntity>();
+        private readonly List<NivelProcesoEntity> _nivelProcesoEntityCache = new List<NivelProcesoEntity>();
         private const int PAGINA_INICIAL = 1;
+        private const int NIVEL_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
 
         /// <summary>
@@ -22,7 +23,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
         /// </summary>
         /// <param name="serviceProvider">Proveedor de servicios para resolución de dependencias y gestión de scopes.</param>
         /// <param name="logger">Logger para registro de eventos y errores del servicio de cache.</param>
-        public OrdenProcesoCacheService(IServiceProvider serviceProvider, ILogger<OrdenProcesoCacheService> logger)
+        public NivelProcesoCacheService(IServiceProvider serviceProvider, ILogger<NivelProcesoCacheService> logger)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider;
@@ -33,7 +34,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
         /// Actualiza completamente el cache con la configuración más reciente del workflow de reclamos.
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
-        public async Task LlenarCacheOrdenProcesoAsync(string traceId)
+        public async Task LlenarCacheNivelProcesoAsync(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -41,13 +42,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                var ordenProcesos = await consultarRepository.ConsultarListaAsync<OrdenProcesoEntity>(
+                var ordenProcesos = await consultarRepository.ConsultarListaAsync<NivelProcesoEntity>(
                     traceId, PAGINA_INICIAL, p => p.Activo == ESTADO_ACTIVO);
                 if (ordenProcesos is null || !ordenProcesos.Lista.Any()) return;
-                lock (this._ordenProcesoEntityCache)
+                lock (this._nivelProcesoEntityCache)
                 {
-                    this._ordenProcesoEntityCache.Clear();
-                    this._ordenProcesoEntityCache.AddRange(ordenProcesos.Lista);
+                    this._nivelProcesoEntityCache.Clear();
+                    this._nivelProcesoEntityCache.AddRange(ordenProcesos.Lista);
                 }
             }
             catch (Exception ex)
@@ -62,21 +63,23 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
         }
 
         /// <summary>
-        /// Obtiene una orden de proceso específica desde el cache en memoria.
-        /// Realiza una búsqueda thread-safe en el cache para encontrar la configuración de una etapa del workflow.
+        /// Obtiene un nivel de proceso específico del cache por su identificador.
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
-        /// <param name="idOrdenProceso">Identificador de la orden de proceso a buscar.</param>
-        /// <returns>La entidad de orden de proceso si se encuentra y está activa, null en caso contrario.</returns>
-        public OrdenProcesoEntity? ObtenerOrdenProcesoPorId(string traceId, int idOrdenProceso)
+        /// <param name="idNivelProceso">Identificador del nivel de proceso a buscar.</param>
+        /// <returns>
+        /// La entidad <see cref="NivelProcesoEntity"/> correspondiente al identificador proporcionado,
+        /// o <c>null</c> si no se encuentra un nivel de proceso activo con ese identificador.
+        /// </returns>
+        public NivelProcesoEntity? ObtenerNivelProcesoPorId(string traceId, int idNivelProceso)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._ordenProcesoEntityCache)
+                lock (this._nivelProcesoEntityCache)
                 {
-                    return this._ordenProcesoEntityCache.FirstOrDefault(p => p.Id == idOrdenProceso && p.Activo == ESTADO_ACTIVO);
+                    return this._nivelProcesoEntityCache.FirstOrDefault(p => p.Id == idNivelProceso && p.Activo == ESTADO_ACTIVO);
                 }
             }
             catch (Exception ex)
@@ -91,21 +94,22 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenProcesoCacheService
         }
 
         /// <summary>
-        /// Obtiene una orden de proceso específica por su número de orden desde el cache en memoria.
-        /// Realiza una búsqueda thread-safe en el cache para encontrar la configuración de una etapa del workflow según el número de orden.
+        /// Obtiene el primer nivel de proceso activo del cache.
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
-        /// <param name="orden">Número de orden de la etapa del proceso a buscar.</param>
-        /// <returns>La entidad de orden de proceso si se encuentra y está activa, null en caso contrario.</returns>
-        public OrdenProcesoEntity? ObtenerOrdenProcesoPorOrden(string traceId, int orden)
+        /// <returns>
+        /// La entidad <see cref="NivelProcesoEntity"/> correspondiente al primer nivel activo,
+        /// o <c>null</c> si no se encuentra un nivel de proceso activo con el nivel inicial.
+        /// </returns>
+        public NivelProcesoEntity? ObtenerPrimerNivel(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._ordenProcesoEntityCache)
+                lock (this._nivelProcesoEntityCache)
                 {
-                    return this._ordenProcesoEntityCache.FirstOrDefault(p => p.Orden == orden && p.Activo == ESTADO_ACTIVO);
+                    return this._nivelProcesoEntityCache.FirstOrDefault(p=> p.Nivel == NIVEL_INICIAL && p.Activo == ESTADO_ACTIVO);
                 }
             }
             catch (Exception ex)

@@ -7,19 +7,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
     /// </summary>
     public interface IAgregarReclamoDetalleService
     {
-
-        /// <summary>
-        /// Valor por defecto para el identificador de orden de proceso.
-        /// </summary>
-        private const int VALOR_DEFECTO_ID_ORDEN_PROCESO = 0;
-
         /// <summary>
         /// Agrega un nuevo detalle a un reclamo existente de forma asíncrona.
         /// Permite registrar información adicional, comentarios o actualizaciones sobre el estado del reclamo.
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo al cual se agregará el detalle.</param>
-        /// <param name="idOrdenProceso">Identificador del orden de proceso asociado. Valor por defecto: 0.</param>
-        Task AgregarReclamoDetalleAsync(string traceId, long idReclamo, int idOrdenProceso = VALOR_DEFECTO_ID_ORDEN_PROCESO);
+        /// <param name="idNivelSiguienteProceso">Identificador del nivel de proceso asociado</param>
+        Task AgregarReclamoDetalleAsync(string traceId, long idReclamo, int idNivelSiguienteProceso);
     }
 }

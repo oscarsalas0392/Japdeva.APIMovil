@@ -8,8 +8,8 @@ namespace Japdeva.APIMovil.Reclamos.Entities
     /// Define la secuencia y configuración de cada etapa del workflow de procesamiento,
     /// estableciendo el flujo ordenado que deben seguir los reclamos desde su recepción hasta su resolución.
     /// </summary>
-    [Table("Tbl_OrdenProceso")]
-    public class OrdenProcesoEntity
+    [Table("Tbl_NivelProceso")]
+    public class NivelProcesoEntity
     {
         /// <summary>
         /// Obtiene o establece el identificador único de la orden de proceso.
@@ -17,6 +17,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         [Column("id")]
         [Key]
         public int Id { get; set; }
+
 
         /// <summary>
         /// Obtiene o establece la descripción de la orden de proceso.
@@ -32,8 +33,8 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece el número de orden o secuencia de este paso en el proceso.
         /// Define la posición de esta etapa dentro del flujo completo de procesamiento de reclamos.
         /// </summary>
-        [Column("orden")]
-        public int Orden { get; set; }
+        [Column("nivel")]
+        public int Nivel { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del usuario interno que configuró esta orden de proceso.
@@ -62,5 +63,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// </summary>
         [Column("activo")]
         public bool Activo { get; set; }
+
+        
     }
 }
