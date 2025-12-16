@@ -12,60 +12,62 @@ namespace Japdeva.APIMovil.Reclamos.Entities
     public class DetalleReclamoHistoricoEntity
     {
         /// <summary>
-        /// Obtiene o establece el identificador único del registro histórico.
+        /// Obtiene o establece el identificador único del detalle de reclamo.
         /// </summary>
-        [Key]
         [Column("id")]
+        [Key]
         public long Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del reclamo al cual pertenece este detalle histórico.
-        /// Referencia al reclamo principal para mantener la relación con el registro original.
+        /// Obtiene o establece el identificador del reclamo al cual pertenece este detalle.
         /// </summary>
         [Column("idReclamo")]
         public long IdReclamo { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del orden de proceso asociado al detalle histórico.
-        /// Define el flujo o secuencia del proceso en el momento que se registró el histórico.
+        /// Obtiene o establece el identificador del orden de proceso asociado al detalle.
+        /// Define el flujo o secuencia del proceso de atención del reclamo.
         /// </summary>
-        [Column("idOrdenProceso")]
-        public int IdOrdenProceso { get; set; }
+        [Column("idNivelProceso")]
+        public int IdNivelProceso { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del proceso de devolución, si aplica.
-        /// Referencia opcional para casos donde el detalle requirió una devolución en el proceso.
+        /// Obtiene o establece el identificador del departamento asociado al detalle de reclamo.
         /// </summary>
-        [Column("idDevolucionProceso")]
-        public int? IdDevolucionProceso { get; set; }
+        [Column("idDepartamento")]
+        public long IdDepartamento { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del estado del detalle de reclamo en el momento del registro.
-        /// Captura el estado específico que tenía el detalle cuando se creó este registro histórico.
+        /// Obtiene o establece el identificador del estado del detalle de reclamo.
+        /// Define el estado actual de este detalle específico dentro del proceso.
         /// </summary>
         [Column("idEstadoDetalleReclamo")]
         public int IdEstadoDetalleReclamo { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del usuario interno que realizó la acción registrada.
-        /// Permite auditoría de quién ejecutó cada cambio en el detalle del reclamo.
+        /// Obtiene o establece el identificador del usuario interno que registró el detalle.
         /// </summary>
         [Column("idUsuarioInterno")]
-        public long IdUsuarioInterno { get; set; }
+        public long? IdUsuarioInterno { get; set; }
 
         /// <summary>
-        /// Obtiene o establece la descripción del cambio o acción realizada en el detalle.
-        /// Comentarios, observaciones o detalles específicos sobre la modificación registrada.
+        /// Obtiene o establece la descripción o comentario del detalle.
+        /// Contiene información adicional sobre el estado, acciones realizadas o observaciones.
         /// </summary>
         [Column("descripcion")]
-        [MaxLength(500)]
+        [MaxLength(1000)]
         public string Descripcion { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece la fecha y hora en que se registró este cambio histórico.
-        /// Timestamp exacto de cuando ocurrió la modificación para auditoría temporal.
+        /// Obtiene o establece la fecha y hora de registro del detalle.
         /// </summary>
         [Column("fechaRegistro")]
         public DateTime FechaRegistro { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la fecha y hora de la última edición del detalle.
+        /// </summary>
+        [Column("fechaEdicion")]
+        public DateTime? FechaEdicion { get; set; }
     }
 }

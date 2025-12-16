@@ -18,6 +18,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
         /// <param name="idReclamo">Identificador del reclamo.</param>
         /// <param name="idNivelActual">Identificador del nivel actual del proceso.</param>
         /// <param name="idNivelSiguienteProceso">Identificador del siguiente nivel del proceso.</param>
-        Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, int idNivelActual, int idNivelSiguienteProceso);
+        /// <param name="descripcionResolucion">Descripción de la resolución aplicada al reclamo.</param>
+        Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, int idNivelActual, int idNivelSiguienteProceso, string descripcionResolucion);
     }
 }

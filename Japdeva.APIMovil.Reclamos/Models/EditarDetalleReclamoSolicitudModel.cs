@@ -34,6 +34,11 @@
         /// </summary>
         public string Descripcion { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Obtiene o establece la descripción de la resolución asociada al detalle del reclamo.
+        /// </summary>
+        public string DescripcionResolucion { get; set; } = string.Empty;
+
 
     }
 }

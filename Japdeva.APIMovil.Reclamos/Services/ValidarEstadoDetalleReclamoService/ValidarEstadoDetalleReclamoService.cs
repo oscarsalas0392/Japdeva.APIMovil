@@ -1,6 +1,8 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Reclamos.Entities;
+using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.EditarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
@@ -14,9 +16,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
         private readonly ILogger<ValidarEstadoDetalleReclamoService> _logger;
         private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
         private readonly IOrdenNivelProcesoCacheService _ordenNivelProcesoCacheService;
+        private readonly IEditarReclamoService _editarReclamoService;
 
         private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO = "No se encontró la configuración de orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
         private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION = "No se encontró la configuración de devolución del orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
+        private const string MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA = "La descripción de la resolución es obligatoria";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ValidarEstadoDetalleReclamoService"/>.
@@ -26,12 +30,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
         public ValidarEstadoDetalleReclamoService(
             ILogger<ValidarEstadoDetalleReclamoService> logger,
             IAgregarReclamoDetalleService agregarReclamoDetalleService,
-            IOrdenNivelProcesoCacheService ordenNivelProcesoCacheService
+            IOrdenNivelProcesoCacheService ordenNivelProcesoCacheService,
+            IEditarReclamoService editarReclamoService
             )
         {
             this._logger = logger;
             this._agregarReclamoDetalleService = agregarReclamoDetalleService;
             this._ordenNivelProcesoCacheService = ordenNivelProcesoCacheService;
+            this._editarReclamoService = editarReclamoService;
         }
 
         /// <summary>
@@ -45,8 +51,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
         /// <param name="idReclamo">Identificador del reclamo.</param>
         /// <param name="idNivelActual">Identificador del nivel actual del proceso.</param>
         /// <param name="idNivelSiguienteProceso">Identificador del siguiente nivel del proceso.</param>
-
-        public async Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, int idNivelActual, int idNivelSiguienteProceso)
+        /// <param name="descripcionResolucion">Descripción de la resolución aplicada al reclamo.</param>
+        public async Task ValidarEstadoDetalleReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, int idNivelActual, int idNivelSiguienteProceso, string descripcionResolucion)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -55,11 +61,15 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
 
                 if (estadoDetalle.RechazaProceso)
                 {
+                    if(string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);                  
+                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Rechazado);
                     return;
                 }
 
                 if (estadoDetalle.FinalizarProceso)
                 {
+                    if (string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);
+                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Completado);
                     return;
                 }
 

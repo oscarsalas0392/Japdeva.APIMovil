@@ -12,40 +12,57 @@ namespace Japdeva.APIMovil.Reclamos.Entities
     public class DocumentoInternoHistoricoEntity
     {
         /// <summary>
-        /// Obtiene o establece el identificador único del registro histórico de documento interno.
+        /// Obtiene o establece el identificador único del documento interno.
         /// </summary>
         [Column("id")]
         [Key]
         public long Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del reclamo al cual pertenecía el documento interno histórico.
-        /// Mantiene la referencia al reclamo principal para trazabilidad completa.
+        /// Obtiene o establece el identificador del detalle reclamo al cual pertenece el documento interno.
+        /// Establece la relación con el reclamo principal al que se adjunta este documento.
         /// </summary>
         [Column("idReclamo")]
-        public long IdReclamo { get; set; }
+        public long IdDetalleReclamo { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el contenido o referencia del documento interno en el momento del registro histórico.
-        /// Captura el estado del documento tal como estaba cuando se creó este registro de auditoría.
+        /// Obtiene o establece el nombre del documento interno.
+        /// Describe el título o denominación del archivo adjunto al reclamo.
+        /// </summary>
+        [Column("nombreDocumento")]
+        [MinLength(1)]
+        [Required]
+        public string NombreDocumento { get; set; } = string.Empty;
+
+
+        /// <summary>
+        /// Obtiene o establece el contenido o referencia del documento interno.
+        /// Puede contener la ruta del archivo, contenido codificado, URL o identificador del documento.
         /// </summary>
         [Column("documento")]
-        [MaxLength(4000)]
+        [MinLength(1)]
         [Required]
         public string Documento { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece la fecha y hora de registro de este cambio histórico.
-        /// Timestamp exacto de cuando se registró esta versión del documento para auditoría.
+        /// Obtiene o establece la fecha y hora de registro del documento interno.
+        /// Timestamp de cuando el documento fue creado o adjuntado al reclamo.
         /// </summary>
         [Column("fechaRegistro")]
         public DateTime FechaRegistro { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del usuario interno que realizó la acción registrada.
-        /// Permite auditoría completa de quién modificó o actualizó el documento interno.
+        /// Obtiene o establece el identificador del usuario interno que creó o adjuntó el documento.
+        /// Permite auditoría de quién generó o añadió el documento interno al reclamo.
         /// </summary>
         [Column("idUsuarioInterno")]
         public long IdUsuarioInterno { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el indicador de si el documento interno está activo en el sistema.
+        /// Permite soft-delete de documentos sin eliminarlos físicamente de la base de datos.
+        /// </summary>
+        [Column("activo")]
+        public bool Activo { get; set; }
     }
 }

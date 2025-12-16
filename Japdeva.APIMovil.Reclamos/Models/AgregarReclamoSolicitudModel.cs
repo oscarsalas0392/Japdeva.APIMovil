@@ -33,6 +33,6 @@
         /// Obtiene o establece la lista de documentos asociados al reclamo.
         /// Archivos, imágenes o documentos de soporte proporcionados como evidencia.
         /// </summary>
-        public List<string> ListaDocumentos { get; set; } = new List<string>();
+        public List<ArchivoSolicitudModel> ListaDocumentos { get; set; } = new List<ArchivoSolicitudModel>();
     }
 }

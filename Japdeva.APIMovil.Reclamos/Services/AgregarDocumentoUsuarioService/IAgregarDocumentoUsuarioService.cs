@@ -1,4 +1,6 @@
-﻿namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
+﻿using Japdeva.APIMovil.Reclamos.Models;
+
+namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
 {
     /// <summary>
     /// Interfaz que define el contrato para el servicio de agregación de documentos de usuario.
@@ -12,6 +14,6 @@
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo al cual se asociarán los documentos.</param>
         /// <param name="listaArchivos">Lista de archivos/documentos a procesar y almacenar.</param>
-        Task AgregarDocumentoUsuarioAsync(string traceId, long idReclamo, List<string> listaArchivos);
+        Task AgregarDocumentoUsuarioAsync(string traceId, long idReclamo, List<ArchivoSolicitudModel> listaArchivos);
     }
 }

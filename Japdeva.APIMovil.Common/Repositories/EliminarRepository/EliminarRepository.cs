@@ -29,7 +29,7 @@ namespace Japdeva.APIMovil.Common.Repositories.EliminarRepository
         /// </summary>
         /// <param name="traceId">El identificador de seguimiento.</param>
         /// <param name="entidades">Lista de entidades a eliminar.</param>
-        public async Task EliminarAsync<T>(string traceId, List<T> entidades) where T : class
+        public async Task EliminarVariosAsync<T>(string traceId, List<T> entidades) where T : class
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -47,6 +47,33 @@ namespace Japdeva.APIMovil.Common.Repositories.EliminarRepository
                 }
 
                 this._context.Set<T>().RemoveRange(entidades);
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
+        /// Elimina una entidad de la base de datos.
+        /// </summary>
+        /// <param name="traceId">El identificador de seguimiento.</param>
+        /// <param name="entidad">La entidad a eliminar.</param>
+        public async Task EliminarAsync<T>(string traceId, T entidad) where T : class
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                if (string.IsNullOrWhiteSpace(traceId)) throw new ArgumentException(MENSAJE_ERROR_TRACE_ID_VACIO, nameof(traceId));
+                if (entidad is null) throw new ArgumentNullException(nameof(entidad), MENSAJE_ERROR_ENTIDADES_NULAS);
+                this._context.Set<T>().Remove(entidad);
                 await this._context.SaveChangesAsync();
             }
             catch (Exception ex)

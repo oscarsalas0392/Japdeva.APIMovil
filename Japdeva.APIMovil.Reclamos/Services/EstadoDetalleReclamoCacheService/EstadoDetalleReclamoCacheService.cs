@@ -90,5 +90,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService
             }
 
         }
+
+
     }
 }

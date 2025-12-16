@@ -40,6 +40,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece el identificador del estado actual del reclamo.
         /// </summary>
         [Column("idEstadoReclamo")]
+        [Required]
         public int IdEstadoReclamo { get; set; }
 
         /// <summary>
@@ -52,18 +53,28 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece la fecha y hora de registro del reclamo.
         /// </summary>
         [Column("fechaRegistro")]
+        [Required]
         public DateTime FechaRegistro { get; set; }
 
         /// <summary>
         /// Obtiene o establece el indicador de si el reclamo está activo en el sistema.
         /// </summary>
         [Column("idDepartamentoActual")]
+        [Required]
         public long IdDepartamentoActual { get; set; }
+
 
         /// <summary>
         /// Obtiene o establece la descripción del departamento actual asociado al reclamo.
         /// </summary>
-        [Column("descripcionDepartamentoActual")]
-        public string DescripcionDepartamentoActual { get; set; } = string.Empty;
+        [Column("descripcionResolucion")]
+        [MaxLength(200)]
+        public string DescripcionResolucion { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el indicador de si el reclamo es histórico en el sistema.
+        /// </summary>
+        public bool EstaEnHistorico { get; set; } = false;
+
     }
 }

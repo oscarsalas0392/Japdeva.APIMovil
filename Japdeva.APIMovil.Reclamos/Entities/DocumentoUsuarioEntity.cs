@@ -24,6 +24,14 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         public long IdReclamo { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el nombre del documento proporcionado por el usuario.
+        /// </summary>
+        [Column("nombreDocumento")]
+        [MinLength(1)]
+        [Required]
+        public string NombreDocumento { get; set; } = string.Empty;
+
+        /// <summary>
         /// Obtiene o establece el contenido o referencia del documento.
         /// Puede contener la ruta del archivo, contenido codificado o identificador del documento.
         /// </summary>

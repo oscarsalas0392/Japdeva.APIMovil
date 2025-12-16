@@ -12,40 +12,46 @@ namespace Japdeva.APIMovil.Reclamos.Entities
     public class DocumentoUsuarioHistoricoEntity
     {
         /// <summary>
-        /// Obtiene o establece el identificador único del registro histórico de documento de usuario.
+        /// Obtiene o establece el identificador único del documento de usuario.
         /// </summary>
         [Column("id")]
         [Key]
         public long Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del reclamo al cual pertenecía el documento de usuario histórico.
-        /// Mantiene la relación con el reclamo original para trazabilidad completa del historial.
+        /// Obtiene o establece el identificador del reclamo al cual pertenece el documento.
         /// </summary>
         [Column("idReclamo")]
         public long IdReclamo { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el contenido o referencia del documento de usuario en el momento del registro histórico.
-        /// Preserva el estado exacto del documento tal como estaba cuando se creó este registro de auditoría.
+        /// Obtiene o establece el nombre del documento proporcionado por el usuario.
+        /// </summary>
+        [Column("nombreDocumento")]
+        [MinLength(1)]
+        [Required]
+        public string NombreDocumento { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el contenido o referencia del documento.
+        /// Puede contener la ruta del archivo, contenido codificado o identificador del documento.
         /// </summary>
         [Column("documento")]
         [MaxLength(4000)]
+        [MinLength(1)]
         [Required]
         public string Documento { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece la fecha y hora de registro de este cambio histórico.
-        /// Timestamp preciso de cuando se registró esta versión del documento para auditoría temporal.
+        /// Obtiene o establece la fecha y hora de registro del documento.
         /// </summary>
         [Column("fechaRegistro")]
         public DateTime FechaRegistro { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del usuario interno que realizó la acción sobre el documento.
-        /// Permite auditoría de qué personal interno procesó o modificó el documento del usuario.
+        /// Obtiene o establece el indicador de si el documento está activo en el sistema.
         /// </summary>
-        [Column("idUsuarioInterno")]
-        public long IdUsuarioInterno { get; set; }
+        [Column("activo")]
+        public bool Activo { get; set; }
     }
 }

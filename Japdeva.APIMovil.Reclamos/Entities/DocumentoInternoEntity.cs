@@ -19,18 +19,27 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         public long Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el identificador del reclamo al cual pertenece el documento interno.
+        /// Obtiene o establece el identificador del detalle reclamo al cual pertenece el documento interno.
         /// Establece la relación con el reclamo principal al que se adjunta este documento.
         /// </summary>
         [Column("idReclamo")]
-        public long IdReclamo { get; set; }
+        public long IdDetalleReclamo { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el nombre del documento interno.
+        /// Describe el título o denominación del archivo adjunto al reclamo.
+        /// </summary>
+        [Column("nombreDocumento")]
+        [MinLength(1)]
+        [Required]
+        public string NombreDocumento { get; set; } = string.Empty;
+
 
         /// <summary>
         /// Obtiene o establece el contenido o referencia del documento interno.
         /// Puede contener la ruta del archivo, contenido codificado, URL o identificador del documento.
         /// </summary>
         [Column("documento")]
-        [MaxLength(4000)]
         [MinLength(1)]
         [Required]
         public string Documento { get; set; } = string.Empty;

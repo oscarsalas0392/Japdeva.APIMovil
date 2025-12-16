@@ -3,6 +3,7 @@ using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
+using Japdeva.APIMovil.Reclamos.Models;
 
 namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
 {
@@ -40,7 +41,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo al cual se asociarán los documentos.</param>
         /// <param name="listaArchivos">Lista de archivos/documentos a procesar y almacenar.</param>
-        public async Task AgregarDocumentoUsuarioAsync(string traceId, long idReclamo, List<string> listaArchivos)
+        public async Task AgregarDocumentoUsuarioAsync(string traceId, long idReclamo, List<ArchivoSolicitudModel> listaArchivos)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -62,10 +63,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
 
                 foreach (var archivo in listaArchivos)
                 {
-                    if (string.IsNullOrEmpty(archivo)) continue;
+                    if (string.IsNullOrEmpty(archivo.NombreArchivo) || string.IsNullOrEmpty(archivo.ContenidoArchivo)) continue;
                     DocumentoUsuarioEntity documentoUsuario = new DocumentoUsuarioEntity();
                     documentoUsuario.IdReclamo = idReclamo;
-                    documentoUsuario.Documento = archivo;
+                    documentoUsuario.Documento = archivo.ContenidoArchivo;
+                    documentoUsuario.NombreDocumento = archivo.NombreArchivo;
                     documentoUsuario.FechaRegistro = DateTime.Now;
                     documentosUsuario.Add(documentoUsuario);
                 }

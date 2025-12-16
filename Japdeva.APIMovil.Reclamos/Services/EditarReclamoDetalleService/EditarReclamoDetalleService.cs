@@ -97,13 +97,18 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
                 reclamoDetalle.FechaEdicion = DateTime.Now;
                 reclamoDetalle.IdUsuarioInterno = editarDetalleReclamoSolicitudModel.IdUsuarioInterno;
 
+                string descripcionResolucion = editarDetalleReclamoSolicitudModel.DescripcionResolucion;
+                int nivelProcesoActual = reclamoDetalle.IdNivelProceso;
+                int nivelProcesoSiguiente = nivelSiguienteProceso.Id;
+                long idReclamo = reclamoDetalle.IdReclamo;
                 await this._actualizarRepository.ActualizarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
-                await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, reclamoDetalle.IdReclamo, reclamoDetalle.IdNivelProceso, nivelSiguienteProceso.Id);
+                await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, idReclamo, 
+                    nivelProcesoActual, nivelProcesoSiguiente, descripcionResolucion);
 
                 await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
 
                 EditarDetalleReclamoRespuestaModel editarDetalleReclamoRespuestaModel = new EditarDetalleReclamoRespuestaModel();
-                editarDetalleReclamoRespuestaModel.Id = reclamoDetalle.Id;
+                editarDetalleReclamoRespuestaModel.Id = idReclamo;
                 editarDetalleReclamoRespuestaModel.IdEstadoDetalleReclamo = reclamoDetalle.IdEstadoDetalleReclamo;
                 editarDetalleReclamoRespuestaModel.FechaEdicion = reclamoDetalle.FechaEdicion.Value;
 

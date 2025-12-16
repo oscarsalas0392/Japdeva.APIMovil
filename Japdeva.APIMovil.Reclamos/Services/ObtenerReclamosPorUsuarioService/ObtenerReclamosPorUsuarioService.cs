@@ -4,7 +4,7 @@ using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
-
+using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
 {
@@ -17,10 +17,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
     {
         private readonly ILogger<ObtenerReclamosPorUsuarioService> _logger;
         private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
 
         private const string MENSAJE_ERROR_ID_USUARIO_INVALIDO = "El idUsuario es inválido.";
         private const string MENSAJE_ERROR_ID_ESTADO_RECLAMO = "El idEstadoReclamo es inválido.";
         private const string MENSAJE_ERROR_ID_PAGINA = "La pagina es inválida, debe ser mayor a 0.";
+        private const string MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE = "No se encontró el estado de reclamo en caché para el Id:{0}";
         private const int ID_USUARIO_MINIMO = 1;
         private const int ID_ESTADO_MINIMO = 1;
         private const int ID_PAGINA_MINIMO = 1;
@@ -31,10 +33,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
         /// <param name="logger">Logger para registro de eventos y errores.</param>
         /// <param name="consultarListaRepository">Repositorio para consultas paginadas de listas.</param>
         public ObtenerReclamosPorUsuarioService(ILogger<ObtenerReclamosPorUsuarioService> logger,
-            IConsultarListaRepository consultarListaRepository)
+            IConsultarListaRepository consultarListaRepository,
+            IEstadoReclamoCacheService estadoReclamoCacheService)
         {
             this._logger = logger;
             this._consultarListaRepository = consultarListaRepository;
+            this._estadoReclamoCacheService = estadoReclamoCacheService;
         }
 
         /// <summary>
@@ -109,24 +113,36 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+
+                List<ReclamoRespuestaModel> listaReclamoRespuestas = new List<ReclamoRespuestaModel>();
                 var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
                        x => x.IdUsuarioExterno == idUsuario && x.IdEstadoReclamo == idEstadoReclamo);
 
                 var respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
+
+                foreach (var reclamoEntity in reclamos.Lista)
+                {
+                    var estadoReclamoCache = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, reclamoEntity.IdEstadoReclamo);
+                    if (estadoReclamoCache is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE, reclamoEntity.IdEstadoReclamo));
+                    ReclamoRespuestaModel reclamoRespuesta = new ReclamoRespuestaModel();
+                    reclamoRespuesta.Id = reclamoEntity.Id;
+                    reclamoRespuesta.Titulo = reclamoEntity.Titulo;
+                    reclamoRespuesta.Descripcion = reclamoEntity.Descripcion;
+                    reclamoRespuesta.IdEstadoReclamo = reclamoEntity.IdEstadoReclamo;
+                    reclamoRespuesta.IdUsuarioExterno = reclamoEntity.IdUsuarioExterno;
+                    reclamoRespuesta.FechaRegistro = reclamoEntity.FechaRegistro;
+                    reclamoRespuesta.IdDepartamentoActual = (int)reclamoEntity.IdDepartamentoActual;
+                    reclamoRespuesta.DescripcionEstadoReclamo = estadoReclamoCache.Descripcion;
+                    reclamoRespuesta.DescripcionDepartamento = "";
+                    reclamoRespuesta.NombreUsuarioExterno = "";
+                    reclamoRespuesta.EstaEnHistorico = reclamoEntity.EstaEnHistorico;
+                    listaReclamoRespuestas.Add(reclamoRespuesta);
+                }
+
                 respuesta.TotalRegistros = reclamos.TotalRegistros;
                 respuesta.CantidadPaginas = reclamos.CantidadPaginas;
                 respuesta.PaginaActual = reclamos.PaginaActual;
-                respuesta.Lista = reclamos.Lista.Select(r => new ReclamoRespuestaModel()
-                {
-                    Id = r.Id,
-                    Titulo = r.Titulo,
-                    Descripcion = r.Descripcion,
-                    IdEstadoReclamo = r.IdEstadoReclamo,
-                    IdUsuarioExterno = r.IdUsuarioExterno,
-                    FechaRegistro = r.FechaRegistro,
-                    IdDepartamentoActual = r.IdDepartamentoActual,
-                    DescripcionDepartamento = r.DescripcionDepartamentoActual
-                }).ToList();
+                respuesta.Lista = listaReclamoRespuestas;
 
                 return respuesta;
 

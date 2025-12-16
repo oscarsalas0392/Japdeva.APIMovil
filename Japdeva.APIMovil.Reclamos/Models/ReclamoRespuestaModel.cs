@@ -25,10 +25,21 @@
         /// </summary>
         public int IdEstadoReclamo { get; set; }
 
+
+        /// <summary>
+        /// Descripción del estado actual del reclamo.
+        /// </summary>
+        public string DescripcionEstadoReclamo { get; set; } = string.Empty;
+
         /// <summary>
         /// Identificador del usuario externo que realizó el reclamo.
         /// </summary>
         public long IdUsuarioExterno { get; set; }
+
+        /// <summary>
+        /// Nombre del usuario externo que realizó el reclamo.
+        /// </summary>
+        public string NombreUsuarioExterno { get; set; } = string.Empty;
 
         /// <summary>
         /// Fecha en que se registró el reclamo.
@@ -44,5 +55,10 @@
         /// Descripción del departamento actual encargado del reclamo.
         /// </summary>
         public string DescripcionDepartamento { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Indica si el reclamo es histórico.
+        /// </summary>
+        public bool EstaEnHistorico { get; set; }
     }
 }
