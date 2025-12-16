@@ -2,6 +2,7 @@
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 
+
 namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService
 {
     /// <summary>
@@ -16,6 +17,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService
         private readonly List<EstadoDetalleReclamoEntity> _estadoDetalleReclamoEntityCache = new List<EstadoDetalleReclamoEntity>();
         private const int PAGINA_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
+
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de cache de estados de detalle de reclamo.
@@ -90,7 +92,5 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService
             }
 
         }
-
-
     }
 }

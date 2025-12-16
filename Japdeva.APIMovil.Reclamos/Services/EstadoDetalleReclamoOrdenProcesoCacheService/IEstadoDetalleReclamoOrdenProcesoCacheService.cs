@@ -1,4 +1,5 @@
-﻿using Japdeva.APIMovil.Reclamos.Entities;
+﻿using Japdeva.APIMovil.Common.Models;
+using Japdeva.APIMovil.Reclamos.Entities;
 
 namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheService
 {
@@ -22,5 +23,15 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
         /// <param name="idEstadoDetalleReclamo">Identificador del estado de detalle de reclamo para buscar la relación específica.</param>
         /// <returns>La entidad del estado de detalle de reclamo por orden de proceso si se encuentra, null en caso contrario.</returns>
         EstadoDetalleReclamoNivelProcesoEntity? ObtenerEstadoDetalleReclamoOrdenProceso(string traceId, int idOrdenProceso, int idEstadoDetalleReclamo);
+
+        /// <summary>
+        /// Obtiene una lista paginada de relaciones entre estados de detalle y órdenes de proceso desde el cache en memoria.
+        /// Permite aplicar un filtro opcional para refinar los resultados devueltos.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="pagina">Número de página a recuperar.</param>
+        /// <param name="filtro">Función opcional para filtrar los elementos de la lista.</param>
+        /// <returns>Un modelo de respuesta que contiene la lista paginada de entidades encontradas.</returns>
+        public RespuestaListaModel<EstadoDetalleReclamoNivelProcesoEntity> ObtenerLista(string traceId, int pagina, Func<EstadoDetalleReclamoNivelProcesoEntity, bool>? filtro = null);
     }
 }

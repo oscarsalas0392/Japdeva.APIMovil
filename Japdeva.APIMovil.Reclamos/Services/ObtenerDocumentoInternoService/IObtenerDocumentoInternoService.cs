@@ -12,8 +12,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
         /// </summary>
         /// <param name="traceId">Identificador de traza para seguimiento.</param>
         /// <param name="idDetalleReclamo">Identificador del detalle de reclamo.</param>
+        /// <param name="pagina">Número de página para la paginación de los resultados.</param>
         /// <returns>Una acción de resultado con los documentos internos.</returns>
-        Task<IActionResult> ObtenerDocumentosInternosAsync(string traceId, long idDetalleReclamo);
+        Task<IActionResult> ObtenerDocumentosInternosAsync(string traceId, long idDetalleReclamo, int pagina);
     }
 
 

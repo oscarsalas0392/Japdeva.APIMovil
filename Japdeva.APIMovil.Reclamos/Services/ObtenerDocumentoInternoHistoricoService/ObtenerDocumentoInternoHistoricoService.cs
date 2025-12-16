@@ -6,25 +6,25 @@ using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 
 
-namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
+namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoService
 {
     /// <summary>
-    /// Servicio para obtener documentos internos asociados a un detalle de reclamo.
+    /// Servicio para obtener documentos internos históricos asociados a un detalle de reclamo.
     /// </summary>
-    public class ObtenerDocumentoInternoService: IObtenerDocumentoInternoService
+    public class ObtenerDocumentoInternoHistoricoService : IObtenerDocumentoInternoHistoricoService
     {
-        private readonly ILogger<ObtenerDocumentoInternoService> _logger;
+        private readonly ILogger<ObtenerDocumentoInternoHistoricoService> _logger;
         private readonly IConsultarListaRepository _consultarListaRepository;
-    
+
 
         /// <summary>
-        /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoService"/>.
+        /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoHistoricoService"/>.
         /// </summary>
         /// <param name="logger">Instancia del registrador para el servicio.</param>
         /// <param name="consultarListaRepository">Repositorio para consultar listas de documentos internos.</param>
-        public ObtenerDocumentoInternoService(
-            ILogger<ObtenerDocumentoInternoService> logger,
-            IConsultarListaRepository consultarListaRepository)          
+        public ObtenerDocumentoInternoHistoricoService(
+            ILogger<ObtenerDocumentoInternoHistoricoService> logger,
+            IConsultarListaRepository consultarListaRepository)
         {
             this._logger = logger;
             this._consultarListaRepository = consultarListaRepository;
@@ -44,7 +44,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                var documentosInternos = await this._consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x=>x.IdDetalleReclamo == idDetalleReclamo);
+                var documentosInternos = await this._consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
 
                 if (documentosInternos is not null && !documentosInternos.Lista.Any())
                 {

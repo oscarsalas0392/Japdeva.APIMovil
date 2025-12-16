@@ -1,4 +1,5 @@
-﻿using Japdeva.APIMovil.Reclamos.Entities;
+﻿using Japdeva.APIMovil.Common.Models;
+using Japdeva.APIMovil.Reclamos.Entities;
 
 namespace Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService
 {
@@ -34,5 +35,18 @@ namespace Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService
         /// o <c>null</c> si no se encuentra un nivel de proceso activo con el nivel inicial.
         /// </returns>
         NivelProcesoEntity? ObtenerPrimerNivel(string traceId);
+
+
+        /// <summary>
+        /// Obtiene una lista paginada de niveles de proceso desde el cache, aplicando un filtro opcional.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="pagina">Número de página a recuperar.</param>
+        /// <param name="filtro">Función opcional para filtrar los elementos de la lista.</param>
+        /// <returns>
+        /// Un modelo <see cref="RespuestaListaModel{NivelProcesoEntity}"/> que contiene la lista paginada de niveles de proceso,
+        /// junto con la cantidad total de registros y páginas.
+        /// </returns>
+        RespuestaListaModel<NivelProcesoEntity> ObtenerLista(string traceId, int pagina, Func<NivelProcesoEntity, bool>? filtro = null);
     }
 }

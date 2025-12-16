@@ -1,4 +1,5 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 
@@ -15,6 +16,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
         private readonly List<OrdenNivelProcesoEntity> _orderNivelProcesoEntityCache = new List<OrdenNivelProcesoEntity>();
         private const int PAGINA_INICIAL = 1;
         private const bool ESTADO_ACTIVO = true;
+        private const int TAMANIO_PAGINA = 50;
+        private const int AJUSTE_PAGINA_BASE_CERO = 1;
 
         private const string MENSAJE_ERROR_NO_SE_PUEDEN_OBTENER_LOS_DATOS_DE_ORDEN_NIVEL_PROCESO = "No se pudieron obtener los datos de OrdenNivelProcesoEntity para llenar el caché.";
 
@@ -81,35 +84,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
         }
 
         /// <summary>
-        /// Obtiene una lista de entidades <see cref="OrdenNivelProcesoEntity"/> del caché que corresponden al identificador del nivel superior especificado.
-        /// </summary>
-        /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
-        /// <param name="idNivelSuperior">Identificador del nivel superior para filtrar las entidades.</param>
-        /// <returns>Lista de entidades <see cref="OrdenNivelProcesoEntity"/> que coinciden con el nivel superior proporcionado.</returns>
-        public List<OrdenNivelProcesoEntity> ObtenerOrdenesNivelesProcesoCache(string traceId, int idNivelSuperior)
-        {
-            string nombreMetodo = this.ObtenerNombreMetodo();
-            try
-            {
-                this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._orderNivelProcesoEntityCache)
-                {
-                    return this._orderNivelProcesoEntityCache.Where(x=>x.IdNivelSuperior == idNivelSuperior).ToList();
-                }   
-            }
-            catch (Exception ex)
-            {
-                this._logger.Error(traceId, nombreMetodo, ex);
-                throw;
-            }
-            finally
-            {
-                this._logger.Fin(traceId, nombreMetodo);
-            }
-        }
-
-
-        /// <summary>
         /// Obtiene una entidad <see cref="OrdenNivelProcesoEntity"/> del caché que corresponde a los identificadores de nivel superior e inferior especificados.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
@@ -129,6 +103,56 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
                              && x.IdNivelInferior == idNivelInferior 
                              && x.Activo == ESTADO_ACTIVO);
                 }
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
+        /// Obtiene una lista paginada de entidades <see cref="OrdenNivelProcesoEntity"/> del caché, aplicando un filtro opcional.
+        /// </summary>
+        /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
+        /// <param name="pagina">Número de página a recuperar.</param>
+        /// <param name="filtro">Función opcional para filtrar las entidades.</param>
+        /// <returns>
+        /// Un modelo <see cref="RespuestaListaModel{OrdenNivelProcesoEntity}"/> que contiene la lista paginada de entidades,
+        /// la cantidad total de páginas, el total de registros y la página actual.
+        /// </returns>
+        public RespuestaListaModel<OrdenNivelProcesoEntity> ObtenerLista(string traceId, int pagina, Func<OrdenNivelProcesoEntity, bool>? filtro = null)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+
+                RespuestaListaModel<OrdenNivelProcesoEntity> respuestaListaModel = new RespuestaListaModel<OrdenNivelProcesoEntity>();
+                lock (this._orderNivelProcesoEntityCache)
+                {
+                    IEnumerable<OrdenNivelProcesoEntity> query = this._orderNivelProcesoEntityCache;
+
+                    if (filtro is not null)
+                    {
+                        query = query.Where(filtro);
+                    }
+
+                    var listaRespuesta = query.Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
+                                       .Take(TAMANIO_PAGINA)
+                                       .ToList();
+
+                    respuestaListaModel.CantidadPaginas = (int)Math.Ceiling((double)query.Count() / TAMANIO_PAGINA);
+                    respuestaListaModel.TotalRegistros = query.Count();
+                    respuestaListaModel.Lista = listaRespuesta;
+                    respuestaListaModel.PaginaActual = pagina;
+                }
+
+                return respuestaListaModel;
             }
             catch (Exception ex)
             {

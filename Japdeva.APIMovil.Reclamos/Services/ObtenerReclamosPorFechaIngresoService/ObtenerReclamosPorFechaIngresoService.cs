@@ -16,11 +16,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
     {
         private readonly ILogger<ObtenerReclamosPorFechaIngresoService> _logger;
         private readonly IConsultarListaRepository _consultarListaRepository;
-        private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
         private readonly IListaRespuestaReclamoService _listaRespuestaReclamoService;
 
         private const string MENSAJE_ERROR_ID_PAGINA = "La pagina es inválida, debe ser mayor a 0.";
-        private const string MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE = "No se encontró el estado de reclamo en caché para el Id:{0}";
         private const int ID_PAGINA_MINIMO = 1;
 
 
@@ -37,7 +35,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
         {
             this._logger = logger;
             this._consultarListaRepository = consultarListaRepository;
-            this._estadoReclamoCacheService = estadoReclamoCacheService;
             this._listaRespuestaReclamoService = listaRespuestaReclamoService;
         }
 
@@ -59,8 +56,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
                 this._logger.Inicio(traceId, nombreMetodo);
                 if (pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
                 var respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
-                List<ReclamoRespuestaModel> listaReclamoRespuestas = new List<ReclamoRespuestaModel>();
-
                 var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
                      x => x.FechaRegistro >= fechaInicio && x.FechaRegistro <= fechaFin && x.IdEstadoReclamo == estadoReclamo);
 
@@ -70,27 +65,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
                                    .Distinct()
                                    .ToList();
 
-                //AQUI FATAL CONSULTAR MICROSERVICIO DE USUARIOS
-
-                foreach(var reclamoEntity in reclamos.Lista)
-                {
-                    var estadoReclamoCache = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, reclamoEntity.IdEstadoReclamo);
-                    if(estadoReclamoCache is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE, reclamoEntity.IdEstadoReclamo));
-                    ReclamoRespuestaModel reclamoRespuesta = new ReclamoRespuestaModel();
-                    reclamoRespuesta.Id = reclamoEntity.Id;
-                    reclamoRespuesta.Titulo = reclamoEntity.Titulo;
-                    reclamoRespuesta.Descripcion = reclamoEntity.Descripcion;
-                    reclamoRespuesta.IdEstadoReclamo = reclamoEntity.IdEstadoReclamo;
-                    reclamoRespuesta.IdUsuarioExterno = reclamoEntity.IdUsuarioExterno;
-                    reclamoRespuesta.FechaRegistro = reclamoEntity.FechaRegistro;
-                    reclamoRespuesta.IdDepartamentoActual = (int)reclamoEntity.IdDepartamentoActual;
-                    reclamoRespuesta.DescripcionEstadoReclamo = estadoReclamoCache.Descripcion;
-                    reclamoRespuesta.DescripcionDepartamento = "";
-                    reclamoRespuesta.NombreUsuarioExterno = "";
-                    reclamoRespuesta.EstaEnHistorico = reclamoEntity.EstaEnHistorico;
-                    listaReclamoRespuestas.Add(reclamoRespuesta);
-                }
-               
+                List<ReclamoRespuestaModel> listaReclamoRespuestas = await this._listaRespuestaReclamoService.ObtenerListaRespuestaReclamoAsync(traceId, reclamos.Lista);
                 respuesta.TotalRegistros = reclamos.TotalRegistros;
                 respuesta.CantidadPaginas = reclamos.CantidadPaginas;
                 respuesta.PaginaActual = reclamos.PaginaActual;
