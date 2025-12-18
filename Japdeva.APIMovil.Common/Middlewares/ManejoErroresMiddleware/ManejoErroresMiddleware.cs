@@ -19,6 +19,8 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string MENSAJE_ERROR_INTERNO = "La solicitud ha fallado.";
         private const string MENSAJE_EXITO = "Solicitud procesada con éxito.";
         private const int POSICION_INICIO_STREAM = 0;
+        private const bool EXITO = true; 
+        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de manejo de errores.
@@ -49,7 +51,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 await this._siguiente(contextoHttp);
                 streamTemporal.Seek(POSICION_INICIO_STREAM, SeekOrigin.Begin);
                 string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
-                respuesta.Exito = true;
+                respuesta.Exito = EXITO; // Usar constante en vez de valor quemado
                 respuesta.Mensaje = MENSAJE_EXITO;
                 respuesta.Datos = string.IsNullOrEmpty(contenidoRespuesta) ? null : contenidoRespuesta;
                 contextoHttp.Response.Body = streamOriginal;
@@ -59,7 +61,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = false;
+                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
                 respuesta.Mensaje = MENSAJE_TIMEOUT;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -68,7 +70,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = false;
+                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
                 respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -77,7 +79,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = false;
+                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
                 respuesta.Mensaje = MENSAJE_ERROR_INTERNO;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);

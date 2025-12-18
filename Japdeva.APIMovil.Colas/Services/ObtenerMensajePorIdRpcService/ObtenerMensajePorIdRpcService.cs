@@ -18,6 +18,7 @@ namespace Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService
         private readonly IServiceProvider _serviceProvider;
         private readonly IColaService _colaService;
         private readonly IActualizarMensajeExitosoService _actualizarMensajeExitosoService;
+        
         private const string MENSAJE_NO_ENCONTRADO = "No se encontró ningún mensaje con IdRpc: ";
         private const string COLA_NO_ENCONTRADA = "No se encontró ninguna cola con nombre: ";
         private const string NOMBRE_COLA_REQUERIDO = "El nombre de la cola es requerido.";
@@ -25,6 +26,7 @@ namespace Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService
         private const int INTERVALO_POLLING_MILISEGUNDOS = 500;
         private const int MAX_INTENTOS = 60;
         private const int INTENTOS_INICIALES = 0;
+        private const bool TRACE_ID_DIFERENTE = false;
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase ObtenerMensajePorIdRpcService
@@ -75,7 +77,7 @@ namespace Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService
                 mensajeColasRespuestaModel.Mensaje = mensajeEntity.ContenidoMensaje;
                 mensajeColasRespuestaModel.Estado = mensajeEntity.EstadoId;
                 mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId;
-                mensajeColasRespuestaModel.TraceIdDiferente = false;
+                mensajeColasRespuestaModel.TraceIdDiferente = TRACE_ID_DIFERENTE;
                 mensajeColasRespuestaModel.IdRpc = mensajeEntity.IdRpc;
                 return mensajeColasRespuestaModel;
             }

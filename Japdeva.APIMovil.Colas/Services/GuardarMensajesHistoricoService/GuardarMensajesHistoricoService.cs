@@ -72,7 +72,7 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
                 }
 
                 await agregarRepository.AgregarVariosAsync<MensajeColaHistoricoEntity>(traceId, mensajesHistorico);
-                await eliminarRepository.EliminarAsync<MensajeColaEntity>(traceId, mensajes.Lista);
+                await eliminarRepository.EliminarVariosAsync<MensajeColaEntity>(traceId, mensajes.Lista);
             }
             catch (Exception ex)
             {

@@ -27,6 +27,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string ISSUER_ENV_VARIABLE = "ISSUER";
         private const string AUDIENCE_ENV_VARIABLE = "AUDIENCE";
         private const string CLAVE_SECRETA_ENV_VARIABLE = "CLAVE_SECRETA";
+        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de validación de token.
@@ -52,7 +53,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 RespuestaModel respuestaModel = new RespuestaModel();
                 respuestaModel.Identificador = context.TraceIdentifier;
-                respuestaModel.Exito = false;
+                respuestaModel.Exito = ERROR;
                 this._logger.Inicio(TRACE_ID, nombreMetodo);
 
                 string? token = context.Request.Headers[HEADER_AUTHORIZATION].FirstOrDefault()?.Split(" ").Last();
