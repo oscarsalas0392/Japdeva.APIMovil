@@ -9,7 +9,7 @@ namespace Japdeva.APIMovil.Usuarios.Entities
     /// <remarks>
     /// Esta clase contiene la información básica de un usuario.
     /// </remarks>
-    [Table("Usuario")]
+    [Table("Tbl_Usuario")]
     public class UsuarioEntity
     {
         /// <summary>
@@ -24,5 +24,35 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         /// </summary>
         [Column("nombre")]
         public string Nombre { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el correo electrónico del usuario.
+        /// </summary>
+        [Column("correo")]
+        public string Correo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el teléfono del usuario.
+        /// </summary>
+        [Column("telefono")]
+        public string Telefono { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece la fecha de creación del usuario.
+        /// </summary>
+        [Column("fecha_creacion")]
+        public DateTime FechaCreacion { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la fecha de última actualización del usuario.
+        /// </summary>
+        [Column("fecha_actualizacion")]
+        public DateTime? FechaActualizacion { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece un valor que indica si el usuario está activo.
+        /// </summary>
+        [Column("activo")]
+        public bool Activo { get; set; }
     }
 }
