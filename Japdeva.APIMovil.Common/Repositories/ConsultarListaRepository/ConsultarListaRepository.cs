@@ -17,9 +17,11 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
     {
         private readonly DbContext _dbContext;
         private readonly ILogger<ConsultarListaRepository> _logger;
+        private readonly string _tamanioPagina = Environment.GetEnvironmentVariable("TAMANIO_PAGINA_LISTA") ?? TAMANIO_PAGINA_DEFECTO;
         private const string ERROR_PAGINA_MENOR_QUE_CERO = "El número de página debe ser mayor que cero.";
+        private const string ERROR_TAMANIO_PAGINA_INVALIDO = "El tamaño de página configurado no es válido.";
         private const int PAGINA_MINIMA = 0;
-        private const int TAMANIO_PAGINA = 50;
+        private const string TAMANIO_PAGINA_DEFECTO = "50";
         private const int AJUSTE_PAGINA_BASE_CERO = 1;
 
         /// <summary>
@@ -48,13 +50,19 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 RespuestaListaModel<T> respuesta = new RespuestaListaModel<T>();
+                int tamanioPagina;
 
                 if (pagina <= PAGINA_MINIMA)
                 {
                     throw new ArgumentOutOfRangeException(nameof(pagina), ERROR_PAGINA_MENOR_QUE_CERO);
                 }
 
-                IQueryable<T> query = this._dbContext.Set<T>();
+                if (int.TryParse(this._tamanioPagina, out tamanioPagina))
+                {
+                    throw new Exception(ERROR_TAMANIO_PAGINA_INVALIDO);
+                }
+
+                IQueryable<T> query = this._dbContext.Set<T>().AsNoTracking();
 
                 if (filtro is not null)
                 {
@@ -63,11 +71,11 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
 
                 int totalRegistros = await query.CountAsync();
                 var resultados = await query
-                    .Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
-                    .Take(TAMANIO_PAGINA)
+                    .Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * tamanioPagina)
+                    .Take(tamanioPagina)
                     .ToListAsync();
 
-                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / TAMANIO_PAGINA);
+                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanioPagina);
 
                 respuesta.Lista = resultados;
                 respuesta.TotalRegistros = totalRegistros;

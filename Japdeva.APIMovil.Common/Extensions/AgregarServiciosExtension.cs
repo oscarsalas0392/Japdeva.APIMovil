@@ -6,11 +6,11 @@ using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Common.Repositories.EliminarRepository;
+using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Common.Services;
 using Japdeva.APIMovil.Common.Services.DesencriptarService;
 using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
 using Japdeva.APIMovil.Common.Services.EncriptarService;
-
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -38,7 +38,9 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddScoped<IConsultarListaRepository, ConsultarListaRepository>();
                 builder.Services.AddScoped<IConsultarRepository, ConsultarRepository>();
                 builder.Services.AddScoped<IEliminarRepository, EliminarRepository>();
+                builder.Services.AddScoped<IGeneralRepository, GeneralRepository>();
                 builder.AddJwtAuthentication();
+
                 return builder;
             }
             catch (Exception)
