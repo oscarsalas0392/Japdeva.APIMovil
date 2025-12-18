@@ -57,7 +57,7 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
                     throw new ArgumentOutOfRangeException(nameof(pagina), ERROR_PAGINA_MENOR_QUE_CERO);
                 }
 
-                if (int.TryParse(this._tamanioPagina, out tamanioPagina))
+                if (!int.TryParse(this._tamanioPagina, out tamanioPagina))
                 {
                     throw new Exception(ERROR_TAMANIO_PAGINA_INVALIDO);
                 }
