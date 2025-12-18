@@ -16,10 +16,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
     public class ValidarEnvioReclamoHistoricoService : IValidarEnvioReclamoHistoricoService
     {
         private readonly ILogger<ValidarEnvioReclamoHistoricoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
         private readonly IEnvioHistoricoDetalleReclamoService _envioHistoricoDetalleReclamoService;
         private readonly IEnvioHistoricoDocumentoUsuarioService _envioHistoricoDocumentoUsuarioService;
-        private readonly IGeneralRepository _generalRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private readonly string _mesesRestar = Environment.GetEnvironmentVariable("MESES_ENVIO_HISTORICO") ?? MESES_ENVIO_HISTORICO_DEFECTO;
         private const int PAGINA_INICIAL = 1;
@@ -37,16 +36,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
         /// <param name="generalRepository">Repositorio para operaciones generales y transacciones.</param>
         public ValidarEnvioReclamoHistoricoService(
             ILogger<ValidarEnvioReclamoHistoricoService> logger,
-            IConsultarListaRepository consultarListaRepository,
             IEnvioHistoricoDetalleReclamoService envioHistoricoDetalleReclamoService,
             IEnvioHistoricoDocumentoUsuarioService envioHistoricoDocumentoUsuarioService,
-            IGeneralRepository generalRepository)
+            IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
             this._envioHistoricoDetalleReclamoService = envioHistoricoDetalleReclamoService;
             this._envioHistoricoDocumentoUsuarioService = envioHistoricoDocumentoUsuarioService;
-            this._generalRepository = generalRepository;
         }
 
         /// <summary>
@@ -60,11 +57,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
         public async Task ValidarEnvioReclamoHistoricoAsync(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            var transaccion = await this._generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
+            using var scope = this._serviceProvider.CreateScope();
+            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
+            var transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
             try 
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+
                 // Validar y convertir configuración de meses
                 if (!int.TryParse(this._mesesRestar, out int mesesARestar))
                 {
@@ -74,7 +74,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
                 DateTime fechaCorte = DateTime.Now.AddMonths(mesesARestar * FACTOR_RESTA_MES);
 
                 // Obtener reclamos elegibles para envío histórico
-                var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, PAGINA_INICIAL,
+                var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, PAGINA_INICIAL,
                     x => x.FechaRegistro <= fechaCorte
                     && x.IdEstadoReclamo != (int)EstadoReclamoModel.EnProceso
                     && x.IdEstadoReclamo != (int)EstadoReclamoModel.Pendiente);
@@ -88,19 +88,19 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
                     await Task.WhenAll(tareaEnvioHistoricoDocumentoUsuario, tareaDetalleReclamo);
                 }
 
-                await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
             }
             catch(Exception ex)
             {
                 this._logger.Error(traceId, nombreMetodo, ex);
                 if (transaccion is not null) 
-                    await this._generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
+                    await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 throw;
             }
             finally
             {
                 if(transaccion is not null)  
-                    await this._generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
+                    await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

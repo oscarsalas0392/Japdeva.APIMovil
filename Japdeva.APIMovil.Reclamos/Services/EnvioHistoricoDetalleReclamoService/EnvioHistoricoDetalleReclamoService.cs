@@ -13,7 +13,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
     public class EnvioHistoricoDetalleReclamoService : IEnvioHistoricoDetalleReclamoService
     {
         private readonly ILogger<EnvioHistoricoDetalleReclamoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
         private readonly IServiceProvider _serviceProvider;
         private readonly IEnvioHistoricoDocumentoInternoService _envioHistoricoDocumentoInternoService;
 
@@ -35,7 +34,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
             IEnvioHistoricoDocumentoInternoService envioHistoricoDocumentoInternoService)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
             this._serviceProvider = serviceProvider;
             this._envioHistoricoDocumentoInternoService = envioHistoricoDocumentoInternoService;
         }
