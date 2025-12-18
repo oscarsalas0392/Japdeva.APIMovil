@@ -14,8 +14,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
     public class ObtenerDocumentoInternoService: IObtenerDocumentoInternoService
     {
         private readonly ILogger<ObtenerDocumentoInternoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
-    
+        private readonly IServiceProvider _serviceProvider;
+
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoService"/>.
@@ -24,10 +24,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
         /// <param name="consultarListaRepository">Repositorio para consultar listas de documentos internos.</param>
         public ObtenerDocumentoInternoService(
             ILogger<ObtenerDocumentoInternoService> logger,
-            IConsultarListaRepository consultarListaRepository)          
+            IServiceProvider serviceProvider)          
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -43,8 +43,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                var documentosInternos = await this._consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x=>x.IdDetalleReclamo == idDetalleReclamo);
+                var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x=>x.IdDetalleReclamo == idDetalleReclamo);
 
                 if (documentosInternos is not null && !documentosInternos.Lista.Any())
                 {

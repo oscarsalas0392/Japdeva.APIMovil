@@ -23,10 +23,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         private readonly ILogger<EditarReclamoDetalleService> _logger;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
         private readonly IEstadoDetalleReclamoOrdenProcesoCacheService _estadoDetalleReclamoOrdenProcesoCacheService;
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IActualizarRepository _actualizarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IValidarEstadoDetalleReclamoService _validarEstadoDetalleReclamoService;
-        private readonly IGeneralRepository _generalRepository;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
 
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "El detalle de reclamo con Id {0} no fue encontrado.";
@@ -34,34 +32,29 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         private const string MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO = "La nivel del proceso de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO = "No se encuentra el estado asociado a la orden del detalle de reclamo con Id {0} no fue encontrado.";
 
+
         /// <summary>
-        /// Inicializa una nueva instancia del servicio de edición de detalles de reclamo.
+        /// Inicializa una nueva instancia de la clase <see cref="EditarReclamoDetalleService"/>.
         /// </summary>
-        /// <param name="logger">Logger para registro de eventos y errores.</param>
-        /// <param name="consultarRepository">Repositorio para operaciones de consulta.</param>
-        /// <param name="actualizarRepository">Repositorio para operaciones de actualización.</param>
-        /// <param name="estadoDetalleReclamoCacheService">Servicio de cache para estados de detalle de reclamo.</param>
-        /// <param name="estadoDetalleReclamoOrdenProcesoCacheService">Servicio de cache para estado-orden de procesos.</param>
-        /// <param name="devolucionProcesoCacheService">Servicio de cache para procesos de devolución.</param>
-        /// <param name="validarEstadoDetalleReclamoService">Servicio de validación de estados de detalle.</param>
-        /// <param name="generalRepository">Repositorio para operaciones generales y transacciones.</param>
-        public EditarReclamoDetalleService(ILogger<EditarReclamoDetalleService> logger,
-            IConsultarRepository consultarRepository,
-            IActualizarRepository actualizarRepository,
+        /// <param name="logger">Instancia del registrador de logs.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        /// <param name="estadoDetalleReclamoCacheService">Servicio de caché para estados de detalle de reclamo.</param>
+        /// <param name="estadoDetalleReclamoOrdenProcesoCacheService">Servicio de caché para estados de detalle de reclamo por orden de proceso.</param>
+        /// <param name="validarEstadoDetalleReclamoService">Servicio para validar el estado del detalle de reclamo.</param>
+        /// <param name="nivelProcesoCacheService">Servicio de caché para niveles de proceso.</param>
+        public EditarReclamoDetalleService(
+            ILogger<EditarReclamoDetalleService> logger,
+            IServiceProvider serviceProvider,
             IEstadoDetalleReclamoCacheService estadoDetalleReclamoCacheService,
             IEstadoDetalleReclamoOrdenProcesoCacheService estadoDetalleReclamoOrdenProcesoCacheService,
             IValidarEstadoDetalleReclamoService validarEstadoDetalleReclamoService,
-            IGeneralRepository generalRepository,
-            INivelProcesoCacheService nivelProcesoCacheService
-            )
+            INivelProcesoCacheService nivelProcesoCacheService)
         {
             this._logger = logger;
-            this._consultarRepository = consultarRepository;
-            this._actualizarRepository = actualizarRepository;
+            this._serviceProvider = serviceProvider;
             this._estadoDetalleReclamoCacheService = estadoDetalleReclamoCacheService;
             this._estadoDetalleReclamoOrdenProcesoCacheService = estadoDetalleReclamoOrdenProcesoCacheService;
             this._nivelProcesoCacheService = nivelProcesoCacheService;
-            this._generalRepository = generalRepository;
             this._validarEstadoDetalleReclamoService = validarEstadoDetalleReclamoService;
         }
 
@@ -76,12 +69,16 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             IDbContextTransaction? transaccion = null;
+            using var scope = this._serviceProvider.CreateScope();
+            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
-                transaccion = await this._generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
+                transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var reclamoDetalle = await this._consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=>x.Id == editarDetalleReclamoSolicitudModel.Id);
+                var reclamoDetalle = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=>x.Id == editarDetalleReclamoSolicitudModel.Id);
                 if (reclamoDetalle is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
 
                 var nivelSiguienteProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso);
@@ -101,11 +98,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
                 int nivelProcesoActual = reclamoDetalle.IdNivelProceso;
                 int nivelProcesoSiguiente = nivelSiguienteProceso.Id;
                 long idReclamo = reclamoDetalle.IdReclamo;
-                await this._actualizarRepository.ActualizarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
+                await actualizarRepository.ActualizarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
                 await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, idReclamo, 
                     nivelProcesoActual, nivelProcesoSiguiente, descripcionResolucion);
 
-                await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
 
                 EditarDetalleReclamoRespuestaModel editarDetalleReclamoRespuestaModel = new EditarDetalleReclamoRespuestaModel();
                 editarDetalleReclamoRespuestaModel.Id = idReclamo;
@@ -118,13 +115,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
             catch (Exception ex)
             {
 
-                if(transaccion is not null) await this._generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
+                if(transaccion is not null) await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally 
             {
-                await this._generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
+                await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

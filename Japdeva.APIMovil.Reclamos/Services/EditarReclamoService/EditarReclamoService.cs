@@ -11,8 +11,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoService
     public class EditarReclamoService: IEditarReclamoService
     {
         private readonly ILogger<EditarReclamoService> _logger;
-        private readonly IActualizarRepository _actualizarRepository;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_RECLAMO_NO_ENCONTRADO = "El estado del reclamo con Id {0} no fue encontrado.";
@@ -23,13 +22,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoService
         /// </summary>
         public EditarReclamoService(
             ILogger<EditarReclamoService> logger,
-            IActualizarRepository actualizarRepository,
-            IConsultarRepository consultarRepository
+            IServiceProvider serviceProvider
             )
         {
             this._logger = logger;
-            this._actualizarRepository = actualizarRepository;
-            this._consultarRepository = consultarRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -46,14 +43,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                var reclamo = await this._consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
                 if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
                 
-                var estadoReclamo = await this._consultarRepository.ConsultarAsync<EstadoReclamoEntity>(traceId, x => x.Id == idEstadoReclamo && x.Activo == ESTADO_RECLAMO_ACTIVO);
+                var estadoReclamo = consultarRepository.ConsultarAsync<EstadoReclamoEntity>(traceId, x => x.Id == idEstadoReclamo && x.Activo == ESTADO_RECLAMO_ACTIVO);
                 if (estadoReclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_RECLAMO_NO_ENCONTRADO, idEstadoReclamo));
                 reclamo.DescripcionResolucion = descripcionResolucion;
                 reclamo.IdEstadoReclamo = estadoReclamo.Id;
-                await this._actualizarRepository.ActualizarAsync<ReclamoEntity>(traceId, reclamo);
+                await actualizarRepository.ActualizarAsync<ReclamoEntity>(traceId, reclamo);
             }
             catch (Exception ex)
             {

@@ -14,24 +14,19 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
     public class AgregarDocumentoInternoService : IAgregarDocumentoInternoService
     {
         private readonly ILogger<AgregarDocumentoInternoService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "No se encontró el detalle de reclamo con Id {0}.";
         private const bool DOCUMENTO_INTERNO_ACTIVO = true;
+
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="AgregarDocumentoInternoService"/>.
         /// </summary>
         public AgregarDocumentoInternoService(
-            ILogger<AgregarDocumentoInternoService> logger, 
-            IAgregarRepository agregarRepository, 
-            IConsultarRepository consultarRepository) 
-        {
-            this._logger = logger;
-            this._agregarRepository = agregarRepository;
-            this._consultarRepository = consultarRepository;
-        }
+            ILogger<AgregarDocumentoInternoService> logger,
+            IServiceProvider serviceProvider) 
+            => (this._logger, this._serviceProvider) = (logger, serviceProvider);
 
         /// <summary>
         /// Agrega documentos internos asociados a un detalle de reclamo.
@@ -47,7 +42,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var detalleReclamo = await this._consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=> x.Id == agregarDocumentoInternoSolicitudModel.IdDetalleReclamo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                var detalleReclamo = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=> x.Id == agregarDocumentoInternoSolicitudModel.IdDetalleReclamo);
                 if(detalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, agregarDocumentoInternoSolicitudModel.IdDetalleReclamo));      
                 
                 if (agregarDocumentoInternoSolicitudModel.ListaDocumentos is null || !agregarDocumentoInternoSolicitudModel.ListaDocumentos.Any()) throw new ArgumentException(MENSAJE_ERROR_LISTA_NULA);
@@ -68,7 +66,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
 
                 if(!listaDocumentoInterno.Any()) throw new ArgumentException(MENSAJE_ERROR_LISTA_NULA);
 
-                await this._agregarRepository.AgregarVariosAsync<DocumentoInternoEntity>(traceId, listaDocumentoInterno);
+                await agregarRepository.AgregarVariosAsync<DocumentoInternoEntity>(traceId, listaDocumentoInterno);
 
                 return new OkResult();
 

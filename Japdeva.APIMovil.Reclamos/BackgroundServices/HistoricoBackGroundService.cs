@@ -10,8 +10,7 @@ namespace Japdeva.APIMovil.Reclamos.BackgroundServices
     {
         private readonly ILogger<HistoricoBackGroundService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        
-
+      
         private const string TRACE_ID_BACKGROUND = "BACKGROUND_HISTORICO";
         private const int DELAY_MINUTOS= 10;
 
@@ -39,7 +38,7 @@ namespace Japdeva.APIMovil.Reclamos.BackgroundServices
             }
             catch (Exception ex)
             {
-                this._logger.Error(TRACE_ID_BACKGROUND,nombreMetodo,ex);
+                this._logger.Error(TRACE_ID_BACKGROUND, nombreMetodo, ex);
             }
             finally 
             {

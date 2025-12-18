@@ -43,8 +43,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
-                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                var estadoDetalleOrdenProcesos = await consultarRepository.ConsultarListaAsync<EstadoDetalleReclamoNivelProcesoEntity>(
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var estadoDetalleOrdenProcesos = await consultarListaRepository.ConsultarListaAsync<EstadoDetalleReclamoNivelProcesoEntity>(
                     traceId, PAGINA_INICIAL, p => p.Activo == ESTADO_ACTIVO);
                 if (estadoDetalleOrdenProcesos is null || !estadoDetalleOrdenProcesos.Lista.Any()) return;
                 lock (this._estadoDetalleReclamoOrdenProcesoEntityCache)

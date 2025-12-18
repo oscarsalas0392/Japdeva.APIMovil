@@ -49,47 +49,39 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
         /// <exception cref="InvalidOperationException">Se lanza cuando ocurre un error durante el registro de servicios.</exception>
         public static WebApplicationBuilder AgregarServiciosReclamos(this WebApplicationBuilder builder)
         {
-     
 
             try
             {
 
-                builder.Services.AddScoped<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
-                builder.Services.AddScoped<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
-                builder.Services.AddScoped<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();
-                builder.Services.AddScoped<IAgregarReclamoService, AgregarReclamoService>();
-                builder.Services.AddScoped<IEditarReclamoService, EditarReclamoService>();
-                builder.Services.AddScoped<IEditarReclamoDetalleService, EditarReclamoDetalleService>();
-                builder.Services.AddScoped<IEliminarDocumentoInternoService, EliminarDocumentoInternoService>();
-
-
-                builder.Services.AddScoped<IObtenerDetalleReclamoHistoricoService, ObtenerDetalleReclamoHistoricoService>();
-                builder.Services.AddScoped<IObtenerDetalleReclamoService, ObtenerDetalleReclamoService>();
-                builder.Services.AddScoped<IObtenerDocumentoInternoHistoricoService, ObtenerDocumentoInternoHistoricoService>();
-                builder.Services.AddScoped<IObtenerDocumentoInternoService, ObtenerDocumentoInternoService>();
-                builder.Services.AddScoped<IObtenerDocumentoUsuarioHistoricoService, ObtenerDocumentoUsuarioHistoricoService>();
-                builder.Services.AddScoped<IObtenerDocumentoUsuarioService, ObtenerDocumentoUsuarioService>();
-                builder.Services.AddScoped<IObtenerEstadoDetalleReclamoService, ObtenerEstadoDetalleReclamoService>();
-                builder.Services.AddScoped<IObtenerOrdenNivelProcesoService, ObtenerOrdenNivelProcesoService>();
-                builder.Services.AddScoped<IObtenerReclamoPorDepartamentoService, ObtenerReclamoPorDepartamentoService>();
-                builder.Services.AddScoped<IObtenerReclamosPorFechaIngresoService, ObtenerReclamosPorFechaIngresoService>();
-                builder.Services.AddScoped<IObtenerReclamosPorUsuarioService, ObtenerReclamosPorUsuarioService>();
-                builder.Services.AddScoped<IListaRespuestaReclamoService, ListaRespuestaReclamoService>();
-
-          
+                builder.Services.AddSingleton<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
+                builder.Services.AddSingleton<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
+                builder.Services.AddSingleton<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();
+                builder.Services.AddSingleton<IAgregarReclamoService, AgregarReclamoService>();
+                builder.Services.AddSingleton<IEditarReclamoService, EditarReclamoService>();
+                builder.Services.AddSingleton<IEditarReclamoDetalleService, EditarReclamoDetalleService>();
+                builder.Services.AddSingleton<IEliminarDocumentoInternoService, EliminarDocumentoInternoService>();
+                builder.Services.AddSingleton<IObtenerDetalleReclamoHistoricoService, ObtenerDetalleReclamoHistoricoService>();
+                builder.Services.AddSingleton<IObtenerDetalleReclamoService, ObtenerDetalleReclamoService>();
+                builder.Services.AddSingleton<IObtenerDocumentoInternoHistoricoService, ObtenerDocumentoInternoHistoricoService>();
+                builder.Services.AddSingleton<IObtenerDocumentoInternoService, ObtenerDocumentoInternoService>();
+                builder.Services.AddSingleton<IObtenerDocumentoUsuarioHistoricoService, ObtenerDocumentoUsuarioHistoricoService>();
+                builder.Services.AddSingleton<IObtenerDocumentoUsuarioService, ObtenerDocumentoUsuarioService>();
+                builder.Services.AddSingleton<IObtenerEstadoDetalleReclamoService, ObtenerEstadoDetalleReclamoService>();
+                builder.Services.AddSingleton<IObtenerOrdenNivelProcesoService, ObtenerOrdenNivelProcesoService>();
+                builder.Services.AddSingleton<IObtenerReclamoPorDepartamentoService, ObtenerReclamoPorDepartamentoService>();
+                builder.Services.AddSingleton<IObtenerReclamosPorFechaIngresoService, ObtenerReclamosPorFechaIngresoService>();
+                builder.Services.AddSingleton<IObtenerReclamosPorUsuarioService, ObtenerReclamosPorUsuarioService>();
+                builder.Services.AddSingleton<IListaRespuestaReclamoService, ListaRespuestaReclamoService>();
                 builder.Services.AddSingleton<IEstadoDetalleReclamoCacheService, EstadoDetalleReclamoCacheService>();
                 builder.Services.AddSingleton<IEstadoDetalleReclamoOrdenProcesoCacheService, EstadoDetalleReclamoOrdenProcesoCacheService>();
                 builder.Services.AddSingleton<IEstadoReclamoCacheService, EstadoReclamoCacheService>();
                 builder.Services.AddSingleton<INivelProcesoCacheService, NivelProcesoCacheService>();
                 builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();
-
-                builder.Services.AddScoped<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
-                builder.Services.AddScoped<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
-                builder.Services.AddScoped<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
-                builder.Services.AddScoped<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
-
-          
-                builder.Services.AddScoped<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
+                builder.Services.AddSingleton<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
+                builder.Services.AddSingleton<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
+                builder.Services.AddSingleton<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
+                builder.Services.AddSingleton<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
+                builder.Services.AddSingleton<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
 
             
                 builder.Services.AddHostedService<HistoricoBackGroundService>();
@@ -97,9 +89,9 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
 
                 return builder;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new InvalidOperationException("Error al registrar los servicios del módulo Reclamos. Verifique que todas las interfaces y implementaciones estén correctamente definidas.", ex);
+                throw;
             }
         }
     }

@@ -227,6 +227,10 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnDeclaracionConstante(literal))
                         continue;
 
+                    // NUEVA EXCLUSIÓN: Excluir literales que están en llamadas a Environment.GetEnvironmentVariable
+                    if (EstaEnLlamadaEnvironmentGetEnvironmentVariable(literal))
+                        continue;
+
                     // Verificar si este literal es parte de una expresión unaria (como -10)
                     var padreUnario = literal.Parent as PrefixUnaryExpressionSyntax;
                     if (padreUnario != null && padreUnario.IsKind(SyntaxKind.UnaryMinusExpression))
@@ -280,6 +284,10 @@ namespace Japdeva.APIMovil.Estandar
                     if (EstaEnDeclaracionConstanteUnaria(unary))
                         continue;
 
+                    // NUEVA EXCLUSIÓN: Excluir expresiones unarias en llamadas a Environment.GetEnvironmentVariable
+                    if (EstaEnLlamadaEnvironmentGetEnvironmentVariableUnaria(unary))
+                        continue;
+
                     // Excluir expresiones unarias que están en inicializadores de propiedades (valores por defecto)
                     if (EstaEnInicializadorPropiedadUnaria(unary))
                         continue;
@@ -318,6 +326,10 @@ namespace Japdeva.APIMovil.Estandar
                         if (EstaEnAtributoColumn(contenido))
                             continue;
 
+                        // NUEVA EXCLUSIÓN: Excluir cadenas interpoladas en llamadas a Environment.GetEnvironmentVariable
+                        if (EstaEnLlamadaEnvironmentGetEnvironmentVariableInterpolated(contenido))
+                            continue;
+
                         var textoParcial = contenido.TextToken.ValueText;
                         if (!string.IsNullOrWhiteSpace(textoParcial) && textoParcial.Length > 3)
                         {
@@ -335,6 +347,95 @@ namespace Japdeva.APIMovil.Estandar
                 }
             }
         }
+
+        /// <summary>
+        /// Verifica si un literal está dentro de una llamada a Environment.GetEnvironmentVariable.
+        /// Los literales usados como nombres de variables de entorno son permitidos.
+        /// </summary>
+        private static bool EstaEnLlamadaEnvironmentGetEnvironmentVariable(LiteralExpressionSyntax literal)
+        {
+            // Buscar si el literal está dentro de una invocación de método
+            var invocacion = literal.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            if (invocacion == null)
+                return false;
+
+            // Verificar si la expresión de la invocación es Environment.GetEnvironmentVariable
+            var expresionMiembro = invocacion.Expression as MemberAccessExpressionSyntax;
+            if (expresionMiembro == null)
+                return false;
+
+            // Verificar el nombre del método
+            if (expresionMiembro.Name.Identifier.ValueText != "GetEnvironmentVariable")
+                return false;
+
+            // Verificar si es de la clase Environment
+            var expresionObjetivo = expresionMiembro.Expression;
+            if (expresionObjetivo is IdentifierNameSyntax identificador)
+            {
+                return identificador.Identifier.ValueText == "Environment";
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Verifica si una expresión unaria está dentro de una llamada a Environment.GetEnvironmentVariable.
+        /// </summary>
+        private static bool EstaEnLlamadaEnvironmentGetEnvironmentVariableUnaria(PrefixUnaryExpressionSyntax unary)
+        {
+            // Buscar si la expresión unaria está dentro de una invocación de método
+            var invocacion = unary.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            if (invocacion == null)
+                return false;
+
+            // Verificar si la expresión de la invocación es Environment.GetEnvironmentVariable
+            var expresionMiembro = invocacion.Expression as MemberAccessExpressionSyntax;
+            if (expresionMiembro == null)
+                return false;
+
+            // Verificar el nombre del método
+            if (expresionMiembro.Name.Identifier.ValueText != "GetEnvironmentVariable")
+                return false;
+
+            // Verificar si es de la clase Environment
+            var expresionObjetivo = expresionMiembro.Expression;
+            if (expresionObjetivo is IdentifierNameSyntax identificador)
+            {
+                return identificador.Identifier.ValueText == "Environment";
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Verifica si contenido de cadena interpolada está dentro de una llamada a Environment.GetEnvironmentVariable.
+        /// </summary>
+        private static bool EstaEnLlamadaEnvironmentGetEnvironmentVariableInterpolated(InterpolatedStringTextSyntax contenido)
+        {
+            // Buscar si el contenido está dentro de una invocación de método
+            var invocacion = contenido.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            if (invocacion == null)
+                return false;
+
+            // Verificar si la expresión de la invocación es Environment.GetEnvironmentVariable
+            var expresionMiembro = invocacion.Expression as MemberAccessExpressionSyntax;
+            if (expresionMiembro == null)
+                return false;
+
+            // Verificar el nombre del método
+            if (expresionMiembro.Name.Identifier.ValueText != "GetEnvironmentVariable")
+                return false;
+
+            // Verificar si es de la clase Environment
+            var expresionObjetivo = expresionMiembro.Expression;
+            if (expresionObjetivo is IdentifierNameSyntax identificador)
+            {
+                return identificador.Identifier.ValueText == "Environment";
+            }
+
+            return false;
+        }
+        
         private static void AgregarValorLiteral(Dictionary<string, List<LiteralInfo>> valoresLiterales, string valorLiteral, Location ubicacion)
         {
             if (!valoresLiterales.ContainsKey(valorLiteral))

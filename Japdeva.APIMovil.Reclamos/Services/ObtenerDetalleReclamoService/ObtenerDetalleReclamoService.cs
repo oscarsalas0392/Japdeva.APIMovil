@@ -16,7 +16,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService
     public class ObtenerDetalleReclamoService : IObtenerDetalleReclamoService
     {
         private readonly ILogger<ObtenerDetalleReclamoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
 
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "El detalle de reclamo con Id {0} no fue encontrado.";
@@ -26,11 +26,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService
         /// </summary>
         public ObtenerDetalleReclamoService(
             ILogger<ObtenerDetalleReclamoService> logger,
-            IConsultarListaRepository consultarListaRepository,
+            IServiceProvider serviceProvider,
             IEstadoDetalleReclamoCacheService estadoDetalleReclamoCacheService)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
             this._estadoDetalleReclamoCacheService = estadoDetalleReclamoCacheService;
         }
 
@@ -49,9 +49,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+
                 RespuestaListaModel<DetalleReclamoRespuestaModel> respuesta = new RespuestaListaModel<DetalleReclamoRespuestaModel>();
                 List<DetalleReclamoRespuestaModel> listaDetalleReclamo = new List<DetalleReclamoRespuestaModel>();
-                var detalleReclamos = await this._consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
+                var detalleReclamos = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
 
 
                 List<long> listaIdUsuarioInterno = detalleReclamos.Lista.Where(x => x.IdUsuarioInterno is not null)

@@ -18,8 +18,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
     {
 
         private readonly ILogger<AgregarReclamoDetalleService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
 
@@ -31,20 +30,19 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
         private const string VALOR_DEFECTO_DESCRIPCION = "";
 
         /// <summary>
-        /// Inicializa una nueva instancia del servicio de agregación de detalles de reclamo.
+        /// Inicializa una nueva instancia de la clase <see cref="AgregarReclamoDetalleService"/>.
         /// </summary>
-        /// <param name="logger">Logger para registro de eventos y errores.</param>
-        /// <param name="agregarRepository">Repositorio para operaciones de inserción en base de datos.</param>
-        /// <param name="consultarRepository">Repositorio para operaciones de consulta en base de datos.</param>
+        /// <param name="logger">Instancia del registrador de logs.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        /// <param name="nivelProcesoCacheService">Servicio de caché para niveles de proceso.</param>
+        /// <param name="estadoDetalleReclamoCacheService">Servicio de caché para estados de detalle de reclamo.</param>
         public AgregarReclamoDetalleService(ILogger<AgregarReclamoDetalleService> logger,
-            IAgregarRepository agregarRepository,
-            IConsultarRepository consultarRepository,
+            IServiceProvider serviceProvider,
             INivelProcesoCacheService nivelProcesoCacheService,
             IEstadoDetalleReclamoCacheService estadoDetalleReclamoCacheService)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository;
-            this._consultarRepository = consultarRepository;
+            this._serviceProvider = serviceProvider;
             this._nivelProcesoCacheService = nivelProcesoCacheService;
             this._estadoDetalleReclamoCacheService = estadoDetalleReclamoCacheService;
         }
@@ -63,7 +61,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var reclamo = await this._consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, reclamo => reclamo.Id == idReclamo);
+                using var scope = this._serviceProvider.CreateScope();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, reclamo => reclamo.Id == idReclamo);
                 if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
 
                 var nivelProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, idNivelSiguienteProceso);
@@ -81,7 +83,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
                 reclamoDetalle.IdEstadoDetalleReclamo = estadoDetalle.Id;
                 reclamoDetalle.IdDepartamento = nivelProceso.IdDepartamento;
 
-                await this._agregarRepository.AgregarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
+                await agregarRepository.AgregarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
             }
             catch (Exception ex)
             {

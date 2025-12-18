@@ -14,24 +14,21 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
     public class AgregarDocumentoUsuarioService : IAgregarDocumentoUsuarioService
     {
         private readonly ILogger<AgregarDocumentoUsuarioService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
         private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const int MINIMO_REGISTROS = 1;
 
         /// <summary>
-        /// Inicializa una nueva instancia del servicio para agregar documentos de usuario.
+        /// Inicializa una nueva instancia de la clase <see cref="AgregarDocumentoUsuarioService"/>.
         /// </summary>
-        /// <param name="logger">Logger para registro de eventos y errores.</param>
-        /// <param name="agregarRepository">Repositorio para operaciones de inserción en base de datos.</param>
-        /// <param name="_consultarRepository">Repositorio para operaciones de consulta en base de datos.</param>
-        public AgregarDocumentoUsuarioService(ILogger<AgregarDocumentoUsuarioService> logger, IAgregarRepository agregarRepository, IConsultarRepository _consultarRepository)
+        /// <param name="logger">Instancia del registrador de logs.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        public AgregarDocumentoUsuarioService(ILogger<AgregarDocumentoUsuarioService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository;
-            this._consultarRepository = _consultarRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -49,7 +46,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
                 this._logger.Inicio(traceId, nombreMetodo);
                 List<DocumentoUsuarioEntity> documentosUsuario = new List<DocumentoUsuarioEntity>();
 
-                var reclamo = await this._consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, d => d.Id == idReclamo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, d => d.Id == idReclamo);
                 
                 if(reclamo is null)
                 {
@@ -73,7 +74,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
                 }
 
                 if(documentosUsuario.Count < MINIMO_REGISTROS) throw new ArgumentException(MENSAJE_ERROR_LISTA_NULA);
-                await this._agregarRepository.AgregarVariosAsync<DocumentoUsuarioEntity>(traceId, documentosUsuario);
+                await agregarRepository.AgregarVariosAsync<DocumentoUsuarioEntity>(traceId, documentosUsuario);
             }
             catch (Exception ex)
             {

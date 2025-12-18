@@ -21,10 +21,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
         private readonly IEnvioHistoricoDocumentoUsuarioService _envioHistoricoDocumentoUsuarioService;
         private readonly IGeneralRepository _generalRepository;
 
-        private readonly string _mesesRestar = Environment.GetEnvironmentVariable(MESES_ENVIO_HISTORICO) ?? MESES_ENVIO_HISTORICO_DEFECTO;
+        private readonly string _mesesRestar = Environment.GetEnvironmentVariable("MESES_ENVIO_HISTORICO") ?? MESES_ENVIO_HISTORICO_DEFECTO;
         private const int PAGINA_INICIAL = 1;
-        private const string MESES_ENVIO_HISTORICO = "VARIABLE_ENTORNO_MESES_ENVIO_HISTORICO";
-        private const string MESES_ENVIO_HISTORICO_DEFECTO = "-3";
+        private const string MENSAJE_ERROR_VARIABLE_ENTORNO_MESES_INVALIDA = "La variable de entorno para meses de envío histórico no es un número válido.";
+        private const string MESES_ENVIO_HISTORICO_DEFECTO = "3";
+        private const int FACTOR_RESTA_MES = -1;
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de validación de envío histórico de reclamos.
@@ -67,10 +68,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
                 // Validar y convertir configuración de meses
                 if (!int.TryParse(this._mesesRestar, out int mesesARestar))
                 {
-                    throw new ArgumentException($"La variable de entorno {MESES_ENVIO_HISTORICO} debe ser un número válido. Valor actual: {this._mesesRestar}");
+                    throw new Exception(MENSAJE_ERROR_VARIABLE_ENTORNO_MESES_INVALIDA);
                 }
 
-                DateTime fechaCorte = DateTime.Now.AddMonths(mesesARestar);
+                DateTime fechaCorte = DateTime.Now.AddMonths(mesesARestar * FACTOR_RESTA_MES);
 
                 // Obtener reclamos elegibles para envío histórico
                 var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, PAGINA_INICIAL,

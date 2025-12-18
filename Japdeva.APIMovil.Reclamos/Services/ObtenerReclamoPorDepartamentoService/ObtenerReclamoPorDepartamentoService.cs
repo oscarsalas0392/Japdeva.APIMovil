@@ -15,7 +15,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoServic
     public class ObtenerReclamoPorDepartamentoService: IObtenerReclamoPorDepartamentoService
     {
         private readonly ILogger<ObtenerReclamoPorDepartamentoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IListaRespuestaReclamoService _listaRespuestaReclamoService;
 
         private const string MENSAJE_ERROR_ID_PAGINA = "La pagina es inválida, debe ser mayor a 0.";
@@ -27,12 +27,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoServic
         /// <param name="consultarListaRepository">Repositorio para consultar listas.</param>
         public ObtenerReclamoPorDepartamentoService(
             ILogger<ObtenerReclamoPorDepartamentoService> logger,
-            IConsultarListaRepository consultarListaRepository,
+            IServiceProvider serviceProvider,
             IListaRespuestaReclamoService listaRespuestaReclamoService
             )
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
             this._listaRespuestaReclamoService = listaRespuestaReclamoService;
         }
 
@@ -49,9 +49,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoServic
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 if (pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
 
-                var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
+                var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
                     reclamo => reclamo.IdDepartamentoActual == idDepartamento);
 
                 List<ReclamoRespuestaModel> listaReclamoRespuestas = await this._listaRespuestaReclamoService.ObtenerListaRespuestaReclamoAsync(traceId, reclamos.Lista);

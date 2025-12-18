@@ -13,30 +13,22 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoInternoServi
     public class EnvioHistoricoDocumentoInternoService : IEnvioHistoricoDocumentoInternoService
     {
         private readonly ILogger<EnvioHistoricoDocumentoInternoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IEliminarRepository _eliminarRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private const int PAGINA_ACTUAL_INICIAL = 1;
         private const int TOTAL_PAGINAS_INICIAL = 0;
 
         /// <summary>
-        /// Inicializa una nueva instancia de la clase <see cref="EnvioHistoricoDocumentoUsuarioService"/>.
+        /// Inicializa una nueva instancia de la clase <see cref="EnvioHistoricoDocumentoInternoService"/>.
         /// </summary>
         /// <param name="logger">Instancia del registrador de logs.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas.</param>
-        /// <param name="eliminarRepository">Repositorio para eliminar entidades.</param>
-        /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
         public EnvioHistoricoDocumentoInternoService(
             ILogger<EnvioHistoricoDocumentoInternoService> logger,
-            IConsultarListaRepository consultarListaRepository,
-            IEliminarRepository eliminarRepository,
-            IAgregarRepository agregarRepository)
+            IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
-            this._eliminarRepository = eliminarRepository;
-            this._agregarRepository = agregarRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -50,6 +42,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoInternoServi
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var _scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = _scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var agregarRepository = _scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                var eliminarRepository = _scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
                 int paginaActual = PAGINA_ACTUAL_INICIAL;
                 int totalPaginas = TOTAL_PAGINAS_INICIAL;
 
@@ -57,7 +53,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoInternoServi
                 List<DocumentoInternoHistoricoEntity> listaDocumentosUsuarioHistorico = new List<DocumentoInternoHistoricoEntity>();
                 do
                 {
-                    var documentosUsuarios = await this._consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, paginaActual, x => x.IdDetalleReclamo == idDetalleReclamo);
+                    var documentosUsuarios = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, paginaActual, x => x.IdDetalleReclamo == idDetalleReclamo);
                     listaDocumentosUsuario.AddRange(documentosUsuarios.Lista);
                     totalPaginas = documentosUsuarios.CantidadPaginas;
                 }
@@ -76,8 +72,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoInternoServi
                         listaDocumentosUsuarioHistorico.Add(documentoUsuarioHistoricoEntity);
                     }
 
-                    Task tareaEliminar = this._eliminarRepository.EliminarVariosAsync<DocumentoInternoEntity>(traceId, listaDocumentosUsuario);
-                    Task tareaAgregarHistorico = this._agregarRepository.AgregarVariosAsync<DocumentoInternoHistoricoEntity>(traceId, listaDocumentosUsuarioHistorico);
+                    Task tareaEliminar = eliminarRepository.EliminarVariosAsync<DocumentoInternoEntity>(traceId, listaDocumentosUsuario);
+                    Task tareaAgregarHistorico = agregarRepository.AgregarVariosAsync<DocumentoInternoHistoricoEntity>(traceId, listaDocumentosUsuarioHistorico);
                     await Task.WhenAll(tareaEliminar, tareaAgregarHistorico);
                 }
 

@@ -16,7 +16,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
     public class ObtenerReclamosPorUsuarioService: IObtenerReclamosPorUsuarioService
     {
         private readonly ILogger<ObtenerReclamosPorUsuarioService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IListaRespuestaReclamoService _listaRespuestaReclamoService;
 
         private const string MENSAJE_ERROR_ID_USUARIO_INVALIDO = "El idUsuario es inválido.";
@@ -32,11 +32,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
         /// <param name="logger">Logger para registro de eventos y errores.</param>
         /// <param name="consultarListaRepository">Repositorio para consultas paginadas de listas.</param>
         public ObtenerReclamosPorUsuarioService(ILogger<ObtenerReclamosPorUsuarioService> logger,
-            IConsultarListaRepository consultarListaRepository,
+            IServiceProvider serviceProvider,
             IListaRespuestaReclamoService listaRespuestaReclamoService)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
             this._listaRespuestaReclamoService = listaRespuestaReclamoService;
         }
 
@@ -56,12 +56,15 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
 
             try
             {
-                if(idUsuario < ID_USUARIO_MINIMO)  throw new ArgumentException(MENSAJE_ERROR_ID_USUARIO_INVALIDO);
+                this._logger.Inicio(traceId, nombreMetodo);
+
+
+                if (idUsuario < ID_USUARIO_MINIMO)  throw new ArgumentException(MENSAJE_ERROR_ID_USUARIO_INVALIDO);
                 if(idEstadoReclamo < ID_ESTADO_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_ESTADO_RECLAMO);
                 if(pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
                 RespuestaListaModel<ReclamoRespuestaModel> respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
        
-                this._logger.Inicio(traceId, nombreMetodo);
+              
                 EstadoReclamoModel estadoReclamo = (EstadoReclamoModel)idEstadoReclamo;
 
                 switch (estadoReclamo)
@@ -112,8 +115,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
-                var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
+                var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
                        x => x.IdUsuarioExterno == idUsuario && x.IdEstadoReclamo == idEstadoReclamo);
 
                 var respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();

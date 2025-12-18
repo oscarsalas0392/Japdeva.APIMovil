@@ -13,9 +13,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioServi
     public class EnvioHistoricoDocumentoUsuarioService : IEnvioHistoricoDocumentoUsuarioService
     {
         private readonly ILogger<EnvioHistoricoDocumentoUsuarioService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IEliminarRepository _eliminarRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private const int PAGINA_ACTUAL_INICIAL = 1;
         private const int TOTAL_PAGINAS_INICIAL = 0;
@@ -29,14 +27,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioServi
         /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
         public EnvioHistoricoDocumentoUsuarioService(
             ILogger<EnvioHistoricoDocumentoUsuarioService> logger,
-            IConsultarListaRepository consultarListaRepository,
-            IEliminarRepository eliminarRepository,
-            IAgregarRepository agregarRepository)
+            IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
-            this._eliminarRepository = eliminarRepository;
-            this._agregarRepository = agregarRepository;
+            this._serviceProvider = serviceProvider;
+
         }
 
         /// <summary>
@@ -50,6 +45,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioServi
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+
                 int paginaActual = PAGINA_ACTUAL_INICIAL;
                 int totalPaginas = TOTAL_PAGINAS_INICIAL;
                 
@@ -57,7 +57,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioServi
                 List<DocumentoUsuarioHistoricoEntity> listaDocumentosUsuarioHistorico = new List<DocumentoUsuarioHistoricoEntity>();
                 do 
                 {
-                   var documentosUsuarios = await this._consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, paginaActual, x => x.IdReclamo == idReclamo);
+                   var documentosUsuarios = await consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, paginaActual, x => x.IdReclamo == idReclamo);
                    listaDocumentosUsuario.AddRange(documentosUsuarios.Lista);
 
                     foreach (var documentoUsuario in documentosUsuarios.Lista)
@@ -74,8 +74,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioServi
                 }
                 while (paginaActual <= totalPaginas);
 
-                await this._eliminarRepository.EliminarVariosAsync<DocumentoUsuarioEntity>(traceId, listaDocumentosUsuario);
-                await this._agregarRepository.AgregarVariosAsync<DocumentoUsuarioHistoricoEntity>(traceId, listaDocumentosUsuarioHistorico);
+                await eliminarRepository.EliminarVariosAsync<DocumentoUsuarioEntity>(traceId, listaDocumentosUsuario);
+                await agregarRepository.AgregarVariosAsync<DocumentoUsuarioHistoricoEntity>(traceId, listaDocumentosUsuarioHistorico);
 
             }
             catch (Exception ex)

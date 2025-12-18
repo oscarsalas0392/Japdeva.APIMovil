@@ -14,26 +14,22 @@ namespace Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService
     public class EliminarDocumentoInternoService : IEliminarDocumentoInternoService
     {
         private readonly ILogger<EliminarDocumentoInternoService> _logger;
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IEliminarRepository _eliminarRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         private const string MENSAJE_DOCUMENTO_INTERNO_NO_EXISTE = "El documento interno con el id {0} no existe";
 
         /// <summary>
-        /// Inicializa una nueva instancia del servicio de eliminación de documentos internos.
+        /// Inicializa una nueva instancia de la clase <see cref="EliminarDocumentoInternoService"/>.
         /// </summary>
-        /// <param name="logger">Logger para registro de eventos y errores.</param>
-        /// <param name="consultarRepository">Repositorio para operaciones de consulta.</param>
-        /// <param name="eliminarRepository">Repositorio para operaciones de eliminación.</param>
+        /// <param name="logger">Instancia del registrador de logs.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
         public EliminarDocumentoInternoService(
             ILogger<EliminarDocumentoInternoService> logger,
-            IConsultarRepository consultarRepository,
-            IEliminarRepository eliminarRepository
+            IServiceProvider serviceProvider
             )
         {
             this._logger = logger;
-            this._consultarRepository = consultarRepository;
-            this._eliminarRepository = eliminarRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -49,12 +45,15 @@ namespace Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                
-                var documentoInterno = await this._consultarRepository.ConsultarAsync<DocumentoInternoEntity>(traceId, x => x.Id == idDocumento);
+                using var scope = this._serviceProvider.CreateAsyncScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
+
+                var documentoInterno = await consultarRepository.ConsultarAsync<DocumentoInternoEntity>(traceId, x => x.Id == idDocumento);
                 if(documentoInterno is null)  
                     throw new ArgumentException(string.Format(MENSAJE_DOCUMENTO_INTERNO_NO_EXISTE, idDocumento));
                 
-                await this._eliminarRepository.EliminarAsync<DocumentoInternoEntity>(traceId, documentoInterno);
+                await eliminarRepository.EliminarAsync<DocumentoInternoEntity>(traceId, documentoInterno);
                 
                 return new OkResult();
             }

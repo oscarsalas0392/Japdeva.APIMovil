@@ -11,6 +11,7 @@ using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
 
+
 namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
 {
     /// <summary>
@@ -22,9 +23,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
     {
         private readonly ILogger<AgregarReclamoService> _logger;
         private readonly IAgregarDocumentoUsuarioService _agregarDocumentoUsuarioService;
-        private readonly IAgregarRepository _agregarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
-        private readonly IGeneralRepository _generalRepository;
         private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
 
@@ -35,27 +35,28 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         private const string MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE = "El estado reclamo no existe.";
         private const string MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE = "La orden de proceso inicial no existe.";
 
+
         /// <summary>
-        /// Inicializa una nueva instancia del servicio de agregación de reclamos.
+        /// Inicializa una nueva instancia de la clase <see cref="AgregarReclamoService"/>.
         /// </summary>
-        /// <param name="logger">Logger para registro de eventos y errores.</param>
+        /// <param name="logger">El registrador de eventos para la clase.</param>
         /// <param name="agregarDocumentoUsuarioService">Servicio para agregar documentos de usuario.</param>
-        /// <param name="agregarRepository">Repositorio para operaciones de inserción.</param>
-        /// <param name="agregarReclamoDetalleService">Servicio para agregar detalles de reclamo.</param>
-        /// <param name="generalRepository">Repositorio general para manejo de transacciones.</param>
-        public AgregarReclamoService(ILogger<AgregarReclamoService> logger,
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        /// <param name="agregarReclamoDetalleService">Servicio para agregar detalles del reclamo.</param>
+        /// <param name="estadoReclamoCacheService">Servicio de caché para estados de reclamo.</param>
+        /// <param name="nivelProcesoCacheService">Servicio de caché para niveles de proceso.</param>
+        public AgregarReclamoService(
+            ILogger<AgregarReclamoService> logger,
             IAgregarDocumentoUsuarioService agregarDocumentoUsuarioService,
-            IAgregarRepository agregarRepository,
+            IServiceProvider serviceProvider,
             IAgregarReclamoDetalleService agregarReclamoDetalleService,
-            IGeneralRepository generalRepository,
             IEstadoReclamoCacheService estadoReclamoCacheService,
             INivelProcesoCacheService nivelProcesoCacheService)
         {
             this._logger = logger;
             this._agregarDocumentoUsuarioService = agregarDocumentoUsuarioService;
-            this._agregarRepository = agregarRepository;
+            this._serviceProvider = serviceProvider;
             this._agregarReclamoDetalleService = agregarReclamoDetalleService;
-            this._generalRepository = generalRepository;
             this._estadoReclamoCacheService = estadoReclamoCacheService;
             this._nivelProcesoCacheService = nivelProcesoCacheService;
         }
@@ -72,9 +73,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             IDbContextTransaction? transaccion = null;
+            using var scope = this._serviceProvider.CreateScope();
+            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
-                transaccion = await this._generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
+               
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+              
+                transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
                 this._logger.Inicio(traceId, nombreMetodo);
                 if (string.IsNullOrEmpty(reclamo.Titulo)) throw new ArgumentException(MENSAJE_TITULO_REQUERIDO);
                 if (string.IsNullOrEmpty(reclamo.Descripcion)) throw new ArgumentException(MENSAJE_DESCRIPCION_REQUERIDA);
@@ -95,13 +101,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 reclamoEntity.IdUsuarioExterno = reclamo.IdUsuarioExterno;
                 reclamoEntity.IdDepartamentoActual = nivelProceso.IdDepartamento;
 
-                await this._agregarRepository.AgregarAsync<ReclamoEntity>(traceId, reclamoEntity);
+                await agregarRepository.AgregarAsync<ReclamoEntity>(traceId, reclamoEntity);
 
                 Task agregarDocumento = this._agregarDocumentoUsuarioService.AgregarDocumentoUsuarioAsync(traceId, reclamoEntity.Id, reclamo.ListaDocumentos);
                 Task agregarDetalleReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, reclamoEntity.Id, nivelProceso.Id);
                 await Task.WhenAll(agregarDocumento, agregarDetalleReclamo);
 
-                await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
 
                 AgregarReclamoRespuestaModel agregarReclamoRespuestaModel = new AgregarReclamoRespuestaModel();
                 agregarReclamoRespuestaModel.Id = reclamoEntity.Id;
@@ -112,13 +118,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             }
             catch (Exception ex)
             {
-                await this._generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
+                await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                await this._generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
+                await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

@@ -16,17 +16,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
     public class ObtenerDocumentoUsuarioService : IObtenerDocumentoUsuarioService
     {
         private readonly ILogger<ObtenerDocumentoUsuarioService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de obtención de documentos de usuario.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos y errores.</param>
         /// <param name="consultarListaRepository">Repositorio para consultas paginadas de listas.</param>
-        public ObtenerDocumentoUsuarioService(ILogger<ObtenerDocumentoUsuarioService> logger, IConsultarListaRepository consultarListaRepository)
+        public ObtenerDocumentoUsuarioService(ILogger<ObtenerDocumentoUsuarioService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -44,7 +44,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var documentosUsuarios = await this._consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+
+                var documentosUsuarios = await consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
 
                 var respuesta = new RespuestaListaModel<DocumentoUsuarioRespuestaModel>();
                 respuesta.TotalRegistros = documentosUsuarios.TotalRegistros;

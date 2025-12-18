@@ -14,20 +14,19 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoSer
     public class ObtenerDocumentoInternoHistoricoService : IObtenerDocumentoInternoHistoricoService
     {
         private readonly ILogger<ObtenerDocumentoInternoHistoricoService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
+
 
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoHistoricoService"/>.
         /// </summary>
-        /// <param name="logger">Instancia del registrador para el servicio.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas de documentos internos.</param>
         public ObtenerDocumentoInternoHistoricoService(
             ILogger<ObtenerDocumentoInternoHistoricoService> logger,
-            IConsultarListaRepository consultarListaRepository)
+            IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository;
+            this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -43,8 +42,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoSer
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                var documentosInternos = await this._consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
+                var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
 
                 if (documentosInternos is not null && !documentosInternos.Lista.Any())
                 {
