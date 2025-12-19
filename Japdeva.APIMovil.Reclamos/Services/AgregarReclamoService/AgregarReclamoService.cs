@@ -77,11 +77,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
-               
+                this._logger.Inicio(traceId, nombreMetodo);
                 var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
               
                 transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
-                this._logger.Inicio(traceId, nombreMetodo);
+              
                 if (string.IsNullOrEmpty(reclamo.Titulo)) throw new ArgumentException(MENSAJE_TITULO_REQUERIDO);
                 if (string.IsNullOrEmpty(reclamo.Descripcion)) throw new ArgumentException(MENSAJE_DESCRIPCION_REQUERIDA);
 
@@ -111,7 +111,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
 
                 AgregarReclamoRespuestaModel agregarReclamoRespuestaModel = new AgregarReclamoRespuestaModel();
                 agregarReclamoRespuestaModel.Id = reclamoEntity.Id;
-                agregarReclamoRespuestaModel.TItulo = reclamoEntity.Titulo;
+                agregarReclamoRespuestaModel.Titulo = reclamoEntity.Titulo;
                 agregarReclamoRespuestaModel.Descripcion = reclamoEntity.Descripcion;
 
                 return new OkObjectResult(agregarReclamoRespuestaModel);
