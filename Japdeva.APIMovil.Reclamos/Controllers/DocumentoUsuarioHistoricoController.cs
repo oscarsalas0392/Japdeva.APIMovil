@@ -7,6 +7,8 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para exponer los endpoints relacionados con el histórico de documentos de usuario.
     /// </summary>
+    [ApiController]
+    [Route("api/[controller]")]
     public class DocumentoUsuarioHistoricoController : Controller
     {
        /// <summary>

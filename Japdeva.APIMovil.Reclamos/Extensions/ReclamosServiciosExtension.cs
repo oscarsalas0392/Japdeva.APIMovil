@@ -53,6 +53,7 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
             try
             {
 
+
                 builder.Services.AddSingleton<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
                 builder.Services.AddSingleton<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
                 builder.Services.AddSingleton<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();

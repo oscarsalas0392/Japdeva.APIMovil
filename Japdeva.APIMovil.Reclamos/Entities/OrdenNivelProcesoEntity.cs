@@ -35,12 +35,6 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         public bool DevolucionNivel { get; set; }
 
         /// <summary>
-        /// Indica si la orden de proceso representa la finalización del proceso en la jerarquía.
-        /// </summary>
-        [Column("finalizacionProceso")]
-        public bool FinalizacionProceso { get; set; }
-
-        /// <summary>
         /// Obtiene o establece el identificador del usuario interno que configuró esta orden de proceso.
         /// Permite auditoría de quién estableció la configuración del workflow.
         /// </summary>

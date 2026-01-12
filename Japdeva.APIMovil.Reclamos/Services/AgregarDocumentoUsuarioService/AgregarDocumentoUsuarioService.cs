@@ -1,7 +1,6 @@
 ﻿using System;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
-using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 
@@ -15,9 +14,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
     {
         private readonly ILogger<AgregarDocumentoUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
-
+   
         private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
-        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const int MINIMO_REGISTROS = 1;
 
         /// <summary>
@@ -27,8 +25,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
         /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
         public AgregarDocumentoUsuarioService(ILogger<AgregarDocumentoUsuarioService> logger, IServiceProvider serviceProvider)
         {
-            this._logger = logger;
             this._serviceProvider = serviceProvider;
+            this._logger = logger;
         }
 
         /// <summary>
@@ -46,17 +44,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
                 this._logger.Inicio(traceId, nombreMetodo);
                 List<DocumentoUsuarioEntity> documentosUsuario = new List<DocumentoUsuarioEntity>();
 
-                using var scope = this._serviceProvider.CreateScope();
-                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+                using var serviceScope = this._serviceProvider.CreateScope();
 
-                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, d => d.Id == idReclamo);
-                
-                if(reclamo is null)
-                {
-                    throw new ArgumentException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
-                }
-                
+                var agregarRepository = serviceScope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+          
                 if (listaArchivos is null || listaArchivos.Count < MINIMO_REGISTROS)
                 {
                     throw new ArgumentNullException(MENSAJE_ERROR_LISTA_NULA);
@@ -69,7 +60,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService
                     documentoUsuario.IdReclamo = idReclamo;
                     documentoUsuario.Documento = archivo.ContenidoArchivo;
                     documentoUsuario.NombreDocumento = archivo.NombreArchivo;
-                    documentoUsuario.FechaRegistro = DateTime.Now;
+                    documentoUsuario.FechaRegistro = DateTime.UtcNow;
                     documentosUsuario.Add(documentoUsuario);
                 }
 

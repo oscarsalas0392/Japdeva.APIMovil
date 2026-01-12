@@ -7,6 +7,8 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para gestionar la obtención de documentos internos históricos asociados a reclamos.
     /// </summary>
+    [ApiController]
+    [Route("api/[controller]")]
     public class DocumentoInternoHistoricoController : Controller
     {
         /// <summary>

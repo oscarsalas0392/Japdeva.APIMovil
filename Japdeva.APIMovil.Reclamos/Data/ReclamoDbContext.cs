@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Japdeva.APIMovil.Reclamos.Entities;
 
 namespace Japdeva.APIMovil.Reclamos.Data
@@ -16,6 +17,45 @@ namespace Japdeva.APIMovil.Reclamos.Data
         /// <param name="options">Opciones de configuración para el contexto de Entity Framework.</param>
         public ReclamoDbContext(DbContextOptions<ReclamoDbContext> options) : base(options)
         {
+        }
+
+        /// <summary>
+        /// Configura el modelo de Entity Framework Core aplicando una conversión global
+        /// para todas las propiedades de tipo <see cref="DateTime"/>.
+        /// Esta configuración es especialmente importante al trabajar con PostgreSQL y
+        /// columnas del tipo <c>timestamp with time zone</c>, ya que el proveedor Npgsql
+        /// solo admite valores en UTC y produce excepciones cuando se utilizan fechas con
+        /// <see cref="DateTimeKind.Local"/> o <see cref="DateTimeKind.Unspecified"/>.
+        /// </summary>
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            try
+            {
+                foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
+                {
+                    foreach (var propiedad in tipoEntidad.GetProperties())
+                    {
+                        if (propiedad.ClrType == typeof(DateTime))
+                        {
+                            propiedad.SetValueConverter(
+                                new ValueConverter<DateTime, DateTime>(
+                                    v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            finally 
+            {
+            
+            }
         }
 
         /// <summary>

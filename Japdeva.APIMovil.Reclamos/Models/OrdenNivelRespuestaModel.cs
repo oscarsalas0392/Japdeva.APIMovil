@@ -50,11 +50,5 @@ namespace Japdeva.APIMovil.Reclamos.Models
         [JsonProperty("devolucionNivel")]
         public bool DevolucionNivel { get; set; }
 
-        /// <summary>
-        /// Obtiene o establece un valor que indica si este nivel representa la finalización del proceso.
-        /// </summary>
-         
-        [JsonProperty("finalizacionProceso")]
-        public bool FinalizacionProceso { get; set; }
     }
 }

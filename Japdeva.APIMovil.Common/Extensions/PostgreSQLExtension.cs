@@ -41,10 +41,6 @@ namespace Japdeva.APIMovil.Common.Extensions
                     options.UseNpgsql(connectionString, npgsqlOptions =>
                     {
                         npgsqlOptions.CommandTimeout(COMMAND_TIMEOUT_SECONDS);
-                        npgsqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: MAX_RETRY_COUNT,
-                            maxRetryDelay: TimeSpan.FromSeconds(MAX_RETRY_DELAY_SECONDS),
-                            errorCodesToAdd: null);
                     });
 
                     options.EnableServiceProviderCaching();  

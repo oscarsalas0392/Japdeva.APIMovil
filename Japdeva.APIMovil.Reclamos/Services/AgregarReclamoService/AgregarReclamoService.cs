@@ -1,16 +1,12 @@
-﻿using System;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
-using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
-
 
 namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
 {
@@ -72,16 +68,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         public async Task<IActionResult> AgregarReclamoAsync(string traceId, AgregarReclamoSolicitudModel reclamo)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IDbContextTransaction? transaccion = null;
-            using var scope = this._serviceProvider.CreateScope();
-            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
                 var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
-              
-                transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
-              
+                
                 if (string.IsNullOrEmpty(reclamo.Titulo)) throw new ArgumentException(MENSAJE_TITULO_REQUERIDO);
                 if (string.IsNullOrEmpty(reclamo.Descripcion)) throw new ArgumentException(MENSAJE_DESCRIPCION_REQUERIDA);
 
@@ -97,7 +89,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 reclamoEntity.Titulo = reclamo.Titulo;
                 reclamoEntity.Descripcion = reclamo.Descripcion;
                 reclamoEntity.IdEstadoReclamo = estadoReclamo.Id;
-                reclamoEntity.FechaRegistro = DateTime.Now;
+                reclamoEntity.FechaRegistro = DateTime.UtcNow;
                 reclamoEntity.IdUsuarioExterno = reclamo.IdUsuarioExterno;
                 reclamoEntity.IdDepartamentoActual = nivelProceso.IdDepartamento;
 
@@ -106,8 +98,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 Task agregarDocumento = this._agregarDocumentoUsuarioService.AgregarDocumentoUsuarioAsync(traceId, reclamoEntity.Id, reclamo.ListaDocumentos);
                 Task agregarDetalleReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, reclamoEntity.Id, nivelProceso.Id);
                 await Task.WhenAll(agregarDocumento, agregarDetalleReclamo);
-
-                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
 
                 AgregarReclamoRespuestaModel agregarReclamoRespuestaModel = new AgregarReclamoRespuestaModel();
                 agregarReclamoRespuestaModel.Id = reclamoEntity.Id;
@@ -118,13 +108,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             }
             catch (Exception ex)
             {
-                await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
+
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

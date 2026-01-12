@@ -65,9 +65,8 @@ namespace Japdeva.APIMovil.Common.Repositories.GeneralRepository
             string nombreMetodo = this._logger.ObtenerNombreMetodo();
             try
             {
-                this._logger.Inicio(traceId, nombreMetodo);
+                 this._logger.Inicio(traceId, nombreMetodo);
                  await transaccion.CommitAsync();
-
             }
             catch (Exception ex)
             {
@@ -131,5 +130,6 @@ namespace Japdeva.APIMovil.Common.Repositories.GeneralRepository
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }
+
     }
 }

@@ -29,7 +29,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
         /// <param name="envioHistoricoDocumentoInternoService">Servicio para el envío de documentos internos al histórico.</param>
         public EnvioHistoricoDetalleReclamoService(
             ILogger<EnvioHistoricoDetalleReclamoService> logger,
-            IConsultarListaRepository consultarListaRepository,
             IServiceProvider serviceProvider,
             IEnvioHistoricoDocumentoInternoService envioHistoricoDocumentoInternoService)
         {

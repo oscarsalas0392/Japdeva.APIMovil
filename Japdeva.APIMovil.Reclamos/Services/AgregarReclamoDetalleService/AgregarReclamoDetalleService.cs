@@ -1,6 +1,5 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
-using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
@@ -18,11 +17,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
     {
 
         private readonly ILogger<AgregarReclamoDetalleService> _logger;
-        private readonly IServiceProvider _serviceProvider;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
+        private readonly IServiceProvider _serviceProvider;
 
-        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
+
         private const string MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO = "El nivel del proceso con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO = "El estado detalle proceso con Id {0} no fue encontrado.";
 
@@ -60,13 +59,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
-                using var scope = this._serviceProvider.CreateScope();
-                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
-                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-
-                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, reclamo => reclamo.Id == idReclamo);
-                if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
+                using var serviceScope = this._serviceProvider.CreateScope();
+       
+                var agregarRepository = serviceScope.ServiceProvider.GetRequiredService<IAgregarRepository>();
 
                 var nivelProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, idNivelSiguienteProceso);
                 if(nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
@@ -75,13 +70,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
                 if (estadoDetalle is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO, (int)EstadoDetalleReclamoModel.Pendiente));
 
                 DetalleReclamoEntity reclamoDetalle = new DetalleReclamoEntity();
-                reclamoDetalle.IdReclamo = reclamo.Id;
+                reclamoDetalle.IdReclamo = idReclamo;
                 reclamoDetalle.IdNivelProceso = nivelProceso.Id;
                 reclamoDetalle.Descripcion = VALOR_DEFECTO_DESCRIPCION;
-                reclamoDetalle.FechaRegistro = DateTime.Now;
+                reclamoDetalle.FechaRegistro = DateTime.UtcNow;
                 reclamoDetalle.IdUsuarioInterno = VALOR_DEFECTO_ID_USUARIO_INTERNO;
                 reclamoDetalle.IdEstadoDetalleReclamo = estadoDetalle.Id;
                 reclamoDetalle.IdDepartamento = nivelProceso.IdDepartamento;
+              
 
                 await agregarRepository.AgregarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
             }
