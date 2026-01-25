@@ -3,6 +3,7 @@ using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService;
@@ -53,7 +54,6 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
             try
             {
 
-
                 builder.Services.AddSingleton<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
                 builder.Services.AddSingleton<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
                 builder.Services.AddSingleton<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();
@@ -77,14 +77,16 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
                 builder.Services.AddSingleton<IEstadoDetalleReclamoOrdenProcesoCacheService, EstadoDetalleReclamoOrdenProcesoCacheService>();
                 builder.Services.AddSingleton<IEstadoReclamoCacheService, EstadoReclamoCacheService>();
                 builder.Services.AddSingleton<INivelProcesoCacheService, NivelProcesoCacheService>();
-                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
-                builder.Services.AddSingleton<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
+                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();           
+              
                 builder.Services.AddSingleton<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
+                builder.Services.AddSingleton<IEditarDepartamentoReclamoService, EditarDepartamentoReclamoService>();
 
-            
+                builder.Services.AddScoped<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
+                builder.Services.AddScoped<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
+                builder.Services.AddScoped<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
+                builder.Services.AddScoped<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
+
                 builder.Services.AddHostedService<HistoricoBackGroundService>();
                 builder.Services.AddHostedService<ParametrosBackGroundService>();
 

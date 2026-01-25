@@ -70,7 +70,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService
                 //AQUI FALTA IR A MICROSERVICIO DE USUARIOS PARA OBTENER NOMBRES DE USUARIOS INTERNOS
                 //AQUI FALTA IR A MICROSERVICIO DE USUARIOS PARA OBTENER NOMBRES DE DEPARTAMENTOS
 
-                foreach (var detalleReclamoEntity in respuesta.Lista)
+                foreach (var detalleReclamoEntity in detalleReclamos.Lista)
                 {
                     DetalleReclamoRespuestaModel detalleReclamo = new DetalleReclamoRespuestaModel();
 

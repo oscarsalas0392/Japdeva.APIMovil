@@ -1,7 +1,9 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
 
@@ -17,10 +19,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
         private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
         private readonly IOrdenNivelProcesoCacheService _ordenNivelProcesoCacheService;
         private readonly IEditarReclamoService _editarReclamoService;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IEditarDepartamentoReclamoService _editarDepartamentoReclamoService;
 
         private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO = "No se encontró la configuración de orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
         private const string MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION = "No se encontró la configuración de devolución del orden de nivel de proceso para IdNivelSuperior: {0} e IdNivelInferior: {1}";
         private const string MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA = "La descripción de la resolución es obligatoria";
+        private const string MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO = "El nivel proceso con Id {0} no fue encontrado.";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ValidarEstadoDetalleReclamoService"/>.
@@ -31,13 +36,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
             ILogger<ValidarEstadoDetalleReclamoService> logger,
             IAgregarReclamoDetalleService agregarReclamoDetalleService,
             IOrdenNivelProcesoCacheService ordenNivelProcesoCacheService,
-            IEditarReclamoService editarReclamoService
+            IEditarReclamoService editarReclamoService,
+            IServiceProvider serviceProvider,
+            IEditarDepartamentoReclamoService editarDepartamentoReclamoService
             )
         {
             this._logger = logger;
             this._agregarReclamoDetalleService = agregarReclamoDetalleService;
             this._ordenNivelProcesoCacheService = ordenNivelProcesoCacheService;
             this._editarReclamoService = editarReclamoService;
+            this._serviceProvider = serviceProvider;
+            this._editarDepartamentoReclamoService = editarDepartamentoReclamoService;
         }
 
         /// <summary>
@@ -73,14 +82,23 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
                     return;
                 }
 
+                var scope = this._serviceProvider.CreateScope();
+
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var nivelProceso = await consultarRepository.ConsultarAsync<NivelProcesoEntity>(traceId, x => x.Id == idNivelSiguienteProceso);
+                if(nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
+
                 if (estadoDetalle.DevolucionProceso)
                 {
-                    var ordenNivelProceso = this._ordenNivelProcesoCacheService.ObtenerOrdenNivelProcesoCache(traceId, idNivelActual, idNivelSiguienteProceso);
-                    if(ordenNivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO, idNivelActual, idNivelSiguienteProceso));
-                    if(!ordenNivelProceso.DevolucionNivel) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION, idNivelActual, idNivelSiguienteProceso));
+                    var ordenNivelProceso = this._ordenNivelProcesoCacheService.ObtenerOrdenNivelProcesoCache(traceId, idNivelActual, nivelProceso.Id);
+                    if(ordenNivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO, idNivelActual, nivelProceso.Id));
+                    if(!ordenNivelProceso.DevolucionNivel) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION, idNivelActual, nivelProceso.Id));
                 }
 
-                await this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, idReclamo, idNivelSiguienteProceso);               
+                Task tareaAgregarReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, idReclamo, idNivelSiguienteProceso);
+                Task tareaActualizarDepartamentoReclamo = this._editarDepartamentoReclamoService.EditarDepartamentoReclamoAsync(traceId, idReclamo, nivelProceso.IdDepartamento);
+
+                await Task.WhenAll(tareaAgregarReclamo, tareaActualizarDepartamentoReclamo);
             }
             catch (Exception ex)
             {

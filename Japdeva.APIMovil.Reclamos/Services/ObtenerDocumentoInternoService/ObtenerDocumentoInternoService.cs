@@ -49,7 +49,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
                 var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x=>x.IdDetalleReclamo == idDetalleReclamo);
 
-                if (documentosInternos is not null && !documentosInternos.Lista.Any())
+                if (documentosInternos is not null && documentosInternos.Lista.Any())
                 {
                     respuesta.CantidadPaginas = documentosInternos.CantidadPaginas;
                     respuesta.PaginaActual = documentosInternos.PaginaActual;

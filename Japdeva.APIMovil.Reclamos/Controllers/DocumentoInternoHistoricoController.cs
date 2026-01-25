@@ -18,7 +18,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <param name="idReclamoDetalle">Identificador del detalle del reclamo.</param>
         /// <param name="pagina">Número de la página de resultados a obtener.</param>
         /// <returns>Resultado de la operación de obtención de documentos internos.</returns>
-        [HttpGet("ObtenerDocumentoInternoPorReclamo")]
+        [HttpGet("ObtenerDocumentoInternoPorDetalleReclamo")]
         public Task<IActionResult> ObtenerDocumentoInternoPorReclamo([FromServices] IObtenerDocumentoInternoHistoricoService obtenerDocumentoInternoService,
             [FromQuery(Name = "id-reclamo-detalle")] long idReclamoDetalle, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerDocumentoInternoService.ObtenerDocumentosInternosAsync(HttpContext.TraceIdentifier, idReclamoDetalle, pagina);

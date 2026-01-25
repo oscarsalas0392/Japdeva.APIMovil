@@ -22,7 +22,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Obtiene o establece el identificador del detalle reclamo al cual pertenece el documento interno.
         /// Establece la relación con el reclamo principal al que se adjunta este documento.
         /// </summary>
-        [Column("idReclamo")]
+        [Column("idDetalleReclamo")]
         public long IdDetalleReclamo { get; set; }
 
         /// <summary>

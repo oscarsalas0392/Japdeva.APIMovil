@@ -94,7 +94,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
                 if(estadoDetalleReclamoOrdenProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
 
                 reclamoDetalle.IdEstadoDetalleReclamo = editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo;
-                reclamoDetalle.FechaEdicion = DateTime.Now;
+                reclamoDetalle.FechaEdicion = DateTime.UtcNow;
                 reclamoDetalle.IdUsuarioInterno = editarDetalleReclamoSolicitudModel.IdUsuarioInterno;
 
                 string descripcionResolucion = editarDetalleReclamoSolicitudModel.DescripcionResolucion;

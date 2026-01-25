@@ -47,6 +47,7 @@ namespace Japdeva.APIMovil.Reclamos.Data
                         }
                     }
                 }
+
             }
             catch (Exception)
             {
@@ -57,6 +58,7 @@ namespace Japdeva.APIMovil.Reclamos.Data
             
             }
         }
+
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades de reclamos.

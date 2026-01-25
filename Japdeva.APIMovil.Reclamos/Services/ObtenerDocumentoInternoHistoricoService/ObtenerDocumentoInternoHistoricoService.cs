@@ -16,6 +16,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoSer
         private readonly ILogger<ObtenerDocumentoInternoHistoricoService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
+        private const bool ACTIVO = true;   
 
 
         /// <summary>
@@ -46,9 +47,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoSer
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
+                var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo && x.Activo == ACTIVO);
 
-                if (documentosInternos is not null && !documentosInternos.Lista.Any())
+                if (documentosInternos is not null && documentosInternos.Lista.Any())
                 {
                     respuesta.CantidadPaginas = documentosInternos.CantidadPaginas;
                     respuesta.PaginaActual = documentosInternos.PaginaActual;

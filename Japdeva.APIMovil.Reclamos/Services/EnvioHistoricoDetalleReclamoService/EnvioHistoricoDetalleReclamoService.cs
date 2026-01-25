@@ -13,8 +13,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
     public class EnvioHistoricoDetalleReclamoService : IEnvioHistoricoDetalleReclamoService
     {
         private readonly ILogger<EnvioHistoricoDetalleReclamoService> _logger;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IEnvioHistoricoDocumentoInternoService _envioHistoricoDocumentoInternoService;
+        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IEliminarRepository _eliminarRepository;
+        private readonly IAgregarRepository _agregarRepository;
 
         private const int PAGINA_ACTUAL_INICIAL = 1;
         private const int TOTAL_PAGINAS_INICIAL = 0;
@@ -30,11 +32,16 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
         public EnvioHistoricoDetalleReclamoService(
             ILogger<EnvioHistoricoDetalleReclamoService> logger,
             IServiceProvider serviceProvider,
+            IConsultarListaRepository consultarListaRepository,
+            IEliminarRepository eliminarRepository,
+            IAgregarRepository agregarRepository,
             IEnvioHistoricoDocumentoInternoService envioHistoricoDocumentoInternoService)
         {
             this._logger = logger;
-            this._serviceProvider = serviceProvider;
             this._envioHistoricoDocumentoInternoService = envioHistoricoDocumentoInternoService;
+            this._consultarListaRepository = consultarListaRepository;
+            this._eliminarRepository = eliminarRepository;
+            this._agregarRepository = agregarRepository;
         }
 
         /// <summary>
@@ -48,10 +55,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                using var scope = this._serviceProvider.CreateScope();
-                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
-                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
                 int paginaActual = PAGINA_ACTUAL_INICIAL;
                 int totalPaginas = TOTAL_PAGINAS_INICIAL;
 
@@ -59,33 +62,31 @@ namespace Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService
                 List<DetalleReclamoHistoricoEntity> listaDetalleReclamoHistorico = new List<DetalleReclamoHistoricoEntity>();
                 do
                 {
-                    var detallesReclamos = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, paginaActual, x => x.IdReclamo == idReclamo);
+                    var detallesReclamos = await this._consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, paginaActual, x => x.IdReclamo == idReclamo);
                     listaDetalleReclamo.AddRange(detallesReclamos.Lista);
                     totalPaginas = detallesReclamos.CantidadPaginas;
+                    paginaActual++;
                 }
                 while (paginaActual <= totalPaginas);
 
-                if (!listaDetalleReclamo.Any())
+                if (listaDetalleReclamo.Any())
                 {
                     foreach (var detalleReclamo in listaDetalleReclamo)
                     {
                         DetalleReclamoHistoricoEntity detalleReclamoEntity = new DetalleReclamoHistoricoEntity();
                         detalleReclamoEntity.Id = detalleReclamo.Id;
                         detalleReclamoEntity.Descripcion = detalleReclamo.Descripcion;
-                        detalleReclamoEntity.FechaEdicion = detalleReclamo.FechaEdicion;
+                        detalleReclamoEntity.FechaEdicion = detalleReclamo.FechaEdicion is not null ? detalleReclamo.FechaEdicion.Value.ToUniversalTime() : null;
                         detalleReclamoEntity.IdReclamo = detalleReclamo.IdReclamo;
-                        detalleReclamoEntity.FechaRegistro = detalleReclamo.FechaRegistro;
+                        detalleReclamoEntity.FechaRegistro = detalleReclamo.FechaRegistro.ToUniversalTime();
                         detalleReclamoEntity.IdEstadoDetalleReclamo = detalleReclamo.IdEstadoDetalleReclamo;
                         detalleReclamoEntity.IdDepartamento = detalleReclamo.IdDepartamento;
                         detalleReclamoEntity.IdNivelProceso = detalleReclamo.IdNivelProceso;
                         detalleReclamoEntity.IdUsuarioInterno = detalleReclamo.IdUsuarioInterno;
                         listaDetalleReclamoHistorico.Add(detalleReclamoEntity);
-                        await this._envioHistoricoDocumentoInternoService.EnviarHistoricoDocumentoInternoAsync(traceId, detalleReclamo.Id);
                     }
-
-                    Task tareaEliminar = eliminarRepository.EliminarVariosAsync<DetalleReclamoEntity>(traceId, listaDetalleReclamo);
-                    Task tareaAgregarHistorico = agregarRepository.AgregarVariosAsync<DetalleReclamoHistoricoEntity>(traceId, listaDetalleReclamoHistorico);
-                    await Task.WhenAll(tareaEliminar, tareaAgregarHistorico);
+         
+                    await this._agregarRepository.AgregarVariosAsync<DetalleReclamoHistoricoEntity>(traceId, listaDetalleReclamoHistorico);
                 }              
             }
             catch (Exception ex)
