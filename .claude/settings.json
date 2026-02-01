@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -f \"Japdeva.APIMovil.Reclamos/Models/MensajeRespuestaModel.cs\" ])"
+    ]
+  }
+}

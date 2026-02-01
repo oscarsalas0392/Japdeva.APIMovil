@@ -79,10 +79,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._nivelProcesoEntityCache)
-                {
-                    return this._nivelProcesoEntityCache.FirstOrDefault(p => p.Id == idNivelProceso && p.Activo == ESTADO_ACTIVO);
-                }
+                return this._nivelProcesoEntityCache.FirstOrDefault(p => p.Id == idNivelProceso && p.Activo == ESTADO_ACTIVO);
+                
             }
             catch (Exception ex)
             {
