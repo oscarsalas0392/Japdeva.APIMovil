@@ -38,7 +38,7 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idPerfil">Identificador del perfil para filtrar los menús.</param>
         /// <returns>Una tarea que representa la operación asincrónica y contiene el resultado de la acción.</returns>
-        public Task<IActionResult> ObtenerMenusPorPerfilAsync(string traceId, int idPerfil)
+        public async Task<IActionResult> ObtenerMenusPorPerfilAsync(string traceId, int idPerfil)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -74,7 +74,7 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService
                     }
                 }
 
-                return Task.FromResult<IActionResult>(new OkObjectResult(menusRespuesta));
+                return new OkObjectResult(menusRespuesta); 
             }
             catch (Exception ex)
             {

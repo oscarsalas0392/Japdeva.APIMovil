@@ -38,7 +38,7 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMensajePorPantallaService
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idPantalla">Identificador de la pantalla para filtrar los mensajes.</param>
         /// <returns>Una tarea que representa la operación asincrónica y contiene el resultado de la acción.</returns>
-        public Task<IActionResult> ObtenerMensajesPorPantallaAsync(string traceId, int idPantalla)
+        public async Task<IActionResult> ObtenerMensajesPorPantallaAsync(string traceId, int idPantalla)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -66,7 +66,7 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMensajePorPantallaService
                     mensajesRespuesta.Add(mensajeRespuesta);
                 }
 
-                return Task.FromResult<IActionResult>(new OkObjectResult(mensajesRespuesta));
+                return new OkObjectResult(mensajesRespuesta); 
             }
             catch (Exception ex)
             {
