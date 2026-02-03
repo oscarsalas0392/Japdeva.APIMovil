@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,7 +8,6 @@ using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
 
-
 namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
 {
     /// <summary>
@@ -19,28 +16,22 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
     public class ObtenerUsuariosService : IObtenerUsuariosService
     {
         private readonly ILogger<ObtenerUsuariosService> _logger;
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_USUARIO_NO_ENCONTRADO = "Usuario no encontrado.";
         private const string MENSAJE_USUARIO_OBTENIDO = "Usuario obtenido correctamente.";
         private const int PAGINA_PREDETERMINADA = 1;
         private const bool EXITO = true;
         private const bool ERROR = false;
 
-
         /// <summary>
         /// Inicializa una nueva instancia de la clase ObtenerUsuariosService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="consultarRepository">Repositorio para consultar una entidad.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar una lista de entidades.</param>
-        public ObtenerUsuariosService(ILogger<ObtenerUsuariosService> logger, IConsultarRepository consultarRepository, IConsultarListaRepository consultarListaRepository)
-        {
-            this._logger = logger;
-            this._consultarRepository = consultarRepository ?? throw new ArgumentNullException(nameof(consultarRepository));
-            this._consultarListaRepository = consultarListaRepository 
-                ?? throw new ArgumentNullException(nameof(consultarListaRepository));
-        }
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        public ObtenerUsuariosService(
+            ILogger<ObtenerUsuariosService> logger,
+            IServiceProvider serviceProvider)
+            => (this._logger, this._serviceProvider) = (logger, serviceProvider);
 
         /// <summary>
         /// Obtiene todos los usuarios activos.
@@ -50,27 +41,32 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
         public async Task<IActionResult> ObtenerTodosLosUsuariosAsync(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            using var scope = this._serviceProvider.CreateScope();
+            var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
                 Expression<Func<UsuarioEntity, bool>> filtro = u => u.Activo;
-                var usuariosRespuesta = await this._consultarListaRepository.ConsultarListaAsync<UsuarioEntity>(
-                    traceId, 
-                    PAGINA_PREDETERMINADA, 
+                var usuariosRespuesta = await consultarListaRepository.ConsultarListaAsync<UsuarioEntity>(
+                    traceId,
+                    PAGINA_PREDETERMINADA,
                     filtro);
 
                 var listaUsuarios = new List<UsuarioRespuestaModel>();
                 foreach (var usuario in usuariosRespuesta.Lista)
                 {
-                    var usuarioModelo = new UsuarioRespuestaModel();
-                    usuarioModelo.Id = usuario.Id;
-                    usuarioModelo.Nombre = usuario.Nombre;
-                    usuarioModelo.Correo = usuario.Correo;
-                    usuarioModelo.Telefono = usuario.Telefono;
-                    usuarioModelo.FechaCreacion = usuario.FechaCreacion;
-                    usuarioModelo.FechaActualizacion = usuario.FechaActualizacion;
-                    usuarioModelo.Activo = usuario.Activo;
+                    var usuarioModelo = new UsuarioRespuestaModel
+                    {
+                        Id = usuario.Id,
+                        Nombre = usuario.Nombre,
+                        Correo = usuario.Correo,
+                        Telefono = usuario.Telefono,
+                        FechaCreacion = usuario.FechaCreacion,
+                        FechaActualizacion = usuario.FechaActualizacion,
+                        Activo = usuario.Activo
+                    };
                     listaUsuarios.Add(usuarioModelo);
                 }
 
@@ -107,33 +103,38 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
         public async Task<IActionResult> ObtenerUsuarioPorIdAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            using var scope = this._serviceProvider.CreateScope();
+            var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
                 Expression<Func<UsuarioEntity, bool>> filtro = u => u.Id == id;
-                var usuario = await this._consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, filtro);
+                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, filtro);
                 if (usuario is null)
-                    return new NotFoundObjectResult(new RespuestaModel 
-                    { 
-                        Mensaje = MENSAJE_USUARIO_NO_ENCONTRADO, 
-                        Exito = ERROR 
+                    return new NotFoundObjectResult(new RespuestaModel
+                    {
+                        Mensaje = MENSAJE_USUARIO_NO_ENCONTRADO,
+                        Exito = ERROR
                     });
 
-                var respuesta = new UsuarioRespuestaModel();
-                respuesta.Id = usuario.Id;
-                respuesta.Nombre = usuario.Nombre;
-                respuesta.Correo = usuario.Correo;
-                respuesta.Telefono = usuario.Telefono;
-                respuesta.FechaCreacion = usuario.FechaCreacion;
-                respuesta.FechaActualizacion = usuario.FechaActualizacion;
-                respuesta.Activo = usuario.Activo;
+                var respuesta = new UsuarioRespuestaModel
+                {
+                    Id = usuario.Id,
+                    Nombre = usuario.Nombre,
+                    Correo = usuario.Correo,
+                    Telefono = usuario.Telefono,
+                    FechaCreacion = usuario.FechaCreacion,
+                    FechaActualizacion = usuario.FechaActualizacion,
+                    Activo = usuario.Activo
+                };
 
-                return new OkObjectResult(new RespuestaModel 
-                { 
-                    Mensaje = MENSAJE_USUARIO_OBTENIDO, 
-                    Exito = EXITO, 
-                    Datos = respuesta 
+                return new OkObjectResult(new RespuestaModel
+                {
+                    Mensaje = MENSAJE_USUARIO_OBTENIDO,
+                    Exito = EXITO,
+                    Datos = respuesta
                 });
             }
             catch (ArgumentException ex)

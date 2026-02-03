@@ -6,7 +6,6 @@ using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Common.Repositories.EliminarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 
-
 namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
 {
     /// <summary>
@@ -15,8 +14,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
     public class EliminarUsuarioService : IEliminarUsuarioService
     {
         private readonly ILogger<EliminarUsuarioService> _logger;
-        private readonly IConsultarRepository _consultarRepository;
-        private readonly IEliminarRepository _eliminarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_USUARIO_NO_ENCONTRADO = "Usuario no encontrado.";
         private const string MENSAJE_USUARIO_ELIMINADO = "Usuario eliminado correctamente.";
         private const bool EXITO = true;
@@ -27,14 +25,11 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
         /// Inicializa una nueva instancia de la clase EliminarUsuarioService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
-        /// <param name="eliminarRepository">Repositorio para eliminar entidades.</param>
-        public EliminarUsuarioService(ILogger<EliminarUsuarioService> logger, IConsultarRepository consultarRepository, IEliminarRepository eliminarRepository)
-        {
-            this._logger = logger;
-            this._consultarRepository = consultarRepository ?? throw new ArgumentNullException(nameof(consultarRepository));
-            this._eliminarRepository = eliminarRepository ?? throw new ArgumentNullException(nameof(eliminarRepository));
-        }
+        /// <param name="serviceProvider">Proveedor de servicios para la obtención de dependencias.</param>
+        public EliminarUsuarioService(
+            ILogger<EliminarUsuarioService> logger,
+            IServiceProvider serviceProvider)
+            => (this._logger, this._serviceProvider) = (logger, serviceProvider);
 
         /// <summary>
         /// Elimina un usuario por su identificador.
@@ -45,11 +40,15 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
         public async Task<IActionResult> EliminarUsuarioAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            using var scope = this._serviceProvider.CreateScope();
+            var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+            var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
+
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var usuarioExistente = await this._consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, u => u.Id == id);
+                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, u => u.Id == id);
                 if (usuarioExistente is null)
                     return new NotFoundObjectResult(new RespuestaModel 
                     { 
@@ -58,7 +57,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
                     });
 
                 var usuariosParaEliminar = new List<UsuarioEntity> { usuarioExistente };
-                await this._eliminarRepository.EliminarAsync<UsuarioEntity>(traceId, usuariosParaEliminar);
+                await eliminarRepository.EliminarVariosAsync<UsuarioEntity>(traceId, usuariosParaEliminar);
 
                 return new OkObjectResult(new RespuestaModel 
                 { 

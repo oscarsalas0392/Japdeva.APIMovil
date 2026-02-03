@@ -20,11 +20,29 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         public int Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el nombre del usuario.
+        /// Obtiene o establece la identificacion del usuario.
+        /// </summary>
+        [Column("identificacion")]
+        public string Identificacion { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el apellidos del usuario.
         /// </summary>
         [Column("nombre")]
         public string Nombre { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Obtiene o establece los apelidos del usuario.
+        /// </summary>
+        [Column("apellidos")]
+        public string Apellidos { get; set; } = string.Empty;
+
+
+        /// <summary>
+        /// Obtiene o establece la contraseña del usuario.
+        /// </summary>
+        [Column("contrasena")]
+        public string Contrasena { get; set; } = string.Empty;
         /// <summary>
         /// Obtiene o establece el correo electrónico del usuario.
         /// </summary>
@@ -40,13 +58,13 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         /// <summary>
         /// Obtiene o establece la fecha de creación del usuario.
         /// </summary>
-        [Column("fecha_creacion")]
+        [Column("fechaRegistro")]
         public DateTime FechaCreacion { get; set; }
 
         /// <summary>
         /// Obtiene o establece la fecha de última actualización del usuario.
         /// </summary>
-        [Column("fecha_actualizacion")]
+        [Column("fechaEdicion")]
         public DateTime? FechaActualizacion { get; set; }
 
         /// <summary>
