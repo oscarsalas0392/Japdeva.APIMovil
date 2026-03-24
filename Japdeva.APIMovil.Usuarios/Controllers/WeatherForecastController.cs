@@ -27,7 +27,6 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         private const int DEFAULT_NUMBER_OF_DAYS = 5;
         private const int DEFAULT_START_INDEX = 1;
         private const int DEFAULT_USER_ID = 1;
-        private const string ERROR_MESSAGE = "Error al obtener pronósticos meteorológicos";
       
         /// <summary>
         /// Inicializa una nueva instancia del controlador WeatherForecast
@@ -45,27 +44,22 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         /// </summary>
         /// <returns>Colección de pronósticos meteorológicos para los próximos días</returns>
         [HttpGet]
-        public async Task<IEnumerable<WeatherForecast>> Get()
+        public async Task<IActionResult> Get() => Ok(await ObtenerPronosticosAsync());
+
+        /// <summary>
+        /// Obtiene los pronósticos meteorológicos para los próximos días
+        /// </summary>
+        /// <returns>Arreglo de pronósticos meteorológicos</returns>
+        public async Task<WeatherForecast[]> ObtenerPronosticosAsync()
         {
-            try
+            var nuevoUsuario = new UsuarioEntity { Id = DEFAULT_USER_ID, Nombre = DEFAULT_USER_NAME };
+            await this._agregarRepository.AgregarAsync<UsuarioEntity>(DEFAULT_TRACE_ID, nuevoUsuario);
+            return Enumerable.Range(DEFAULT_START_INDEX, DEFAULT_NUMBER_OF_DAYS).Select(index => new WeatherForecast
             {
-                var nuevoUsuario = new UsuarioEntity { Id = DEFAULT_USER_ID, Nombre = DEFAULT_USER_NAME };
-                await this._agregarRepository.AgregarAsync<UsuarioEntity>(DEFAULT_TRACE_ID, nuevoUsuario);
-
-                var resultado = Enumerable.Range(DEFAULT_START_INDEX, DEFAULT_NUMBER_OF_DAYS).Select(index => new WeatherForecast
-                {
-                    Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    TemperatureC = Random.Shared.Next(DEFAULT_MIN_TEMPERATURE, DEFAULT_MAX_TEMPERATURE),
-                    Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-                });
-
-                return resultado.ToArray();
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError(ex, ERROR_MESSAGE);
-                throw;
-            }
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(DEFAULT_MIN_TEMPERATURE, DEFAULT_MAX_TEMPERATURE),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            }).ToArray();
         }
     }
 }

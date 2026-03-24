@@ -10,7 +10,7 @@ using Japdeva.APIMovil.Usuarios.Entities;
 namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
 {
     /// <summary>
-    /// Servicio para la eliminación de usuarios en el sistema.
+    /// Servicio para la eliminaciï¿½n de usuarios en el sistema.
     /// </summary>
     public class EliminarUsuarioService : IEliminarUsuarioService
     {
@@ -41,7 +41,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="id">Identificador del usuario a eliminar</param>
-        /// <returns>Resultado de la operación de eliminación</returns>
+        /// <returns>Resultado de la operaciï¿½n de eliminaciï¿½n</returns>
         public async Task<IActionResult> EliminarUsuarioAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
@@ -57,8 +57,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
                         Exito = ERROR 
                     });
 
-                var usuariosParaEliminar = new List<UsuarioEntity> { usuarioExistente };
-                await this._eliminarRepository.EliminarAsync<UsuarioEntity>(traceId, usuariosParaEliminar);
+                await this._eliminarRepository.EliminarAsync<UsuarioEntity>(traceId, usuarioExistente);
 
                 return new OkObjectResult(new RespuestaModel 
                 { 

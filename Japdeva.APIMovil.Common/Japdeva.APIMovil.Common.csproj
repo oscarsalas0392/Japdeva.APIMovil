@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -15,15 +15,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="log4net" Version="3.2.0" />
-	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
-	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+	  <PackageReference Include="log4net" Version="3.3.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="8.0.0" />
-	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
-	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-	  <PackageReference Include="Ocelot" Version="24.0.1" />
-	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.2" />
+	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.17.0" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+	  <PackageReference Include="Ocelot" Version="24.1.0" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
 	</ItemGroup>
 
 </Project>

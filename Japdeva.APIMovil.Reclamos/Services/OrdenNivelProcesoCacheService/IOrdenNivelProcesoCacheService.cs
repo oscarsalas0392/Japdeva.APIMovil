@@ -1,6 +1,4 @@
-﻿
-
-using Japdeva.APIMovil.Common.Models;
+﻿using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Reclamos.Entities;
 
 namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
