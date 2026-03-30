@@ -105,6 +105,33 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
         }
 
         /// <summary>
+        /// Obtiene una cola específica por su identificador desde el caché en memoria.
+        /// </summary>
+        /// <param name="id">Identificador de la cola a buscar.</param>
+        /// <returns>La entidad de cola encontrada o null si no existe en el caché.</returns>
+        public ColaEntity? ObtenerColaPorId(long id)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(id.ToString(), nombreMetodo);
+                lock (this._colasCache)
+                {
+                    return this._colasCache.FirstOrDefault(c => c.Id == id);
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(id.ToString(), nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(id.ToString(), nombreMetodo);
+            }
+        }
+
+        /// <summary>
         /// Cuenta el número total de colas activas en el sistema.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad para el seguimiento de la operación.</param>

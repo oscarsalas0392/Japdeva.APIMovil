@@ -1,33 +1,23 @@
 namespace Japdeva.APIMovil.Usuarios.Models
 {
     /// <summary>
-    /// Modelo de solicitud para actualizar un usuario.
+    /// Modelo de solicitud para actualizar los datos de un usuario existente.
     /// </summary>
     public class ActualizarUsuarioSolicitudModel
     {
-        /// <summary>
-        /// Obtiene o establece el identificador del usuario.
-        /// </summary>
+        /// <summary>Obtiene o establece el identificador del usuario a actualizar.</summary>
         public int Id { get; set; }
 
-        /// <summary>
-        /// Obtiene o establece el nombre del usuario.
-        /// </summary>
+        /// <summary>Obtiene o establece el nombre del usuario.</summary>
         public string Nombre { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Obtiene o establece el correo electrónico del usuario.
-        /// </summary>
+        /// <summary>Obtiene o establece los apellidos del usuario.</summary>
+        public string Apellidos { get; set; } = string.Empty;
+
+        /// <summary>Obtiene o establece el correo electrÃ³nico del usuario.</summary>
         public string Correo { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Obtiene o establece el teléfono del usuario.
-        /// </summary>
-        public string Telefono { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Obtiene o establece un valor que indica si el usuario está activo.
-        /// </summary>
+        /// <summary>Obtiene o establece si el usuario estÃ¡ activo.</summary>
         public bool Activo { get; set; }
     }
 }

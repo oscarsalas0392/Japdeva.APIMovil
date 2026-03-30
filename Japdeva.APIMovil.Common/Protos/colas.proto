@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+option csharp_namespace = "Japdeva.APIMovil.Common.ColasGrpc";
+
+package colas;
+
+// Servicio gRPC para gestion de colas de mensajes entre microservicios
+service ColaService {
+
+    // Publica un nuevo mensaje en la cola
+    rpc PublicarMensaje (PublicarMensajeRequest) returns (MensajeResponse);
+
+    // Obtiene mensajes pendientes de una cola mediante streaming
+    rpc ObtenerMensajesPendientes (ObtenerMensajesRequest) returns (stream MensajeResponse);
+
+    // Obtiene un mensaje especifico por su identificador RPC
+    rpc ObtenerMensajePorIdRpc (ObtenerPorIdRpcRequest) returns (MensajeResponse);
+
+    // Actualiza el estado de un mensaje a EnProceso
+    rpc ActualizarMensajeEnProceso (ActualizarMensajeRequest) returns (ActualizarMensajeResponse);
+
+    // Actualiza el estado de un mensaje a Exitoso
+    rpc ActualizarMensajeExitoso (ActualizarMensajeRequest) returns (ActualizarMensajeResponse);
+
+    // Actualiza el estado de un mensaje a Fallido
+    rpc ActualizarMensajeFallido (ActualizarMensajeRequest) returns (ActualizarMensajeResponse);
+}
+
+message PublicarMensajeRequest {
+    string nombre_cola       = 1;
+    string contenido_mensaje = 2;
+    string metadatos         = 3;
+    string id_rpc            = 4;
+    int32  prioridad         = 5;
+    string trace_id          = 6;
+}
+
+message MensajeResponse {
+    int64  id                = 1;
+    string id_rpc            = 2;
+    int64  cola              = 3;
+    string trace_id          = 4;
+    string mensaje           = 5;
+    int32  estado            = 6;
+    string meta_datos        = 7;
+    bool   trace_id_diferente = 8;
+}
+
+message ObtenerMensajesRequest {
+    string nombre_cola = 1;
+}
+
+message ObtenerPorIdRpcRequest {
+    string id_rpc      = 1;
+    string nombre_cola = 2;
+}
+
+message ActualizarMensajeRequest {
+    int64  id       = 1;
+    string trace_id = 2;
+}
+
+message ActualizarMensajeResponse {
+    bool   exito              = 1;
+    string mensaje            = 2;
+    string trace_id           = 3;
+    bool   trace_id_diferente = 4;
+}

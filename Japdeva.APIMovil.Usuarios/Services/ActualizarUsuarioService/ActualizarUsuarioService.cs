@@ -12,7 +12,7 @@ using Japdeva.APIMovil.Usuarios.Models;
 namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
 {
     /// <summary>
-    /// Servicio para la actualización de usuarios en el sistema.
+    /// Servicio para la actualizaciï¿½n de usuarios en el sistema.
     /// </summary>
     public class ActualizarUsuarioService : IActualizarUsuarioService
     {
@@ -43,7 +43,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="solicitud">Datos del usuario a actualizar</param>
-        /// <returns>Resultado de la operación de actualización</returns>
+        /// <returns>Resultado de la operaciï¿½n de actualizaciï¿½n</returns>
         public async Task<IActionResult> ActualizarUsuarioAsync(string traceId, ActualizarUsuarioSolicitudModel solicitud)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
@@ -63,20 +63,22 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
                     });
 
                 usuarioExistente.Nombre = solicitud.Nombre;
+                usuarioExistente.Apellidos = solicitud.Apellidos;
                 usuarioExistente.Correo = solicitud.Correo;
-                usuarioExistente.Telefono = solicitud.Telefono;
                 usuarioExistente.Activo = solicitud.Activo;
-                usuarioExistente.FechaActualizacion = DateTime.UtcNow;
+                usuarioExistente.FechaEdicion = DateTime.UtcNow;
 
                 await this._actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuarioExistente);
 
                 var respuesta = new UsuarioRespuestaModel();
                 respuesta.Id = usuarioExistente.Id;
+                respuesta.Identificacion = usuarioExistente.Identificacion;
+                respuesta.IdTipoCedula = usuarioExistente.IdTipoCedula;
                 respuesta.Nombre = usuarioExistente.Nombre;
+                respuesta.Apellidos = usuarioExistente.Apellidos;
                 respuesta.Correo = usuarioExistente.Correo;
-                respuesta.Telefono = usuarioExistente.Telefono;
-                respuesta.FechaCreacion = usuarioExistente.FechaCreacion;
-                respuesta.FechaActualizacion = usuarioExistente.FechaActualizacion;
+                respuesta.FechaRegistro = usuarioExistente.FechaRegistro;
+                respuesta.FechaEdicion = usuarioExistente.FechaEdicion;
                 respuesta.Activo = usuarioExistente.Activo;
 
                 return new OkObjectResult(new RespuestaModel 

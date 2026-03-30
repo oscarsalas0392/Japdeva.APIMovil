@@ -34,27 +34,35 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            this._logger.Inicio(TRACE_ID, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    int cantidadMensajesPendientes = await this._mensajeColaService.ContarMensajesPendientesAsync(TRACE_ID);
+                    try
+                    {
+                        int cantidadMensajesPendientes = await this._mensajeColaService.ContarMensajesPendientesAsync(TRACE_ID);
 
-                    if (cantidadMensajesPendientes > CANTIDAD_MENSAJES_MINIMA)
-                    {
-                        await this._mensajeColaService.LlenarCacheMensajesAsync(TRACE_ID);
-                        await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        if (cantidadMensajesPendientes > CANTIDAD_MENSAJES_MINIMA)
+                        {
+                            await this._mensajeColaService.LlenarCacheMensajesAsync(TRACE_ID);
+                            await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        }
+                        else
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
+                        }
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID, nombreMetodo, ex);
                         await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
                     }
                 }
-            }
-            catch (Exception ex )
-            {
-                this._logger.Error(TRACE_ID, nombreMetodo, ex);
             }
             finally
             {

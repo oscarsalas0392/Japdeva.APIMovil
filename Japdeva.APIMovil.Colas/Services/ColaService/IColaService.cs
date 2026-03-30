@@ -23,6 +23,13 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
         Task<ColaEntity?> ObtenerColaPorNombreAsync(string traceId, string nombreCola);
 
         /// <summary>
+        /// Obtiene una cola específica por su identificador desde el caché en memoria.
+        /// </summary>
+        /// <param name="id">Identificador de la cola a buscar.</param>
+        /// <returns>La entidad de cola encontrada o null si no existe en el caché.</returns>
+        ColaEntity? ObtenerColaPorId(long id);
+
+        /// <summary>
         /// Cuenta el número total de colas disponibles en el sistema.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad para el seguimiento de la operación.</param>

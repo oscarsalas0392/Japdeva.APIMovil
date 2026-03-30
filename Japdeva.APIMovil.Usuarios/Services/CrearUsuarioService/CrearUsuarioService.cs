@@ -12,7 +12,7 @@ using Japdeva.APIMovil.Usuarios.Models;
 namespace Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService
 {
     /// <summary>
-    /// Servicio para la creación de usuarios en el sistema.
+    /// Servicio para la creaciï¿½n de usuarios en el sistema.
     /// </summary>
     public class CrearUsuarioService : ICrearUsuarioService
     {
@@ -44,7 +44,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad</param>
         /// <param name="solicitud">Datos del usuario a crear</param>
-        /// <returns>Resultado de la operación de creación</returns>
+        /// <returns>Resultado de la operaciï¿½n de creaciï¿½n</returns>
         public async Task<IActionResult> CrearUsuarioAsync(string traceId, CrearUsuarioSolicitudModel solicitud)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
@@ -66,8 +66,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService
                 var nuevoUsuario = new UsuarioEntity();
                 nuevoUsuario.Nombre = solicitud.Nombre;
                 nuevoUsuario.Correo = solicitud.Correo;
-                nuevoUsuario.Telefono = solicitud.Telefono;
-                nuevoUsuario.FechaCreacion = DateTime.UtcNow;
+                nuevoUsuario.FechaRegistro = DateTime.UtcNow;
                 nuevoUsuario.Activo = EXITO;
 
                 await this._agregarRepository.AgregarAsync<UsuarioEntity>(traceId, nuevoUsuario);
@@ -76,9 +75,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService
                 respuesta.Id = nuevoUsuario.Id;
                 respuesta.Nombre = nuevoUsuario.Nombre;
                 respuesta.Correo = nuevoUsuario.Correo;
-                respuesta.Telefono = nuevoUsuario.Telefono;
-                respuesta.FechaCreacion = nuevoUsuario.FechaCreacion;
-                respuesta.FechaActualizacion = nuevoUsuario.FechaActualizacion;
+                respuesta.FechaRegistro = nuevoUsuario.FechaRegistro;
+                respuesta.FechaEdicion = nuevoUsuario.FechaEdicion;
                 respuesta.Activo = nuevoUsuario.Activo;
 
                 return new CreatedAtActionResult(NOMBRE_ACCION_OBTENER, NOMBRE_CONTROLADOR, new { id = nuevoUsuario.Id }, respuesta);

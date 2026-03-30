@@ -11,8 +11,10 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         private readonly ILogger<ColasBackgroundService> _logger;
         private readonly IColaService _colaService;
         private int _cantidadColas = 0;
+        private DateTime _ultimoRefrescoPeriodico = DateTime.MinValue;
         private const int DELAY_MILISEGUNDOS = 500;
         private const int DELAY_SEGUNDOS = 5;
+        private const int INTERVALO_REFRESCO_MINUTOS = 5;
         private const string TRACE_ID = "N/A";
 
         /// <summary>
@@ -34,28 +36,39 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            this._logger.Inicio(TRACE_ID, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    int cantidadColas = await this._colaService.ContarColasActivasAsync(TRACE_ID);
+                    try
+                    {
+                        int cantidadColas = await this._colaService.ContarColasActivasAsync(TRACE_ID);
+                        bool contaoCambio = cantidadColas != this._cantidadColas;
+                        bool refrescoPeriodico = (DateTime.UtcNow - this._ultimoRefrescoPeriodico) >= TimeSpan.FromMinutes(INTERVALO_REFRESCO_MINUTOS);
 
-                    if (cantidadColas != this._cantidadColas)
-                    {
-                        this._cantidadColas = cantidadColas;
-                        await this._colaService.LlenarCacheColasAsync(TRACE_ID);
-                        await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        if (contaoCambio || refrescoPeriodico)
+                        {
+                            this._cantidadColas = cantidadColas;
+                            this._ultimoRefrescoPeriodico = DateTime.UtcNow;
+                            await this._colaService.LlenarCacheColasAsync(TRACE_ID);
+                            await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        }
+                        else
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
+                        }
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID, nombreMetodo, ex);
                         await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
-                    }        
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                this._logger.Error(TRACE_ID, nombreMetodo, ex);
             }
             finally
             {

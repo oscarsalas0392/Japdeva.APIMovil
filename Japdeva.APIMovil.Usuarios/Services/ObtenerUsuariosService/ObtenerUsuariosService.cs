@@ -14,7 +14,7 @@ using Japdeva.APIMovil.Usuarios.Models;
 namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
 {
     /// <summary>
-    /// Servicio para la obtención de usuarios en el sistema.
+    /// Servicio para la obtenciï¿½n de usuarios en el sistema.
     /// </summary>
     public class ObtenerUsuariosService : IObtenerUsuariosService
     {
@@ -65,11 +65,13 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
                 {
                     var usuarioModelo = new UsuarioRespuestaModel();
                     usuarioModelo.Id = usuario.Id;
+                    usuarioModelo.Identificacion = usuario.Identificacion;
+                    usuarioModelo.IdTipoCedula = usuario.IdTipoCedula;
                     usuarioModelo.Nombre = usuario.Nombre;
+                    usuarioModelo.Apellidos = usuario.Apellidos;
                     usuarioModelo.Correo = usuario.Correo;
-                    usuarioModelo.Telefono = usuario.Telefono;
-                    usuarioModelo.FechaCreacion = usuario.FechaCreacion;
-                    usuarioModelo.FechaActualizacion = usuario.FechaActualizacion;
+                    usuarioModelo.FechaRegistro = usuario.FechaRegistro;
+                    usuarioModelo.FechaEdicion = usuario.FechaEdicion;
                     usuarioModelo.Activo = usuario.Activo;
                     listaUsuarios.Add(usuarioModelo);
                 }
@@ -122,11 +124,13 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
 
                 var respuesta = new UsuarioRespuestaModel();
                 respuesta.Id = usuario.Id;
+                respuesta.Identificacion = usuario.Identificacion;
+                respuesta.IdTipoCedula = usuario.IdTipoCedula;
                 respuesta.Nombre = usuario.Nombre;
+                respuesta.Apellidos = usuario.Apellidos;
                 respuesta.Correo = usuario.Correo;
-                respuesta.Telefono = usuario.Telefono;
-                respuesta.FechaCreacion = usuario.FechaCreacion;
-                respuesta.FechaActualizacion = usuario.FechaActualizacion;
+                respuesta.FechaRegistro = usuario.FechaRegistro;
+                respuesta.FechaEdicion = usuario.FechaEdicion;
                 respuesta.Activo = usuario.Activo;
 
                 return new OkObjectResult(new RespuestaModel 

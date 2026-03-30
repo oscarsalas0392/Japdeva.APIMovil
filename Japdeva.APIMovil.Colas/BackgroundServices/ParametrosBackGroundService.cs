@@ -41,19 +41,27 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            this._logger.Inicio(TRACE_ID, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    await this._prioridadesService.LlenarCachePrioridadesAsync(TRACE_ID);
-                    await this._estadoMensajeService.LlenarCacheEstadosMensajeAsync(TRACE_ID);
-                    await Task.Delay(TimeSpan.FromMinutes(DELAY_MINUTES), stoppingToken);
+                    try
+                    {
+                        await this._prioridadesService.LlenarCachePrioridadesAsync(TRACE_ID);
+                        await this._estadoMensajeService.LlenarCacheEstadosMensajeAsync(TRACE_ID);
+                        await Task.Delay(TimeSpan.FromMinutes(DELAY_MINUTES), stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID, nombreMetodo, ex);
+                        await Task.Delay(TimeSpan.FromMinutes(DELAY_MINUTES), stoppingToken);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                this._logger.Error(TRACE_ID, nombreMetodo, ex);
             }
             finally
             {

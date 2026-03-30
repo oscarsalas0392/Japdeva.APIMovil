@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Informe Técnico – Microservicio Japdeva.APIMovil.Colas</title>
+  <style>
+    @page { margin: 2cm 2.5cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a2e; line-height: 1.7; background: #fff; }
+
+    /* Portada */
+    .cover { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; background: linear-gradient(135deg, #0f3460 0%, #16213e 60%, #1a1a2e 100%); color: #fff; page-break-after: always; }
+    .cover .logo { font-size: 48px; font-weight: 900; letter-spacing: -2px; color: #e94560; margin-bottom: 8px; }
+    .cover .subtitle { font-size: 16px; letter-spacing: 4px; text-transform: uppercase; color: #a8b2d8; margin-bottom: 48px; }
+    .cover h1 { font-size: 32px; font-weight: 700; line-height: 1.3; max-width: 700px; color: #ccd6f6; margin-bottom: 16px; }
+    .cover .version { display: inline-block; background: #e94560; color: #fff; padding: 6px 20px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 2px; margin-bottom: 48px; }
+    .cover .meta { font-size: 13px; color: #8892b0; line-height: 2; }
+    .cover .meta strong { color: #ccd6f6; }
+
+    /* Layout */
+    .page { padding: 40px 48px; }
+    .page-break { page-break-before: always; padding-top: 40px; }
+
+    /* Headings */
+    h1.section { font-size: 26px; font-weight: 800; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 10px; margin: 0 0 28px 0; }
+    h2 { font-size: 18px; font-weight: 700; color: #0f3460; margin: 32px 0 14px; padding-left: 12px; border-left: 4px solid #e94560; }
+    h3 { font-size: 14px; font-weight: 700; color: #16213e; margin: 20px 0 10px; }
+    p { margin-bottom: 12px; color: #333; }
+
+    /* Table of contents */
+    .toc { background: #f0f4ff; border-radius: 10px; padding: 28px 36px; margin-bottom: 32px; }
+    .toc-title { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: #0f3460; margin-bottom: 16px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { padding: 4px 0; color: #16213e; font-size: 13px; }
+    .toc li a { color: #0f3460; text-decoration: none; }
+    .toc li.sub { padding-left: 20px; color: #555; font-size: 12px; }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0; }
+    .card { background: #f8faff; border: 1px solid #d0d9f0; border-radius: 10px; padding: 20px; }
+    .card .card-title { font-size: 13px; font-weight: 700; color: #0f3460; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .card .badge { display: inline-block; background: #0f3460; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .card .badge.green { background: #2ecc71; }
+    .card .badge.orange { background: #f39c12; }
+    .card .badge.red { background: #e94560; }
+    .card p { font-size: 12px; color: #555; margin: 0; }
+
+    /* Code blocks */
+    pre { background: #1a1a2e; color: #ccd6f6; border-radius: 8px; padding: 18px 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; line-height: 1.6; margin: 14px 0; overflow-x: auto; page-break-inside: avoid; }
+    pre .comment { color: #637777; font-style: italic; }
+    pre .keyword { color: #e94560; }
+    pre .string { color: #c3e88d; }
+    pre .type { color: #82aaff; }
+    code { background: #eef0fb; color: #e94560; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'Consolas', monospace; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; page-break-inside: avoid; }
+    thead tr { background: #0f3460; color: #fff; }
+    thead th { padding: 10px 14px; text-align: left; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f5f7ff; }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid #e0e6f5; color: #333; vertical-align: top; }
+    td .ok { color: #27ae60; font-weight: 700; }
+    td .warn { color: #f39c12; font-weight: 700; }
+    td .bad { color: #e94560; font-weight: 700; }
+
+    /* Flow diagrams */
+    .diagram { background: #0f3460; color: #ccd6f6; border-radius: 10px; padding: 24px 28px; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.9; margin: 16px 0; page-break-inside: avoid; }
+    .diagram .arrow { color: #e94560; }
+    .diagram .box { color: #c3e88d; }
+    .diagram .note { color: #82aaff; }
+
+    /* Callouts */
+    .callout { border-radius: 8px; padding: 14px 18px; margin: 16px 0; display: flex; gap: 14px; align-items: flex-start; page-break-inside: avoid; }
+    .callout.info { background: #e8f4fd; border-left: 4px solid #3498db; }
+    .callout.success { background: #e8f8f0; border-left: 4px solid #2ecc71; }
+    .callout.warning { background: #fef9e7; border-left: 4px solid #f39c12; }
+    .callout.danger { background: #fdecea; border-left: 4px solid #e94560; }
+    .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .callout p { margin: 0; font-size: 12.5px; }
+    .callout strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+    /* Timeline */
+    .timeline { margin: 16px 0; }
+    .timeline-item { display: flex; gap: 16px; margin-bottom: 16px; }
+    .timeline-dot { width: 36px; height: 36px; border-radius: 50%; background: #0f3460; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+    .timeline-dot.green { background: #27ae60; }
+    .timeline-dot.orange { background: #f39c12; }
+    .timeline-content { flex: 1; }
+    .timeline-title { font-weight: 700; font-size: 13px; color: #0f3460; margin-bottom: 4px; }
+    .timeline-desc { font-size: 12px; color: #555; }
+
+    /* Footer */
+    .footer { text-align: center; padding: 24px; font-size: 11px; color: #8892b0; border-top: 1px solid #e0e6f5; margin-top: 40px; }
+    .page-num { float: right; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ PORTADA ═══════════════════════════════ -->
+<div class="cover">
+  <div class="logo">JAPDEVA</div>
+  <div class="subtitle">Documentación Técnica</div>
+  <h1>Microservicio de Colas<br/>Japdeva.APIMovil.Colas</h1>
+  <div class="version">v1.0 · .NET 10</div>
+  <div class="meta">
+    <strong>Proyecto:</strong> Japdeva.APIMovil<br/>
+    <strong>Tecnología:</strong> .NET 10 · gRPC · PostgreSQL · EF Core<br/>
+    <strong>Fecha:</strong> Marzo 2026<br/>
+    <strong>Estado:</strong> Producción
+  </div>
+</div>
+
+<!-- ══════════════════════════════ ÍNDICE ══════════════════════════════ -->
+<div class="page">
+  <h1 class="section">Tabla de Contenidos</h1>
+  <div class="toc">
+    <div class="toc-title">Contenido</div>
+    <ol>
+      <li><a href="#resumen">Resumen Ejecutivo</a></li>
+      <li><a href="#arquitectura">Arquitectura General</a></li>
+      <li class="sub">2.1 Tecnologías utilizadas</li>
+      <li class="sub">2.2 Estructura de carpetas</li>
+      <li><a href="#base-datos">Base de Datos</a></li>
+      <li class="sub">3.1 Entidades y tablas</li>
+      <li class="sub">3.2 Estados de un mensaje</li>
+      <li><a href="#grpc">Servicio gRPC</a></li>
+      <li class="sub">4.1 Contrato proto</li>
+      <li class="sub">4.2 Interceptor de seguridad</li>
+      <li><a href="#cache">Sistema de Caché</a></li>
+      <li class="sub">5.1 Warm-up al iniciar</li>
+      <li class="sub">5.2 Ciclo de vida del caché</li>
+      <li><a href="#push">Comunicación Push en Tiempo Real</a></li>
+      <li class="sub">6.1 SuscripcionColaService</li>
+      <li class="sub">6.2 Flujo completo productor–consumidor</li>
+      <li><a href="#background">BackgroundServices</a></li>
+      <li><a href="#idrpc">ObtenerMensajePorIdRpc sin Polling</a></li>
+      <li><a href="#recuperacion">Auto-recuperación ante fallos</a></li>
+      <li><a href="#flujo">Diagrama de Flujo Completo</a></li>
+      <li><a href="#mejoras">Mejoras Implementadas</a></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 1. RESUMEN ═══════════════════════════ -->
+<div class="page page-break" id="resumen">
+  <h1 class="section">1. Resumen Ejecutivo</h1>
+
+  <p>
+    <strong>Japdeva.APIMovil.Colas</strong> es un microservicio de mensajería interna que actúa como
+    intermediario central de comunicación entre los demás microservicios de la plataforma Japdeva APIMovil.
+    Su función principal es recibir mensajes de microservicios productores, persistirlos en PostgreSQL y
+    entregarlos en tiempo real a los microservicios consumidores mediante <strong>gRPC con streaming</strong>.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title"><span class="badge green">Protocolo</span> gRPC + HTTP/2</div>
+      <p>Comunicación inter-servicio de alta eficiencia mediante Protocol Buffers. El stream HTTP/2 permanece abierto, eliminando el overhead de reconexión continua.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge">Persistencia</span> PostgreSQL + EF Core</div>
+      <p>Todos los mensajes se persisten en base de datos antes de procesarse. Ningún mensaje se pierde ante un reinicio del servicio.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge orange">Caché</span> En Memoria (hasta 500 msgs)</div>
+      <p>Caché aditivo en memoria que carga los mensajes pendientes desde BD, evitando consultas repetitivas en cada entrega.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge red">Push Real</span> System.Threading.Channels</div>
+      <p>Los consumidores reciben mensajes en cuanto llegan sin realizar polling. El servicio notifica activamente mediante canales en memoria.</p>
+    </div>
+  </div>
+
+  <h2>Capacidades principales</h2>
+  <table>
+    <thead><tr><th>Capacidad</th><th>Detalle</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Publicación de mensajes</td><td>Cualquier microservicio puede publicar un mensaje a una cola nombrada</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Streaming push en tiempo real</td><td>El consumidor mantiene un stream abierto y recibe mensajes al instante</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Espera por IdRpc sin polling</td><td>Espera notificación push en lugar de consultar BD repetidamente</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Seguridad inter-servicio</td><td>Token interno validado en cada llamada gRPC por interceptor</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Persistencia ante reinicios</td><td>Los mensajes viven en PostgreSQL; el caché se reconstruye al arrancar</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Auto-recuperación ante fallos BD</td><td>BackgroundServices reintentan automáticamente si la BD falla</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Priorización de mensajes</td><td>Alta, Media y Baja prioridad. Se procesan en orden.</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Expiración de mensajes</td><td>Mensajes sin procesar en +5 días se marcan como Expirados</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Archivado histórico</td><td>Mensajes procesados se mueven a tabla histórica automáticamente</td><td class="ok">✅ Implementado</td></tr>
+      <tr><td>Alta disponibilidad (multi-instancia)</td><td>Requiere Redis para caché compartido</td><td class="warn">⚠️ Pendiente</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════ 2. ARQUITECTURA ═══════════════════════════ -->
+<div class="page page-break" id="arquitectura">
+  <h1 class="section">2. Arquitectura General</h1>
+
+  <h2>2.1 Tecnologías utilizadas</h2>
+  <table>
+    <thead><tr><th>Tecnología</th><th>Versión</th><th>Para qué se usa</th></tr></thead>
+    <tbody>
+      <tr><td><strong>.NET</strong></td><td>10.0</td><td>Framework base del microservicio</td></tr>
+      <tr><td><strong>gRPC (Grpc.AspNetCore)</strong></td><td>2.67.0</td><td>Protocolo de comunicación inter-servicio. Utiliza HTTP/2 y Protocol Buffers para mensajes binarios eficientes.</td></tr>
+      <tr><td><strong>PostgreSQL + EF Core + Npgsql</strong></td><td>10.0.x</td><td>Base de datos relacional. EF Core se usa como ORM para queries y mapeo de entidades.</td></tr>
+      <tr><td><strong>System.Threading.Channels</strong></td><td>Built-in</td><td>Canales en memoria para notificación push de mensajes a consumidores suscritos.</td></tr>
+      <tr><td><strong>Microsoft.Extensions.Hosting</strong></td><td>Built-in</td><td>BackgroundService para los 5 servicios en segundo plano.</td></tr>
+      <tr><td><strong>Japdeva.APIMovil.Common</strong></td><td>Interna</td><td>Repositorios genéricos, extensiones de logging, helpers compartidos.</td></tr>
+      <tr><td><strong>Japdeva.APIMovil.Estandar</strong></td><td>Interna</td><td>Analizador Roslyn con reglas de calidad de código propias de Japdeva (JAPDEVA0xx).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2.2 Estructura de carpetas</h2>
+  <pre>
+Japdeva.APIMovil.Colas/
+<span class="comment">├── BackgroundServices/    5 servicios en segundo plano (carga y limpieza automática)</span>
+├── Controllers/           API REST (endpoints HTTP alternativos al gRPC)
+├── Data/                  ColasDbContext – configuración EF Core + PostgreSQL
+├── Entities/              Entidades mapeadas a tablas de BD
+├── Extensions/            ColasServiciosExtension – registro de DI y warm-up
+├── Interceptors/          TokenGrpcInterceptor – seguridad en llamadas gRPC
+├── Models/                DTOs y enums de dominio
+├── Protos/                colas.proto – contrato gRPC
+├── Repositories/          MensajesColaRepository – acceso a datos de mensajes
+└── Services/
+    ├── ActualizarMensaje*/  Transiciones de estado (EnProceso/Exitoso/Fallido/Expirado)
+    ├── ColaGrpcService/     Implementación del servidor gRPC
+    ├── ColaService/         Gestión y caché de colas
+    ├── EnviarMensajeService/ Inserción de nuevos mensajes
+    ├── MensajeColaService/  Caché central de mensajes pendientes
+    ├── ObtenerMensajePorIdRpcService/  Espera push por IdRpc
+    ├── SuscripcionColaService/         Gestión de suscriptores y canales
+    └── ...                  Servicios auxiliares (Prioridad, Estado, Histórico)
+  </pre>
+</div>
+
+<!-- ═══════════════════════════ 3. BASE DE DATOS ═══════════════════════════ -->
+<div class="page page-break" id="base-datos">
+  <h1 class="section">3. Base de Datos</h1>
+
+  <h2>3.1 Entidades y tablas</h2>
+  <table>
+    <thead><tr><th>Entidad</th><th>Tabla BD</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>MensajeColaEntity</code></td><td>Tbl_MensajeCola</td><td>Tabla principal. Almacena cada mensaje con su contenido (JSON), estado, prioridad, cola destino, número de reintentos, IdRpc y TraceId.</td></tr>
+      <tr><td><code>ColaEntity</code></td><td>Tbl_Cola</td><td>Define las colas disponibles (nombre, activo/inactivo).</td></tr>
+      <tr><td><code>EstadoMensajeEntity</code></td><td>Tbl_EstadoMensaje</td><td>Catálogo de estados posibles: Pendiente, EnProceso, Exitoso, Fallido, Expirado.</td></tr>
+      <tr><td><code>EstadoColaEntity</code></td><td>Tbl_EstadoCola</td><td>Catálogo de estados de cola: Activa, Inactiva.</td></tr>
+      <tr><td><code>PrioridadEntity</code></td><td>Tbl_Prioridad</td><td>Niveles de prioridad: 1=Alta, 2=Media, 3=Baja.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3.2 Ciclo de estados de un mensaje</h2>
+  <div class="diagram">
+    <span class="box">[ Pendiente ]</span>  <span class="arrow">──►</span>  <span class="box">[ EnProceso ]</span>  <span class="arrow">──►</span>  <span class="box">[ Exitoso ]</span>
+         │                                                              │
+         │  (reintento)                                                 │
+         <span class="arrow">◄──</span>  <span class="box">[ Fallido ]</span>  <span class="arrow">◄──────────────────────────────────────────┘</span>
+               │
+               <span class="arrow">▼</span>  (sin procesar en +5 días)
+         <span class="box">[ Expirado ]</span>
+
+  <span class="note">Los mensajes Exitosos y Cancelados son archivados a la tabla histórica por MensajesHistoricoBackgroundService.</span>
+  </div>
+
+  <h2>3.3 Campos clave de MensajeColaEntity</h2>
+  <table>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><code>Id</code></td><td>long</td><td>Identificador único del mensaje en BD</td></tr>
+      <tr><td><code>IdRpc</code></td><td>string</td><td>Identificador que el microservicio productor asigna para correlacionar la respuesta</td></tr>
+      <tr><td><code>TraceId</code></td><td>string</td><td>Identificador de trazabilidad distribuida</td></tr>
+      <tr><td><code>ColaId</code></td><td>long</td><td>FK a Tbl_Cola</td></tr>
+      <tr><td><code>ContenidoMensaje</code></td><td>string (JSON)</td><td>Payload del mensaje en formato JSON</td></tr>
+      <tr><td><code>EstadoId</code></td><td>int</td><td>Estado actual del mensaje</td></tr>
+      <tr><td><code>PrioridadId</code></td><td>int</td><td>Prioridad (1=Alta, 2=Media, 3=Baja). El caché se ordena por este campo.</td></tr>
+      <tr><td><code>Metadatos</code></td><td>string</td><td>Información adicional del mensaje (headers, contexto)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════ 4. gRPC ═══════════════════════════ -->
+<div class="page page-break" id="grpc">
+  <h1 class="section">4. Servicio gRPC</h1>
+
+  <p>El microservicio expone un servidor gRPC definido en <code>colas.proto</code>. Todos los microservicios se comunican con Colas exclusivamente por este protocolo (salvo endpoints REST auxiliares).</p>
+
+  <h2>4.1 Contrato – Métodos del servicio</h2>
+  <table>
+    <thead><tr><th>Método gRPC</th><th>Tipo</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><code>PublicarMensaje</code></td><td>Unario</td><td>El productor envía un mensaje a una cola. Se persiste en BD y se notifica inmediatamente a los consumidores suscritos.</td></tr>
+      <tr><td><code>ObtenerMensajesPendientes</code></td><td>Server-streaming</td><td>El consumidor abre un stream permanente. Recibe los mensajes actuales y sigue recibiendo nuevos en tiempo real sin reconectar.</td></tr>
+      <tr><td><code>ObtenerMensajePorIdRpc</code></td><td>Unario</td><td>El productor espera confirmación de que su mensaje fue recibido. No hace polling: espera notificación push.</td></tr>
+      <tr><td><code>ActualizarMensajeEnProceso</code></td><td>Unario</td><td>El consumidor notifica que comenzó a procesar el mensaje.</td></tr>
+      <tr><td><code>ActualizarMensajeExitoso</code></td><td>Unario</td><td>El consumidor notifica procesamiento exitoso.</td></tr>
+      <tr><td><code>ActualizarMensajeFallido</code></td><td>Unario</td><td>El consumidor notifica un error. El mensaje vuelve a Pendiente para reintento.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4.2 Interceptor de seguridad – TokenGrpcInterceptor</h2>
+  <p>
+    Toda llamada gRPC pasa por <code>TokenGrpcInterceptor</code> antes de llegar al servicio.
+    Valida la cabecera <code>grpc-token</code> contra la variable de entorno <code>GRPC_CLAVE_INTERNA</code>.
+    Si el token es inválido o está ausente, la llamada se rechaza con estado <code>Unauthenticated</code>.
+  </p>
+  <pre>
+<span class="keyword">Llamada gRPC entrante</span>
+        │
+        ▼
+<span class="type">TokenGrpcInterceptor</span>
+        │
+        ├── Lee cabecera "grpc-token"
+        ├── Compara con env GRPC_CLAVE_INTERNA
+        │
+        ├── <span class="string">Token válido</span>   → continúa al ColaGrpcService ✅
+        └── <span class="keyword">Token inválido</span>  → Status.Unauthenticated ❌
+  </pre>
+
+  <div class="callout info">
+    <div class="callout-icon">ℹ️</div>
+    <p><strong>Por qué variable de entorno</strong><br/>
+    La clave interna no se almacena en código ni en archivos de configuración versionados. Se inyecta en tiempo de ejecución mediante variables de entorno del contenedor Docker, evitando exposición en repositorios.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 5. CACHÉ ═══════════════════════════ -->
+<div class="page page-break" id="cache">
+  <h1 class="section">5. Sistema de Caché en Memoria</h1>
+
+  <p>
+    El caché central vive en <code>MensajeColaService._mensajesCache</code> (una <code>List&lt;MensajeColaEntity&gt;</code> protegida con <code>lock</code>).
+    Su propósito es evitar consultas a PostgreSQL en cada entrega: los mensajes se leen una sola vez y se sirven desde memoria.
+  </p>
+
+  <h2>5.1 Warm-up al iniciar</h2>
+  <p>
+    Antes de que el servidor gRPC empiece a aceptar conexiones, <code>ColasServiciosExtension.EjecutarWarmUpAsync</code>
+    carga el caché con los primeros mensajes pendientes de BD.
+    Si la BD no está disponible al arrancar, el error se registra como <em>Warning</em> y el servicio inicia igualmente —
+    el <code>MensajesBackgroundService</code> llenará el caché en cuanto la BD responda.
+  </p>
+  <pre>
+<span class="comment">// Program.cs – orden de inicialización garantizado</span>
+await app
+    .EjecutarWarmUpAsync()          <span class="comment">// 1. Caché listo</span>
+    .MapGrpcService&lt;ColaGrpcService&gt;() <span class="comment">// 2. Acepta conexiones gRPC</span>
+    .ConfigurarServiciosMicroservicios(); <span class="comment">// 3. BackgroundServices arrancan</span>
+  </pre>
+
+  <h2>5.2 Ciclo de vida del caché de mensajes</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot">1</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Capturar IDs en caché</div>
+        <div class="timeline-desc">Se obtiene la lista de IDs actualmente en <code>_mensajesCache</code> sin consultar la BD.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">2</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Verificar cuáles siguen siendo válidos</div>
+        <div class="timeline-desc"><code>ObtenerIdsPendientesEnListaAsync</code> consulta BD: de los IDs en caché, ¿cuáles siguen en estado Pendiente o Fallido? Los demás fueron procesados y deben salir del caché.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">3</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Cargar el siguiente lote nuevo</div>
+        <div class="timeline-desc"><code>ObtenerMensajesPendientesAsync(idsExcluir)</code> trae hasta 50 mensajes nuevos que NO están en caché, ordenados por prioridad y fecha.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot green">4</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Actualizar caché y notificar</div>
+        <div class="timeline-desc">Se eliminan los procesados, se agregan los nuevos (respetando <code>MAX_TAMANIO_CACHE = 500</code>), y se llama a <code>NotificarNuevosMensajes</code> para los consumidores suscritos.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>5.3 Caché de Colas – ColasBackgroundService</h2>
+  <p>
+    <code>ColaService._colasCache</code> almacena las colas activas. Se rellena en dos condiciones:
+  </p>
+  <table>
+    <thead><tr><th>Condición</th><th>Acción</th></tr></thead>
+    <tbody>
+      <tr><td>El conteo de colas activas en BD cambió</td><td>Rellena caché inmediatamente</td></tr>
+      <tr><td>Han pasado 5 minutos desde el último refresco</td><td>Rellena caché (cubre el caso de desactivar una cola y activar otra simultáneamente, donde el conteo no cambia)</td></tr>
+      <tr><td>Arranque del servicio (<code>_cantidadColas = 0</code>)</td><td>Siempre detecta cambio → rellena en el primer ciclo</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════ 6. PUSH ═══════════════════════════ -->
+<div class="page page-break" id="push">
+  <h1 class="section">6. Comunicación Push en Tiempo Real</h1>
+
+  <h2>6.1 SuscripcionColaService</h2>
+  <p>
+    Es el corazón del sistema de notificación. Gestiona dos patrones de espera simultáneamente:
+  </p>
+  <table>
+    <thead><tr><th>Patrón</th><th>Estructura</th><th>Usado por</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Stream continuo</strong></td>
+        <td><code>ConcurrentDictionary&lt;string, List&lt;Channel&lt;T&gt;&gt;&gt;</code><br/>Un canal por consumidor suscrito a cada cola</td>
+        <td><code>ObtenerMensajesPendientes</code> – stream gRPC permanente</td>
+      </tr>
+      <tr>
+        <td><strong>Espera puntual</strong></td>
+        <td><code>ConcurrentDictionary&lt;string, TaskCompletionSource&lt;T&gt;&gt;</code><br/>Una entrada por IdRpc esperado</td>
+        <td><code>ObtenerMensajePorIdRpc</code> – el productor espera su confirmación</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Cuando <code>NotificarMensajes</code> es llamado por el BackgroundService, en un solo recorrido:</p>
+  <pre>
+<span class="keyword">foreach</span> (mensaje <span class="keyword">in</span> mensajes)
+{
+    <span class="comment">// 1. Notifica a todos los streams continuos de esa cola</span>
+    <span class="keyword">foreach</span> (canal <span class="keyword">in</span> canalesSuscritos)
+        canal.Writer.TryWrite(mensaje);
+
+    <span class="comment">// 2. Completa la espera puntual si alguien espera ese IdRpc</span>
+    <span class="keyword">if</span> (_esperandoPorIdRpc.TryRemove(mensaje.IdRpc, <span class="keyword">out</span> <span class="type">TaskCompletionSource</span> tcs))
+        tcs.TrySetResult(mensaje);
+}
+  </pre>
+
+  <h2>6.2 Flujo completo productor–consumidor</h2>
+  <div class="diagram">
+<span class="box">Microservicio Reclamos (PRODUCTOR)</span>           <span class="box">Microservicio Usuarios (CONSUMIDOR)</span>
+         │                                                    │
+         │  <span class="arrow">PublicarMensaje()</span>                              │  <span class="arrow">ObtenerMensajesPendientes()</span>
+         <span class="arrow">──────────────────────►</span>                        <span class="arrow">──────────────────────────────►</span>
+                             <span class="box">COLAS</span>                              │ stream abierto
+                               │                               <span class="arrow">◄── mensajes actuales del caché</span>
+                               │  guarda en BD                 │ stream permanece abierto...
+                               │
+                    <span class="note">[BackgroundService cada 100ms]</span>
+                               │
+                    LlenarCacheMensajesAsync()
+                               │  detecta mensaje NUEVO
+                               │
+                    NotificarMensajes("cola-reclamos")
+                               │
+                               <span class="arrow">──────────────────────────────►</span>
+                                  Channel.Writer.TryWrite()      │ ← PUSH instantáneo
+                                                                 │
+                                                      <span class="box">Microservicio Usuarios</span>
+                                                      recibe por stream ✅
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 7. BACKGROUND SERVICES ═══════════════════════════ -->
+<div class="page page-break" id="background">
+  <h1 class="section">7. BackgroundServices</h1>
+  <p>
+    El microservicio tiene 5 servicios en segundo plano que se ejecutan continuamente mientras el proceso está vivo.
+    Todos implementan el patrón de <strong>try-catch dentro del while</strong>: un error transitorio
+    (por ejemplo, BD no disponible) genera un log de error, espera unos segundos y reintenta. No detiene el servicio.
+  </p>
+  <table>
+    <thead><tr><th>Servicio</th><th>Intervalo</th><th>Función</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>ColasBackgroundService</strong></td>
+        <td>5 seg (normal)<br/>500ms (cambio detectado)</td>
+        <td>Monitorea el número de colas activas. Rellena <code>_colasCache</code> cuando cambia el conteo O cuando han pasado 5 minutos (refresco periódico garantizado).</td>
+      </tr>
+      <tr>
+        <td><strong>MensajesBackgroundService</strong></td>
+        <td>100ms (hay mensajes)<br/>2 seg (sin mensajes)</td>
+        <td>Motor principal del caché. Detecta mensajes pendientes en BD, actualiza <code>_mensajesCache</code>, limpia procesados y notifica a suscriptores de nuevos mensajes.</td>
+      </tr>
+      <tr>
+        <td><strong>ParametrosBackGroundService</strong></td>
+        <td>10 minutos</td>
+        <td>Refresca cachés de prioridades y estados de mensaje desde BD. Corre inmediatamente al arrancar para tener estos catálogos listos desde el primer ciclo.</td>
+      </tr>
+      <tr>
+        <td><strong>MensajeColaExpiradosService</strong></td>
+        <td>5 minutos</td>
+        <td>Busca mensajes con más de 5 días en estado Pendiente o Fallido y los marca como Expirados, liberando espacio en el caché activo.</td>
+      </tr>
+      <tr>
+        <td><strong>MensajesHistoricoBackgroundService</strong></td>
+        <td>1–10 min (dinámico)</td>
+        <td>Mueve mensajes Exitosos y Cancelados a la tabla histórica. Ajusta el intervalo dinámicamente según la carga: más frecuente cuando hay muchos mensajes para archivar.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <div class="callout-icon">✅</div>
+    <p><strong>Resiliencia ante fallos</strong><br/>
+    Antes, un error en cualquier BackgroundService terminaba el servicio definitivamente. Ahora el patrón de try-catch interno garantiza que ante una caída temporal de BD, el servicio espera y reintenta indefinidamente mientras el proceso esté vivo.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 8. IDRPC ═══════════════════════════ -->
+<div class="page page-break" id="idrpc">
+  <h1 class="section">8. ObtenerMensajePorIdRpc – Sin Polling</h1>
+
+  <p>
+    Este método resuelve el problema de que un microservicio productor necesite confirmar que su mensaje
+    fue recibido y procesado. La implementación anterior hacía <em>polling</em> a PostgreSQL cada 500ms,
+    generando hasta 40 consultas/segundo con 20 productores esperando simultáneamente.
+    La implementación actual elimina completamente esas consultas.
+  </p>
+
+  <h2>Comparación antes vs. ahora</h2>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Antes (polling)</th><th>Ahora (suscripción)</th></tr></thead>
+    <tbody>
+      <tr><td>Consultas a BD mientras espera</td><td class="bad">1 cada 500ms × 10 intentos</td><td class="ok">0 consultas</td></tr>
+      <tr><td>20 productores esperando</td><td class="bad">40 queries/seg a PostgreSQL</td><td class="ok">0 queries/seg</td></tr>
+      <tr><td>Tiempo máximo de espera</td><td class="warn">Fijo: 5 segundos</td><td class="ok">30 seg (configurable)</td></tr>
+      <tr><td>Latencia de entrega</td><td class="warn">Hasta 500ms de delay</td><td class="ok">Instantánea (push)</td></tr>
+      <tr><td>Si Colas se reinicia</td><td class="bad">Sin timeout definido</td><td class="ok">Error en máximo 30 seg</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Flujo del nuevo método</h2>
+  <div class="diagram">
+<span class="note">// 1. Registrar espera ANTES de revisar caché (evita race condition)</span>
+<span class="type">Task</span>&lt;<span class="type">MensajeColasRespuestaModel</span>?&gt; tareaEspera =
+    _suscripcionColaService.EsperarMensajePorIdRpcAsync(idRpc, localCts.Token);
+
+<span class="note">// 2. Buscar en caché (sin consulta a BD)</span>
+<span class="type">MensajeColasRespuestaModel</span>? enCache =
+    await _mensajeColaService.BuscarEnCachePorIdRpcAsync(traceId, nombreCola, idRpc);
+
+<span class="keyword">if</span> (enCache <span class="keyword">is not null</span>)
+{
+    await localCts.CancelAsync();          <span class="comment">// limpia la espera registrada</span>
+    DispararActualizarExitoso(enCache.Id); <span class="comment">// fire-and-forget</span>
+    <span class="keyword">return</span> Ok(enCache);                    <span class="comment">// ← retorna inmediato ✅</span>
+}
+
+<span class="note">// 3. Esperar push del BackgroundService (0 consultas BD)</span>
+<span class="type">MensajeColasRespuestaModel</span>? notificado = await tareaEspera;
+<span class="comment">// localCts.CancelAfter(30s) garantiza que no espera más de 30 segundos</span>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-icon">⚠️</div>
+    <p><strong>Race condition evitada</strong><br/>
+    El registro en <code>_esperandoPorIdRpc</code> se hace ANTES de revisar el caché. Si el BackgroundService notifica el mensaje entre el paso 1 y el paso 3, el <code>TaskCompletionSource</code> ya está registrado y captura la notificación. Sin este orden, habría una ventana donde el mensaje llega y nadie lo recibe.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 9. RECUPERACIÓN ═══════════════════════════ -->
+<div class="page page-break" id="recuperacion">
+  <h1 class="section">9. Auto-recuperación ante Fallos</h1>
+
+  <h2>9.1 ¿Qué pasa cuando Colas se reinicia?</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot">1</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Docker reinicia el contenedor (<code>restart: always</code>)</div>
+        <div class="timeline-desc">En aproximadamente 3–5 segundos el proceso vuelve a estar vivo.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">2</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Warm-up: EjecutarWarmUpAsync()</div>
+        <div class="timeline-desc">Carga <code>_mensajesCache</code> desde BD antes de aceptar conexiones gRPC. Si la BD aún no responde, registra Warning y continúa — el servicio arranca aunque el caché esté vacío.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot green">3</div>
+      <div class="timeline-content">
+        <div class="timeline-title">BackgroundServices rellenan cachés automáticamente</div>
+        <div class="timeline-desc"><code>_cantidadColas = 0</code> al arrancar → ColasBackgroundService detecta cambio → rellena <code>_colasCache</code>. MensajesBackgroundService detecta pendientes → rellena <code>_mensajesCache</code>.</div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot orange">4</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Clientes reconectan automáticamente</div>
+        <div class="timeline-desc">El timeout de 30s en <code>ObtenerMensajePorIdRpc</code> garantiza que los productores reciban un error si el servicio tarda más de 30s en recuperarse, evitando esperas infinitas.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>9.2 ¿Qué pasa cuando la BD falla temporalmente?</h2>
+  <div class="callout success">
+    <div class="callout-icon">✅</div>
+    <p><strong>Los BackgroundServices NO mueren</strong><br/>
+    El try-catch está dentro del while en los 3 BackgroundServices críticos. Ante un error de conexión a BD, el servicio registra el error, espera el intervalo configurado (2–10 segundos) y reintenta. El caché queda desactualizado temporalmente pero no se pierde, y el servicio sigue respondiendo con los datos que tiene en memoria.</p>
+  </div>
+
+  <h2>9.3 Mensajes: ¿se pierden ante reinicios?</h2>
+  <table>
+    <thead><tr><th>Escenario</th><th>¿Se pierden mensajes?</th></tr></thead>
+    <tbody>
+      <tr><td>Colas se reinicia</td><td class="ok">No. Los mensajes viven en PostgreSQL. Al reiniciar, el warm-up los carga de nuevo.</td></tr>
+      <tr><td>BD falla temporalmente</td><td class="ok">No. Los mensajes ya persistidos siguen en BD. El caché puede estar desactualizado pero se recupera.</td></tr>
+      <tr><td>Mensaje en _esperandoPorIdRpc al caerse</td><td class="warn">El productor recibirá un error gRPC de conexión. Debe reintentar la espera. El mensaje sigue en BD.</td></tr>
+      <tr><td>Mensaje en Channel sin consumidor activo</td><td class="warn">El mensaje en el canal se pierde, pero sigue en BD con estado Pendiente. El BackgroundService lo cargará en el próximo ciclo.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════ 10. DIAGRAMA FLUJO COMPLETO ═══════════════════════════ -->
+<div class="page page-break" id="flujo">
+  <h1 class="section">10. Diagrama de Flujo Completo del Sistema</h1>
+  <div class="diagram" style="font-size:11px; line-height:2;">
+<span class="note">╔══════════════════════════════════════════════════════════════════════════╗</span>
+<span class="note">║                    ARQUITECTURA COLAS + gRPC                             ║</span>
+<span class="note">╚══════════════════════════════════════════════════════════════════════════╝</span>
+
+ <span class="box">┌─────────────────┐</span>      <span class="box">┌─────────────────┐</span>      <span class="box">┌─────────────────┐</span>
+ <span class="box">│  Microservicio  │</span>      <span class="box">│  Microservicio  │</span>      <span class="box">│  Microservicio  │</span>
+ <span class="box">│    Reclamos     │</span>      <span class="box">│    Usuarios     │</span>      <span class="box">│    Facturas     │</span>
+ <span class="box">│   (PRODUCTOR)   │</span>      <span class="box">│  (CONSUMIDOR)   │</span>      <span class="box">│  (CONSUMIDOR)   │</span>
+ <span class="box">└────────┬────────┘</span>      <span class="box">└────────┬────────┘</span>      <span class="box">└────────┬────────┘</span>
+          <span class="arrow">│</span>                        <span class="arrow">│</span>                         <span class="arrow">│</span>
+          <span class="arrow">│ PublicarMensaje()       │ ObtenerMensajesPendientes() (stream)
+          ▼                        ▼                         ▼</span>
+ <span class="note">╔══════════════════════════════════════════════════════════════════════╗</span>
+ <span class="note">║                    PROYECTO COLAS (gRPC Server)                      ║</span>
+ <span class="note">║                                                                      ║</span>
+ <span class="note">║  ┌──────────────────────────────────────────────────────────────┐   ║</span>
+ <span class="note">║  │                   TokenGrpcInterceptor                        │   ║</span>
+ <span class="note">║  │     Valida cabecera "grpc-token" == env GRPC_CLAVE_INTERNA    │   ║</span>
+ <span class="note">║  └──────────────────────┬───────────────────────────────────────┘   ║</span>
+ <span class="note">║                         │                                            ║</span>
+ <span class="note">║  ┌──────────────────────▼───────────────────────────────────────┐   ║</span>
+ <span class="note">║  │                    ColaGrpcService                            │   ║</span>
+ <span class="note">║  │  PublicarMensaje → EnviarMensajeService → guarda en BD        │   ║</span>
+ <span class="note">║  │  ObtenerMensajesPendientes → suscribe canal → stream abierto  │   ║</span>
+ <span class="note">║  │  ObtenerMensajePorIdRpc → espera TCS (push, sin polling BD)   │   ║</span>
+ <span class="note">║  └──────────────────────────────────────────────────────────────┘   ║</span>
+ <span class="note">║                              ▲                                       ║</span>
+ <span class="note">║            NotificarMensajes()│                                       ║</span>
+ <span class="note">║  ┌──────────────────────────────────────────────────────────────┐   ║</span>
+ <span class="note">║  │              SuscripcionColaService (Singleton)               │   ║</span>
+ <span class="note">║  │  _suscripciones: Dict&lt;Cola, List&lt;Channel&gt;&gt;  (streams)         │   ║</span>
+ <span class="note">║  │  _esperandoPorIdRpc: Dict&lt;IdRpc, TCS&gt;       (puntuales)       │   ║</span>
+ <span class="note">║  └──────────────────────────────────────────────────────────────┘   ║</span>
+ <span class="note">║                              ▲ NotificarNuevosMensajes()             ║</span>
+ <span class="note">║  ┌──────────────────────────────────────────────────────────────┐   ║</span>
+ <span class="note">║  │                MensajeColaService (Singleton)                 │   ║</span>
+ <span class="note">║  │  _mensajesCache: List&lt;MensajeColaEntity&gt; (máx 500)           │   ║</span>
+ <span class="note">║  │  Ciclo: verifica válidos → carga nuevos → notifica           │   ║</span>
+ <span class="note">║  └──────────────────────────┬─────────────────────────────────  ┘   ║</span>
+ <span class="note">║                              │                                       ║</span>
+ <span class="note">║  MensajesBackgroundService (100ms/2s) ─────────────────────────►    ║</span>
+ <span class="note">║  ColasBackgroundService    (5s + 5min periódico) ───────────────►    ║</span>
+ <span class="note">║  ParametrosBackGroundService (10min) ──────────────────────────►    ║</span>
+ <span class="note">╚══════════════════════════════════════════════════════════════════════╝</span>
+                              <span class="arrow">│</span>
+                              <span class="arrow">▼</span>
+                       <span class="box">PostgreSQL</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 11. MEJORAS ═══════════════════════════ -->
+<div class="page page-break" id="mejoras">
+  <h1 class="section">11. Mejoras Implementadas</h1>
+  <p>A continuación se detallan las mejoras realizadas durante el ciclo de desarrollo de este microservicio, indicando el problema original y la solución aplicada.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Área</th><th>Problema original</th><th>Solución implementada</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Comunicación</td>
+        <td>Los consumidores hacían polling (consultas periódicas) al servicio para ver si había mensajes nuevos.</td>
+        <td>Se implementó <code>System.Threading.Channels</code> con streaming gRPC abierto. Los mensajes se entregan en cuanto llegan (push real).</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Caché</td>
+        <td>El caché tenía un límite fijo de 50 mensajes. Bajo alta carga, el sistema procesaba siempre los mismos mensajes y nunca avanzaba en la cola.</td>
+        <td>Caché aditivo hasta 500 mensajes con <code>idsExcluir</code> en el repositorio. Cada ciclo carga el siguiente lote sin repetir los ya cacheados.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>IdRpc</td>
+        <td><code>ObtenerMensajePorIdRpc</code> consultaba PostgreSQL cada 500ms hasta 10 veces. Con 20 clientes esperando = 40 queries/seg solo para esperar.</td>
+        <td>Se reemplazó por <code>TaskCompletionSource</code>. El método se registra en <code>_esperandoPorIdRpc</code> y espera la notificación push. 0 consultas a BD.</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Seguridad</td>
+        <td>No había autenticación entre microservicios. Cualquier cliente podía llamar al servidor gRPC.</td>
+        <td><code>TokenGrpcInterceptor</code> valida <code>grpc-token</code> contra variable de entorno en cada llamada.</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Arranque</td>
+        <td>Al iniciar el servicio había una ventana de 0–2 segundos donde el caché estaba vacío pero el servidor gRPC ya aceptaba conexiones.</td>
+        <td>Warm-up (<code>EjecutarWarmUpAsync</code>) carga el caché antes de <code>MapGrpcService</code>. El servidor gRPC no acepta conexiones hasta que el caché esté listo.</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Resiliencia</td>
+        <td>Si la BD fallaba temporalmente, los BackgroundServices capturaban la excepción fuera del bucle <code>while</code> y morían definitivamente.</td>
+        <td>Se movió el try-catch dentro del <code>while</code>. Ahora ante un error espera N segundos y reintenta indefinidamente.</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Colas</td>
+        <td><code>ColasBackgroundService</code> solo refrescaba el caché cuando cambiaba el número de colas. Si se desactivaba una y activaba otra simultáneamente (mismo conteo), el caché quedaba desactualizado.</td>
+        <td>Se agregó refresco periódico incondicional cada 5 minutos con <code>_ultimoRefrescoPeriodico</code>.</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>Timeout</td>
+        <td>Si Colas se reiniciaba, los clientes esperando <code>ObtenerMensajePorIdRpc</code> podían quedar bloqueados indefinidamente.</td>
+        <td><code>CancelAfter(30 segundos)</code> sobre el <code>CancellationTokenSource</code> vinculado. Máximo 30 seg de espera antes de retornar <code>NotFound</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info" style="margin-top: 32px;">
+    <div class="callout-icon">📋</div>
+    <p><strong>Pendiente identificado</strong><br/>
+    Alta disponibilidad con múltiples instancias: requiere mover <code>_mensajesCache</code>, <code>_suscripciones</code> y <code>_esperandoPorIdRpc</code> a Redis para compartir estado entre instancias. Es un cambio arquitectónico mayor recomendado cuando el sistema crezca a escala.</p>
+  </div>
+
+  <div class="footer">
+    <span>Japdeva.APIMovil.Colas · Documentación Técnica · Versión 1.0 · Marzo 2026</span>
+    <span class="page-num">Confidencial – Uso Interno</span>
+  </div>
+</div>
+
+</body>
+</html>

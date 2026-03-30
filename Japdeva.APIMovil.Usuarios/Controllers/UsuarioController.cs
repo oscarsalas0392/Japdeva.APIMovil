@@ -1,35 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService;
-using Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService;
+using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService;
 
 namespace Japdeva.APIMovil.Usuarios.Controllers
 {
     /// <summary>
-    /// Controlador para la gestión de usuarios.
+    /// Controlador para la gestiï¿½n de usuarios.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class UsuarioController : Controller
     {
         /// <summary>
-        /// Crea un nuevo usuario.
+        /// Registra un nuevo usuario en el sistema.
         /// </summary>
-        /// <param name="crearUsuarioService">Servicio para crear usuarios.</param>
-        /// <param name="solicitud">Modelo con los datos del usuario a crear.</param>
-        /// <returns>Respuesta de la creación del usuario.</returns>
-        [HttpPost("CrearUsuario")]
-        public Task<IActionResult> CrearUsuarioAsync([FromServices] ICrearUsuarioService crearUsuarioService, [FromBody] CrearUsuarioSolicitudModel solicitud) =>
-            crearUsuarioService.CrearUsuarioAsync(HttpContext.TraceIdentifier, solicitud);
+        /// <param name="agregarUsuarioService">Servicio para registrar usuarios.</param>
+        /// <param name="solicitud">Modelo con los datos del usuario a registrar.</param>
+        /// <returns>Respuesta del registro del usuario.</returns>
+        [HttpPost("AgregarUsuario")]
+        public Task<IActionResult> AgregarUsuarioAsync([FromServices] IAgregarUsuarioService agregarUsuarioService, [FromBody] AgregarUsuarioSolicitudModel solicitud) =>
+            agregarUsuarioService.AgregarUsuarioAsync(HttpContext.TraceIdentifier, solicitud);
 
         /// <summary>
         /// Actualiza un usuario existente.
         /// </summary>
         /// <param name="actualizarUsuarioService">Servicio para actualizar usuarios.</param>
         /// <param name="solicitud">Modelo con los datos del usuario a actualizar.</param>
-        /// <returns>Respuesta de la actualización del usuario.</returns>
+        /// <returns>Respuesta de la actualizaciï¿½n del usuario.</returns>
         [HttpPut("ActualizarUsuario")]
         public Task<IActionResult> ActualizarUsuarioAsync([FromServices] IActualizarUsuarioService actualizarUsuarioService, [FromBody] ActualizarUsuarioSolicitudModel solicitud) =>
             actualizarUsuarioService.ActualizarUsuarioAsync(HttpContext.TraceIdentifier, solicitud);
@@ -58,7 +58,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         /// </summary>
         /// <param name="eliminarUsuarioService">Servicio para eliminar usuarios.</param>
         /// <param name="id">El identificador del usuario a eliminar.</param>
-        /// <returns>Respuesta de la eliminación del usuario.</returns>
+        /// <returns>Respuesta de la eliminaciï¿½n del usuario.</returns>
         [HttpDelete("EliminarUsuario")]
         public Task<IActionResult> EliminarUsuarioAsync([FromServices] IEliminarUsuarioService eliminarUsuarioService, [FromQuery(Name = "id")] int id) =>
             eliminarUsuarioService.EliminarUsuarioAsync(HttpContext.TraceIdentifier, id);

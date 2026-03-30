@@ -23,8 +23,9 @@ namespace Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService
         /// <param name="traceId">Identificador de trazabilidad de la operación.</param>
         /// <param name="idRpc">Identificador RPC del mensaje a obtener.</param>
         /// <param name="nombreCola">Nombre de la cola donde obtener el mensaje.</param>
+        /// <param name="cancellationToken">Token de cancelación para respetar el timeout del cliente gRPC.</param>
         /// <returns>Una tarea que representa la operación asíncrona, con el resultado de la acción.</returns>
-        Task<IActionResult> ObtenerMensajeRpcAsync(string traceId, string idRpc, string nombreCola);
+        Task<IActionResult> ObtenerMensajeRpcAsync(string traceId, string idRpc, string nombreCola, CancellationToken cancellationToken);
     }
     
 }

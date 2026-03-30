@@ -28,20 +28,26 @@ namespace Japdeva.APIMovil.Colas.Repositories.MensajesColaRepository
         }
         
         /// <summary>
-        /// Obtiene los mensajes pendientes o fallidos de la cola de manera asíncrona.
+        /// Obtiene mensajes pendientes o fallidos excluyendo los ya presentes en caché.
         /// </summary>
-        /// <param name="traceId">El identificador de trazabilidad para el seguimiento de la operación.</param>
-        /// <returns>Una lista de entidades de mensajes de cola pendientes o fallidos.</returns>
-        public async Task<List<MensajeColaEntity>> ObtenerMensajesPendientesAsync(string traceId)
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="idsExcluir">IDs de mensajes ya en caché que deben excluirse del resultado.</param>
+        /// <returns>Lista de mensajes pendientes o fallidos no presentes en caché.</returns>
+        public async Task<List<MensajeColaEntity>> ObtenerMensajesPendientesAsync(string traceId, IReadOnlyCollection<long> idsExcluir)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                return await this._context.Set<MensajeColaEntity>()
+                IQueryable<MensajeColaEntity> query = this._context.Set<MensajeColaEntity>()
                     .Where(mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Pendiente ||
-                                      mensaje.EstadoId == (int)EstadoMensajeModel.Fallido)
+                                      mensaje.EstadoId == (int)EstadoMensajeModel.Fallido);
+
+                if (idsExcluir.Any())
+                    query = query.Where(mensaje => !idsExcluir.Contains(mensaje.Id));
+
+                return await query
                     .OrderBy(mensaje => mensaje.PrioridadId)
                     .ThenBy(mensaje => mensaje.FechaRegistro)
                     .AsNoTracking()
@@ -55,7 +61,40 @@ namespace Japdeva.APIMovil.Colas.Repositories.MensajesColaRepository
             }
             finally
             {
-                this._logger.Fin(traceId, nombreMetodo);        
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
+        /// Devuelve qué IDs de una lista dada siguen siendo Pendiente o Fallido en la base de datos.
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="ids">IDs a verificar.</param>
+        /// <returns>Conjunto de IDs que aún están en estado Pendiente o Fallido.</returns>
+        public async Task<HashSet<long>> ObtenerIdsPendientesEnListaAsync(string traceId, IReadOnlyCollection<long> ids)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+
+                List<long> idsPendientes = await this._context.Set<MensajeColaEntity>()
+                    .Where(mensaje => ids.Contains(mensaje.Id) &&
+                                     (mensaje.EstadoId == (int)EstadoMensajeModel.Pendiente ||
+                                      mensaje.EstadoId == (int)EstadoMensajeModel.Fallido))
+                    .Select(mensaje => mensaje.Id)
+                    .ToListAsync();
+
+                return idsPendientes.ToHashSet();
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
             }
         }
     }

@@ -8,10 +8,20 @@ namespace Japdeva.APIMovil.Colas.Repositories.MensajesColaRepository
     public interface IMensajesColaRepository
     {
         /// <summary>
-        /// Obtiene los mensajes pendientes o fallidos de la cola de manera asíncrona.
+        /// Obtiene mensajes pendientes o fallidos excluyendo los ya presentes en caché.
         /// </summary>
-        /// <param name="traceId">El identificador de trazabilidad para el seguimiento de la operación.</param>
-        /// <returns>Una lista de entidades de mensajes de cola pendientes o fallidos.</returns>
-        Task<List<MensajeColaEntity>> ObtenerMensajesPendientesAsync(string traceId);
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="idsExcluir">IDs de mensajes ya en caché que deben excluirse del resultado.</param>
+        /// <returns>Lista de mensajes pendientes o fallidos no presentes en caché.</returns>
+        Task<List<MensajeColaEntity>> ObtenerMensajesPendientesAsync(string traceId, IReadOnlyCollection<long> idsExcluir);
+
+        /// <summary>
+        /// Devuelve qué IDs de una lista dada siguen siendo Pendiente o Fallido en la base de datos.
+        /// Se usa para detectar mensajes del caché que ya fueron procesados.
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="ids">IDs a verificar.</param>
+        /// <returns>Conjunto de IDs que aún están en estado Pendiente o Fallido.</returns>
+        Task<HashSet<long>> ObtenerIdsPendientesEnListaAsync(string traceId, IReadOnlyCollection<long> ids);
     }
 }
