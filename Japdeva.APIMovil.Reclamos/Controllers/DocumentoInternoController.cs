@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService;
@@ -9,6 +10,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para gestionar documentos internos asociados a reclamos.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentoInternoController : Controller

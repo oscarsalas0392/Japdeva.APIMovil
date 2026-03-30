@@ -67,6 +67,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddSingleton<IEncriptarService, EncriptarService>();
                 builder.Services.AddSingleton<IDesencriptarService, DesencriptarService>();
                 builder.Services.AddSingleton<IEncriptarHelperService, EncriptarHelperService>();
+                builder.Services.AddHttpClient();
                 builder.Services.AddOcelot(builder.Configuration);
                 return builder;
             }

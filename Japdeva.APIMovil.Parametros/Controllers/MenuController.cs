@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService;
 
@@ -6,6 +7,7 @@ namespace Japdeva.APIMovil.Parametros.Controllers
     /// <summary>
     /// Controlador para gestionar las operaciones relacionadas con los menús.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class MenuController : Controller

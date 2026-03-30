@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.EnvioCorreos.Models;
 using Japdeva.APIMovil.EnvioCorreos.Services.AgregarCorreoService;
@@ -7,6 +8,7 @@ namespace Japdeva.APIMovil.EnvioCorreos.Controllers
     /// <summary>
     /// Controlador para la gestión de correos electrónicos en la cola de envío.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CorreoController : Controller

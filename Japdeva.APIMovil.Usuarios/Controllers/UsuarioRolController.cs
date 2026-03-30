@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService;
@@ -9,6 +10,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     /// <summary>
     /// Controlador para la gestión de roles asignados a usuarios.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UsuarioRolController : Controller

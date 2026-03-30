@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService;
 
@@ -6,6 +7,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     /// <summary>
     /// Controlador para la consulta de roles del sistema.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class RolController : Controller

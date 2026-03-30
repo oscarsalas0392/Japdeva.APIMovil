@@ -25,5 +25,6 @@ namespace Japdeva.APIMovil.Common.Models
         /// Obtiene o establece los datos de la respuesta.
         /// </summary>
         public object? Datos { get; set; }
+
     }
 }

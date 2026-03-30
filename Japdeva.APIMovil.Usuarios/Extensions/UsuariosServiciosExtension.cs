@@ -3,6 +3,7 @@ using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarDepartamentoUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService;
+using Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.CrearUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.DepartamentoCacheService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarDepartamentoUsuarioService;
@@ -35,6 +36,7 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
             {
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
 
+                builder.Services.AddSingleton<IAutenticarUsuarioService, AutenticarUsuarioService>();
                 builder.Services.AddSingleton<ICrearUsuarioService, CrearUsuarioService>();
                 builder.Services.AddSingleton<IAgregarUsuarioService, AgregarUsuarioService>();
                 builder.Services.AddSingleton<IActualizarUsuarioService, ActualizarUsuarioService>();

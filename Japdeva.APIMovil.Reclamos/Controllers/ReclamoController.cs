@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService;
@@ -11,6 +12,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// Controlador para gestionar las operaciones relacionadas con los reclamos.
     /// </summary>
     /// 
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ReclamoController : Controller

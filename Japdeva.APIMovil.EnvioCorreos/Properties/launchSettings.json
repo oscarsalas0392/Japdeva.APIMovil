@@ -1,12 +1,34 @@
 {
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "Japdeva.APIMovil.EnvioCorreos": {
+    "http": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:64136",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:64135;http://localhost:64136"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:64135;http://localhost:64136",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ISSUER": "https://localhost:7075",
+        "AUDIENCE": "apiEnvioCorreos",
+        "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=EnvioCorreos;Username=postgres;Password=1234",
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_PUERTO": "587",
+        "SMTP_USUARIO": "",
+        "SMTP_CONTRASENA": "",
+        "SMTP_REMITENTE": "",
+        "SMTP_USAR_SSL": "true",
+        "CORREO_MAX_INTENTOS": "3"
+      }
     }
   }
 }

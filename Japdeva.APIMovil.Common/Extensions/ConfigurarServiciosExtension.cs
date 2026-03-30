@@ -27,9 +27,10 @@ namespace Japdeva.APIMovil.Common.Extensions
                     app.MapOpenApi();
                 }
                 app.UseHttpsRedirection();
+                app.UseMiddleware<ManejoErroresMiddleware>();
+                app.UseAuthentication();
                 app.UseAuthorization();
                 app.MapControllers();
-                app.UseMiddleware<ManejoErroresMiddleware>();
                 app.Run();  
             }
             catch (Exception)
@@ -55,10 +56,12 @@ namespace Japdeva.APIMovil.Common.Extensions
                 app.UseHttpsRedirection();
                 app.UseAuthorization();
                 app.MapControllers();
-                //app.UseMiddleware<ValidarTokenMiddleware>();
+                app.UseMiddleware<LimitarSolicitudesMiddleware>();
+                app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<CrearTokenMiddleware>();
                 app.UseMiddleware<EnviarTraceIdMiddleware>();
                 app.UseMiddleware<EncriptarRespuestaMiddleware>();
+                app.UseMiddleware<GestionarTokenRespuestaMiddleware>();
                 await app.UseOcelot();           
                 app.Run();
                 return app;

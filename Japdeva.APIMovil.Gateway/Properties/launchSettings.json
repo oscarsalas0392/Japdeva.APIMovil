@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
@@ -17,13 +17,30 @@
       "applicationUrl": "https://localhost:7069;http://localhost:5179",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "RUTAS_CON_TOKEN": "Usuarios",
+        "RUTAS_CON_TOKEN": "Usuarios,Parametros,Reclamos,EnvioCorreos",
         "ISSUER_USUARIOS": "https://localhost:7075",
         "AUDIENCE_USUARIOS": "apiUsuarios",
         "CLAVE_SECRETA_USUARIOS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
         "ROL_USUARIOS": "Usuarios",
-        "CLAVE_ENCRIPTACION_RESPUESTA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!"
-
+        "ISSUER_PARAMETROS": "https://localhost:7075",
+        "AUDIENCE_PARAMETROS": "apiParametros",
+        "CLAVE_SECRETA_PARAMETROS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "ROL_PARAMETROS": "Parametros",
+        "ISSUER_RECLAMOS": "https://localhost:7075",
+        "AUDIENCE_RECLAMOS": "apiReclamos",
+        "CLAVE_SECRETA_RECLAMOS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "ROL_RECLAMOS": "Reclamos",
+        "ISSUER_ENVIOCORREOS": "https://localhost:7075",
+        "AUDIENCE_ENVIOCORREOS": "apiEnvioCorreos",
+        "CLAVE_SECRETA_ENVIOCORREOS": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "ROL_ENVIOCORREOS": "EnvioCorreos",
+        "CLAVE_ENCRIPTACION_RESPUESTA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "ISSUER": "https://localhost:7069",
+        "AUDIENCE": "apiCliente",
+        "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "ROL_CLIENTE": "Usuario",
+        "RUTA_AUTENTICAR": "Autenticar",
+        "RUTAS_SIN_TOKEN": "Autenticar"
       }
     }
   }

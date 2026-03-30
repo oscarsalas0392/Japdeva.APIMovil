@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService;
@@ -10,6 +11,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     /// <summary>
     /// Controlador para la gesti�n de usuarios.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UsuarioController : Controller

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService;
@@ -9,6 +10,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para gestionar las operaciones relacionadas con el detalle de reclamo.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DetalleReclamoController : Controller
