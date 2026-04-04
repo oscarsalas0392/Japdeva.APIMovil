@@ -1,5 +1,5 @@
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
@@ -14,17 +14,17 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosUsuariosService
     public class ObtenerDepartamentosUsuariosService : IObtenerDepartamentosUsuariosService
     {
         private readonly ILogger<ObtenerDepartamentosUsuariosService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerDepartamentosUsuariosService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas de entidades.</param>
-        public ObtenerDepartamentosUsuariosService(ILogger<ObtenerDepartamentosUsuariosService> logger, IConsultarListaRepository consultarListaRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public ObtenerDepartamentosUsuariosService(ILogger<ObtenerDepartamentosUsuariosService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository ?? throw new ArgumentNullException(nameof(consultarListaRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -40,10 +40,9 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosUsuariosService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
-                Expression<Func<DepartamentoUsuarioEntity, bool>> filtro = du => du.IdUsuario == idUsuario && du.Activo;
-                var resultadoConsulta = await this._consultarListaRepository.ConsultarListaAsync<DepartamentoUsuarioEntity>(traceId, pagina, filtro);
-
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
+                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<DepartamentoUsuarioEntity>(traceId, pagina, asociacion => asociacion.IdUsuario == idUsuario && asociacion.Activo);
                 var lista = new List<DepartamentoUsuarioRespuestaModel>();
                 foreach (var item in resultadoConsulta.Lista)
                 {
@@ -56,13 +55,11 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosUsuariosService
                     modelo.Activo = item.Activo;
                     lista.Add(modelo);
                 }
-
                 var respuesta = new RespuestaListaModel<DepartamentoUsuarioRespuestaModel>();
                 respuesta.TotalRegistros = resultadoConsulta.TotalRegistros;
                 respuesta.CantidadPaginas = resultadoConsulta.CantidadPaginas;
                 respuesta.PaginaActual = resultadoConsulta.PaginaActual;
                 respuesta.Lista = lista;
-
                 return new OkObjectResult(respuesta);
             }
             catch (Exception ex)

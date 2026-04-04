@@ -1,7 +1,7 @@
-using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
@@ -15,25 +15,29 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
     public class AgregarUsuarioService : IAgregarUsuarioService
     {
         private readonly ILogger<AgregarUsuarioService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IConsultarRepository _consultarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_USUARIO_EXISTE = "Ya existe un usuario registrado con esa identificación.";
-        private const string NOMBRE_ACCION_OBTENER = "ObtenerUsuarioPorId";
-        private const string NOMBRE_CONTROLADOR = "Usuario";
-        private const bool EXITO = true;
-        private const bool ERROR = false;
+        private const string MENSAJE_CORREO_REQUERIDO = "El correo es requerido.";
+        private const string MENSAJE_CONTRASENA_REQUERIDA = "La contraseña es requerida.";
+        private const string MENSAJE_NOMBRE_REQUERIDO = "El nombre es requerido.";
+        private const string MENSAJE_IDENTIFICACION_REQUERIDA = "La identificación es requerida.";
+        private const string MENSAJE_APELLIDOS_REQUERIDOS = "Los apellidos son requeridos.";
+        private const string MENSAJE_CORREO_INVALIDO = "El formato del correo no es válido.";
+        private const string MENSAJE_CEDULA_INVALIDO = "El tipo de cedula es invalido.";
+        private const string MENSAJE_CEDULA_FORMATO_INVALIDO = "El formato de la cedula no es válido.";
+        private const string PATRON_CORREO = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        private const string TRACE_VACIO = "";
+        private const bool ACTIVO = true;
 
         /// <summary>
         /// Inicializa una nueva instancia de AgregarUsuarioService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
-        public AgregarUsuarioService(ILogger<AgregarUsuarioService> logger, IAgregarRepository agregarRepository, IConsultarRepository consultarRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public AgregarUsuarioService(ILogger<AgregarUsuarioService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository ?? throw new ArgumentNullException(nameof(agregarRepository));
-            this._consultarRepository = consultarRepository ?? throw new ArgumentNullException(nameof(consultarRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -47,15 +51,21 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+
                 this._logger.Inicio(traceId, nombreMetodo);
-
                 if (solicitud is null) throw new ArgumentNullException(nameof(solicitud));
+                this.ValidarCamposRequeridos(solicitud);
 
-                Expression<Func<UsuarioEntity, bool>> filtro = u => u.Identificacion == solicitud.Identificacion;
-                var usuarioExistente = await this._consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, filtro);
-                if (usuarioExistente is not null)
-                    return new BadRequestObjectResult(new RespuestaModel { Mensaje = MENSAJE_USUARIO_EXISTE, Exito = ERROR });
+                var tipoCedula = await consultarRepository.ConsultarAsync<TipoCedulaEntity>(traceId, tipoCedula => tipoCedula.Id == solicitud.IdTipoCedula);
+                if (tipoCedula is null) throw new ArgumentException(MENSAJE_CEDULA_INVALIDO);
+                if (!Regex.IsMatch(solicitud.Identificacion, tipoCedula.Formato)) throw new ArgumentException(MENSAJE_CEDULA_FORMATO_INVALIDO);
 
+                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario => usuario.Identificacion == solicitud.Identificacion);
+                if (usuarioExistente is not null) throw new ArgumentException(MENSAJE_USUARIO_EXISTE);
+                
                 var nuevoUsuario = new UsuarioEntity();
                 nuevoUsuario.Identificacion = solicitud.Identificacion;
                 nuevoUsuario.IdTipoCedula = solicitud.IdTipoCedula;
@@ -64,10 +74,9 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 nuevoUsuario.Correo = solicitud.Correo;
                 nuevoUsuario.Contrasena = solicitud.Contrasena;
                 nuevoUsuario.FechaRegistro = DateTime.UtcNow;
-                nuevoUsuario.Activo = EXITO;
+                nuevoUsuario.Activo = ACTIVO;
 
-                await this._agregarRepository.AgregarAsync<UsuarioEntity>(traceId, nuevoUsuario);
-
+                await agregarRepository.AgregarAsync<UsuarioEntity>(traceId, nuevoUsuario);
                 var respuesta = new UsuarioRespuestaModel();
                 respuesta.Id = nuevoUsuario.Id;
                 respuesta.Identificacion = nuevoUsuario.Identificacion;
@@ -77,13 +86,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 respuesta.Correo = nuevoUsuario.Correo;
                 respuesta.FechaRegistro = nuevoUsuario.FechaRegistro;
                 respuesta.Activo = nuevoUsuario.Activo;
-
-                return new CreatedAtActionResult(NOMBRE_ACCION_OBTENER, NOMBRE_CONTROLADOR, new { id = nuevoUsuario.Id }, respuesta);
-            }
-            catch (ArgumentException ex)
-            {
-                this._logger.Error(traceId, nombreMetodo, ex);
-                throw;
+                return new OkObjectResult(respuesta);
             }
             catch (Exception ex)
             {
@@ -93,6 +96,34 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
             finally
             {
                 this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
+        /// Valida que los campos requeridos del modelo de solicitud estén completos y con formato correcto.
+        /// </summary>
+        /// <param name="solicitud">Datos del usuario a validar.</param>
+        public void ValidarCamposRequeridos(AgregarUsuarioSolicitudModel solicitud)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(TRACE_VACIO, nombreMetodo);
+                if (string.IsNullOrEmpty(solicitud.Correo)) throw new ArgumentException(MENSAJE_CORREO_REQUERIDO);
+                if (!Regex.IsMatch(solicitud.Correo, PATRON_CORREO)) throw new ArgumentException(MENSAJE_CORREO_INVALIDO);
+                if (string.IsNullOrEmpty(solicitud.Contrasena)) throw new ArgumentException(MENSAJE_CONTRASENA_REQUERIDA);
+                if (string.IsNullOrEmpty(solicitud.Nombre)) throw new ArgumentException(MENSAJE_NOMBRE_REQUERIDO);
+                if (string.IsNullOrEmpty(solicitud.Identificacion)) throw new ArgumentException(MENSAJE_IDENTIFICACION_REQUERIDA);
+                if (string.IsNullOrEmpty(solicitud.Apellidos)) throw new ArgumentException(MENSAJE_APELLIDOS_REQUERIDOS);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(TRACE_VACIO, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(TRACE_VACIO, nombreMetodo);
             }
         }
     }

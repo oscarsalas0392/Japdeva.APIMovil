@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
@@ -14,17 +15,17 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
     public class ObtenerUsuariosRolesService : IObtenerUsuariosRolesService
     {
         private readonly ILogger<ObtenerUsuariosRolesService> _logger;
-        private readonly IConsultarListaRepository _consultarListaRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerUsuariosRolesService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas de entidades.</param>
-        public ObtenerUsuariosRolesService(ILogger<ObtenerUsuariosRolesService> logger, IConsultarListaRepository consultarListaRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public ObtenerUsuariosRolesService(ILogger<ObtenerUsuariosRolesService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarListaRepository = consultarListaRepository ?? throw new ArgumentNullException(nameof(consultarListaRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -40,10 +41,10 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 Expression<Func<UsuarioRolEntity, bool>> filtro = ur => ur.IdUsuario == idUsuario && ur.Activo;
-                var resultadoConsulta = await this._consultarListaRepository.ConsultarListaAsync<UsuarioRolEntity>(traceId, pagina, filtro);
-
+                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<UsuarioRolEntity>(traceId, pagina, filtro);
                 var lista = new List<UsuarioRolRespuestaModel>();
                 foreach (var item in resultadoConsulta.Lista)
                 {
@@ -56,13 +57,11 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
                     modelo.Activo = item.Activo;
                     lista.Add(modelo);
                 }
-
                 var respuesta = new RespuestaListaModel<UsuarioRolRespuestaModel>();
                 respuesta.TotalRegistros = resultadoConsulta.TotalRegistros;
                 respuesta.CantidadPaginas = resultadoConsulta.CantidadPaginas;
                 respuesta.PaginaActual = resultadoConsulta.PaginaActual;
                 respuesta.Lista = lista;
-
                 return new OkObjectResult(respuesta);
             }
             catch (Exception ex)

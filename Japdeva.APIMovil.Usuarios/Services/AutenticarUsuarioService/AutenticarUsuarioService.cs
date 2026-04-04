@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
@@ -13,21 +13,19 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
     public class AutenticarUsuarioService : IAutenticarUsuarioService
     {
         private readonly ILogger<AutenticarUsuarioService> _logger;
-        private readonly IConsultarRepository _consultarRepository;
-        private const string MENSAJE_AUTENTICACION_EXITOSA = "Autenticación exitosa.";
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_CREDENCIALES_INVALIDAS = "Credenciales inválidas.";
-        private const bool EXITO = true;
-        private const bool ERROR = false;
+
 
         /// <summary>
         /// Inicializa una nueva instancia de AutenticarUsuarioService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
-        public AutenticarUsuarioService(ILogger<AutenticarUsuarioService> logger, IConsultarRepository consultarRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public AutenticarUsuarioService(ILogger<AutenticarUsuarioService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._consultarRepository = consultarRepository ?? throw new ArgumentNullException(nameof(consultarRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -42,25 +40,19 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
                 if (solicitud is null) throw new ArgumentNullException(nameof(solicitud));
-
-                var usuario = await this._consultarRepository.ConsultarAsync<UsuarioEntity>(
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(
                     traceId, u => u.Correo == solicitud.Correo && u.Activo);
-
-                if (usuario is null || usuario.Contrasena != solicitud.Contrasena)
-                    return new UnauthorizedObjectResult(new RespuestaModel { Mensaje = MENSAJE_CREDENCIALES_INVALIDAS, Exito = ERROR });
-
-                var respuesta = new AutenticarUsuarioRespuestaModel
-                {
-                    Id = usuario.Id,
-                    Nombre = usuario.Nombre,
-                    Apellidos = usuario.Apellidos,
-                    Correo = usuario.Correo,
-                    Identificacion = usuario.Identificacion
-                };
-
-                return new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_AUTENTICACION_EXITOSA, Exito = EXITO, Datos = respuesta });
+                if (usuario is null || usuario.Contrasena != solicitud.Contrasena) throw new UnauthorizedAccessException(MENSAJE_CREDENCIALES_INVALIDAS);
+                var respuesta = new AutenticarUsuarioRespuestaModel();
+                respuesta.Id = usuario.Id;
+                respuesta.Nombre = usuario.Nombre;
+                respuesta.Apellidos = usuario.Apellidos;
+                respuesta.Correo = usuario.Correo;
+                respuesta.Identificacion = usuario.Identificacion;
+                return new OkObjectResult(respuesta);
             }
             catch (ArgumentException ex)
             {

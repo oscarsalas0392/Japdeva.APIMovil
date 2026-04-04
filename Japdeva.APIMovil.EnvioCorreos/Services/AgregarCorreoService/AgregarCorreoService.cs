@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
@@ -13,7 +14,7 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.AgregarCorreoService
     public class AgregarCorreoService : IAgregarCorreoService
     {
         private readonly ILogger<AgregarCorreoService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_CORREO_REGISTRADO = "Correo registrado en la cola de envío correctamente.";
         private const int INTENTOS_INICIALES = 0;
         private const bool EXITO = true;
@@ -23,11 +24,11 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.AgregarCorreoService
         /// Inicializa una nueva instancia de AgregarCorreoService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
-        public AgregarCorreoService(ILogger<AgregarCorreoService> logger, IAgregarRepository agregarRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public AgregarCorreoService(ILogger<AgregarCorreoService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository ?? throw new ArgumentNullException(nameof(agregarRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -45,6 +46,8 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.AgregarCorreoService
 
                 if (solicitud is null) throw new ArgumentNullException(nameof(solicitud));
 
+                using var scope = this._serviceProvider.CreateScope();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
                 var nuevoCorreo = new CorreoPendienteEntity();
                 nuevoCorreo.Destinatario = solicitud.Destinatario;
                 nuevoCorreo.Asunto = solicitud.Asunto;
@@ -54,7 +57,7 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.AgregarCorreoService
                 nuevoCorreo.Enviado = ENVIADO_INICIAL;
                 nuevoCorreo.FechaRegistro = DateTime.UtcNow;
 
-                await this._agregarRepository.AgregarAsync<CorreoPendienteEntity>(traceId, nuevoCorreo);
+                await agregarRepository.AgregarAsync<CorreoPendienteEntity>(traceId, nuevoCorreo);
 
                 var respuesta = new CorreoRespuestaModel();
                 respuesta.Id = nuevoCorreo.Id;

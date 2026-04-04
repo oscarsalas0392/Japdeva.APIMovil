@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Common.Extensions;
@@ -24,7 +25,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string CLAVE_SECRETA_ENV = "CLAVE_SECRETA";
         private const string ROL_CLIENTE_ENV = "ROL_CLIENTE";
         private const string ITEM_CLIENTE_TOKEN = "ClienteToken";
-        private const string HEADER_TOKEN = "X-Token";
+        private const string CAMPO_TOKEN = "token";
         private const string TRACE_ID = "SYSTEM";
         private const long POSICION_INICIAL = 0;
         private const int HTTP_OK = 200;
@@ -69,7 +70,14 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 context.Response.Body = streamOriginal;
                 string nuevoToken = this.ObtenerNuevoToken(traceId, esRutaAutenticar, tokenEntrada, context.Response.StatusCode);
                 if (!string.IsNullOrEmpty(nuevoToken))
-                    context.Response.Headers[HEADER_TOKEN] = nuevoToken;
+                {
+                    var nodo = JsonNode.Parse(contenido);
+                    if (nodo is JsonObject objeto)
+                    {
+                        objeto[CAMPO_TOKEN] = nuevoToken;
+                        contenido = objeto.ToJsonString();
+                    }
+                }
                 context.Response.ContentLength = null;
                 await context.Response.WriteAsync(contenido);
             }

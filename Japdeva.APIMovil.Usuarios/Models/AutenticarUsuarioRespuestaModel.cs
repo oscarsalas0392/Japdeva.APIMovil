@@ -19,5 +19,6 @@ namespace Japdeva.APIMovil.Usuarios.Models
 
         /// <summary>Obtiene o establece el número de identificación del usuario.</summary>
         public string Identificacion { get; set; } = string.Empty;
+        
     }
 }

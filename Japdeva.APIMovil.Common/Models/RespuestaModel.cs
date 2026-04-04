@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 
 namespace Japdeva.APIMovil.Common.Models
 {
@@ -25,6 +26,12 @@ namespace Japdeva.APIMovil.Common.Models
         /// Obtiene o establece los datos de la respuesta.
         /// </summary>
         public object? Datos { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el Token
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Token { get; set; }
 
     }
 }

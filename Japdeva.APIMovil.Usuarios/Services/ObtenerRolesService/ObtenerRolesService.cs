@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.RolCacheService;
 
@@ -14,9 +13,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService
         private readonly ILogger<ObtenerRolesService> _logger;
         private readonly IRolCacheService _rolCacheService;
         private const string MENSAJE_ROL_NO_ENCONTRADO = "Rol no encontrado.";
-        private const string MENSAJE_ROL_OBTENIDO = "Rol obtenido correctamente.";
-        private const bool EXITO = true;
-        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerRolesService.
@@ -50,7 +46,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService
                     modelo.Activo = rol.Activo;
                     lista.Add(modelo);
                 }
-                return await Task.FromResult(new OkObjectResult(lista) as IActionResult);
+                return new OkObjectResult(lista);
             }
             catch (Exception ex)
             {
@@ -72,23 +68,17 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService
         public async Task<IActionResult> ObtenerRolPorIdAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IActionResult resultado;
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 var rol = this._rolCacheService.ObtenerPorId(traceId, id);
-                if (rol is null)
-                {
-                    resultado = new NotFoundObjectResult(new RespuestaModel { Mensaje = MENSAJE_ROL_NO_ENCONTRADO, Exito = ERROR });
-                }
-                else
-                {
-                    var respuesta = new RolRespuestaModel();
-                    respuesta.Id = rol.Id;
-                    respuesta.Descripcion = rol.Descripcion;
-                    respuesta.Activo = rol.Activo;
-                    resultado = new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_ROL_OBTENIDO, Exito = EXITO, Datos = respuesta });
-                }
+                if (rol is null) throw new KeyNotFoundException(MENSAJE_ROL_NO_ENCONTRADO);
+                var respuesta = new RolRespuestaModel();
+                respuesta.Id = rol.Id;
+                respuesta.Descripcion = rol.Descripcion;
+                respuesta.Activo = rol.Activo;
+                return  new OkObjectResult( respuesta );
+                
             }
             catch (Exception ex)
             {
@@ -99,7 +89,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService
             {
                 this._logger.Fin(traceId, nombreMetodo);
             }
-            return await Task.FromResult(resultado);
         }
     }
 }

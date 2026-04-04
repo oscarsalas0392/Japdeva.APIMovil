@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
@@ -15,24 +15,19 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
     public class AgregarUsuarioRolService : IAgregarUsuarioRolService
     {
         private readonly ILogger<AgregarUsuarioRolService> _logger;
-        private readonly IAgregarRepository _agregarRepository;
-        private readonly IConsultarRepository _consultarRepository;
-        private const string MENSAJE_ROL_ASIGNADO = "Rol asignado al usuario correctamente.";
+        private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_ASIGNACION_EXISTE = "El usuario ya tiene asignado ese rol.";
         private const bool EXITO = true;
-        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia de AgregarUsuarioRolService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
-        /// <param name="agregarRepository">Repositorio para agregar entidades.</param>
-        /// <param name="consultarRepository">Repositorio para consultar entidades.</param>
-        public AgregarUsuarioRolService(ILogger<AgregarUsuarioRolService> logger, IAgregarRepository agregarRepository, IConsultarRepository consultarRepository)
+        /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
+        public AgregarUsuarioRolService(ILogger<AgregarUsuarioRolService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
-            this._agregarRepository = agregarRepository ?? throw new ArgumentNullException(nameof(agregarRepository));
-            this._consultarRepository = consultarRepository ?? throw new ArgumentNullException(nameof(consultarRepository));
+            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -47,13 +42,13 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
                 if (solicitud is null) throw new ArgumentNullException(nameof(solicitud));
-
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
                 Expression<Func<UsuarioRolEntity, bool>> filtro = ur => ur.IdUsuario == solicitud.IdUsuario && ur.IdRol == solicitud.IdRol && ur.Activo;
-                var asignacionExistente = await this._consultarRepository.ConsultarAsync<UsuarioRolEntity>(traceId, filtro);
-                if (asignacionExistente is not null)
-                    return new BadRequestObjectResult(new RespuestaModel { Mensaje = MENSAJE_ASIGNACION_EXISTE, Exito = ERROR });
+                var asignacionExistente = await consultarRepository.ConsultarAsync<UsuarioRolEntity>(traceId, filtro);
+                if (asignacionExistente is not null) throw new ArgumentException(MENSAJE_ASIGNACION_EXISTE);
 
                 var nuevaAsignacion = new UsuarioRolEntity();
                 nuevaAsignacion.IdUsuario = solicitud.IdUsuario;
@@ -61,9 +56,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
                 nuevaAsignacion.IdUsuarioAdministrador = solicitud.IdUsuarioAdministrador;
                 nuevaAsignacion.FechaRegistro = DateTime.UtcNow;
                 nuevaAsignacion.Activo = EXITO;
-
-                await this._agregarRepository.AgregarAsync<UsuarioRolEntity>(traceId, nuevaAsignacion);
-
+                await agregarRepository.AgregarAsync<UsuarioRolEntity>(traceId, nuevaAsignacion);
                 var respuesta = new UsuarioRolRespuestaModel();
                 respuesta.Id = nuevaAsignacion.Id;
                 respuesta.IdUsuario = nuevaAsignacion.IdUsuario;
@@ -71,8 +64,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
                 respuesta.IdUsuarioAdministrador = nuevaAsignacion.IdUsuarioAdministrador;
                 respuesta.FechaRegistro = nuevaAsignacion.FechaRegistro;
                 respuesta.Activo = nuevaAsignacion.Activo;
-
-                return new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_ROL_ASIGNADO, Exito = EXITO, Datos = respuesta });
+                return new OkObjectResult(respuesta);
             }
             catch (ArgumentException ex)
             {

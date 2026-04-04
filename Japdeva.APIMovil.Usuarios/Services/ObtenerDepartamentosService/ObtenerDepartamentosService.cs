@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.DepartamentoCacheService;
 
@@ -14,9 +13,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosService
         private readonly ILogger<ObtenerDepartamentosService> _logger;
         private readonly IDepartamentoCacheService _departamentoCacheService;
         private const string MENSAJE_DEPARTAMENTO_NO_ENCONTRADO = "Departamento no encontrado.";
-        private const string MENSAJE_DEPARTAMENTO_OBTENIDO = "Departamento obtenido correctamente.";
-        private const bool EXITO = true;
-        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerDepartamentosService.
@@ -50,7 +46,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosService
                     modelo.Activo = dep.Activo;
                     lista.Add(modelo);
                 }
-                return await Task.FromResult(new OkObjectResult(lista) as IActionResult);
+
+                return new OkObjectResult(lista);
             }
             catch (Exception ex)
             {
@@ -72,23 +69,17 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosService
         public async Task<IActionResult> ObtenerDepartamentoPorIdAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IActionResult resultado;
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                var dep = this._departamentoCacheService.ObtenerPorId(traceId, id);
-                if (dep is null)
-                {
-                    resultado = new NotFoundObjectResult(new RespuestaModel { Mensaje = MENSAJE_DEPARTAMENTO_NO_ENCONTRADO, Exito = ERROR });
-                }
-                else
-                {
-                    var respuesta = new DepartamentoRespuestaModel();
-                    respuesta.Id = dep.Id;
-                    respuesta.Descripcion = dep.Descripcion;
-                    respuesta.Activo = dep.Activo;
-                    resultado = new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_DEPARTAMENTO_OBTENIDO, Exito = EXITO, Datos = respuesta });
-                }
+                var departamento = this._departamentoCacheService.ObtenerPorId(traceId, id);
+                if (departamento is null) throw new KeyNotFoundException(MENSAJE_DEPARTAMENTO_NO_ENCONTRADO);
+             
+                var respuesta = new DepartamentoRespuestaModel();
+                respuesta.Id = departamento.Id;
+                respuesta.Descripcion = departamento.Descripcion;
+                respuesta.Activo = departamento.Activo;
+                return new OkObjectResult(respuesta);   
             }
             catch (Exception ex)
             {
@@ -99,7 +90,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosService
             {
                 this._logger.Fin(traceId, nombreMetodo);
             }
-            return await Task.FromResult(resultado);
+
         }
     }
 }

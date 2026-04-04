@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Usuarios.Models;
 using Japdeva.APIMovil.Usuarios.Services.TipoCedulaCacheService;
 
@@ -14,9 +13,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerTiposCedulaService
         private readonly ILogger<ObtenerTiposCedulaService> _logger;
         private readonly ITipoCedulaCacheService _tipoCedulaCacheService;
         private const string MENSAJE_TIPO_CEDULA_NO_ENCONTRADO = "Tipo de cédula no encontrado.";
-        private const string MENSAJE_TIPO_CEDULA_OBTENIDO = "Tipo de cédula obtenido correctamente.";
-        private const bool EXITO = true;
-        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerTiposCedulaService.
@@ -51,7 +47,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerTiposCedulaService
                     modelo.Activo = tipo.Activo;
                     lista.Add(modelo);
                 }
-                return await Task.FromResult(new OkObjectResult(lista) as IActionResult);
+                return new OkObjectResult(lista);
             }
             catch (Exception ex)
             {
@@ -73,24 +69,18 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerTiposCedulaService
         public async Task<IActionResult> ObtenerTipoCedulaPorIdAsync(string traceId, int id)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IActionResult resultado;
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 var tipo = this._tipoCedulaCacheService.ObtenerPorId(traceId, id);
-                if (tipo is null)
-                {
-                    resultado = new NotFoundObjectResult(new RespuestaModel { Mensaje = MENSAJE_TIPO_CEDULA_NO_ENCONTRADO, Exito = ERROR });
-                }
-                else
-                {
-                    var respuesta = new TipoCedulaRespuestaModel();
-                    respuesta.Id = tipo.Id;
-                    respuesta.Tipo = tipo.Tipo;
-                    respuesta.Formato = tipo.Formato;
-                    respuesta.Activo = tipo.Activo;
-                    resultado = new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_TIPO_CEDULA_OBTENIDO, Exito = EXITO, Datos = respuesta });
-                }
+                if (tipo is null) throw new KeyNotFoundException(MENSAJE_TIPO_CEDULA_NO_ENCONTRADO);
+       
+                var respuesta = new TipoCedulaRespuestaModel();
+                respuesta.Id = tipo.Id;
+                respuesta.Tipo = tipo.Tipo;
+                respuesta.Formato = tipo.Formato;
+                respuesta.Activo = tipo.Activo;
+                return new OkObjectResult(respuesta);
             }
             catch (Exception ex)
             {
@@ -101,7 +91,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerTiposCedulaService
             {
                 this._logger.Fin(traceId, nombreMetodo);
             }
-            return await Task.FromResult(resultado);
         }
     }
 }

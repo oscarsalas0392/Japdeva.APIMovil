@@ -10,7 +10,6 @@ using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Common.Services;
 using Japdeva.APIMovil.Common.Services.DesencriptarService;
 using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
-using Japdeva.APIMovil.Common.Services.EncriptarService;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -64,7 +63,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddOpenApi();
                 builder.Services.AddSingleton<IGenerarTokenService, GenerarTokenService>();
                 builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
-                builder.Services.AddSingleton<IEncriptarService, EncriptarService>();
+
                 builder.Services.AddSingleton<IDesencriptarService, DesencriptarService>();
                 builder.Services.AddSingleton<IEncriptarHelperService, EncriptarHelperService>();
                 builder.Services.AddHttpClient();

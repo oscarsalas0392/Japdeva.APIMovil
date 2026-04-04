@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Ocelot.Middleware;
 using Japdeva.APIMovil.Common.Middlewares;
-using Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware;
+
 using Japdeva.APIMovil.Common.Middlewares.EnviarTraceIdMiddleware;
 
 namespace Japdeva.APIMovil.Common.Extensions
@@ -54,13 +54,13 @@ namespace Japdeva.APIMovil.Common.Extensions
                     app.MapOpenApi();
                 }
                 app.UseHttpsRedirection();
+                app.UseMiddleware<ManejoErroresMiddleware>();
                 app.UseAuthorization();
                 app.MapControllers();
                 app.UseMiddleware<LimitarSolicitudesMiddleware>();
                 app.UseMiddleware<ValidarTokenMiddleware>();
                 app.UseMiddleware<CrearTokenMiddleware>();
                 app.UseMiddleware<EnviarTraceIdMiddleware>();
-                app.UseMiddleware<EncriptarRespuestaMiddleware>();
                 app.UseMiddleware<GestionarTokenRespuestaMiddleware>();
                 await app.UseOcelot();           
                 app.Run();
