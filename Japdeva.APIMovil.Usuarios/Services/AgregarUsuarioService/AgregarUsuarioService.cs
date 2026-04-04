@@ -6,6 +6,7 @@ using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
+using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService;
 
 namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
 {
@@ -16,7 +17,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
     {
         private readonly ILogger<AgregarUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private const string MENSAJE_USUARIO_EXISTE = "Ya existe un usuario registrado con esa identificación.";
+        private readonly IAgregarUsuarioRolService _agregarUsuarioRolService;
+        private const string MENSAJE_USUARIO_EXISTE = "Ya existe un usuario registrado con esa identificación o correo.";
         private const string MENSAJE_CORREO_REQUERIDO = "El correo es requerido.";
         private const string MENSAJE_CONTRASENA_REQUERIDA = "La contraseña es requerida.";
         private const string MENSAJE_NOMBRE_REQUERIDO = "El nombre es requerido.";
@@ -28,16 +30,19 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
         private const string PATRON_CORREO = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
         private const string TRACE_VACIO = "";
         private const bool ACTIVO = true;
+        private const int ROL_USUARIO_EXTERNO = 4;
 
         /// <summary>
         /// Inicializa una nueva instancia de AgregarUsuarioService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
         /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
-        public AgregarUsuarioService(ILogger<AgregarUsuarioService> logger, IServiceProvider serviceProvider)
+        /// <param name="agregarUsuarioRolService">Servicio para asignar roles al usuario registrado.</param>
+        public AgregarUsuarioService(ILogger<AgregarUsuarioService> logger, IServiceProvider serviceProvider, IAgregarUsuarioRolService agregarUsuarioRolService)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this._agregarUsuarioRolService = agregarUsuarioRolService;
         }
 
         /// <summary>
@@ -63,7 +68,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 if (tipoCedula is null) throw new ArgumentException(MENSAJE_CEDULA_INVALIDO);
                 if (!Regex.IsMatch(solicitud.Identificacion, tipoCedula.Formato)) throw new ArgumentException(MENSAJE_CEDULA_FORMATO_INVALIDO);
 
-                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario => usuario.Identificacion == solicitud.Identificacion);
+                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario => usuario.Identificacion == solicitud.Identificacion || usuario.Correo == solicitud.Correo);
                 if (usuarioExistente is not null) throw new ArgumentException(MENSAJE_USUARIO_EXISTE);
                 
                 var nuevoUsuario = new UsuarioEntity();
@@ -86,6 +91,9 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 respuesta.Correo = nuevoUsuario.Correo;
                 respuesta.FechaRegistro = nuevoUsuario.FechaRegistro;
                 respuesta.Activo = nuevoUsuario.Activo;
+
+                await this._agregarUsuarioRolService.AgregarUsuarioRolAsync(traceId, nuevoUsuario.Id, ROL_USUARIO_EXTERNO);
+
                 return new OkObjectResult(respuesta);
             }
             catch (Exception ex)

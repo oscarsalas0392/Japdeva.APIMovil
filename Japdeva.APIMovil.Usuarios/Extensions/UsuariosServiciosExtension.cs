@@ -1,4 +1,5 @@
 using Japdeva.APIMovil.Usuarios.BackgroundServices;
+using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioRolService;
 using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarDepartamentoUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService;
@@ -52,6 +53,7 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
                 builder.Services.AddSingleton<IObtenerDepartamentosService, ObtenerDepartamentosService>();
 
                 builder.Services.AddSingleton<IAgregarUsuarioRolService, AgregarUsuarioRolService>();
+                builder.Services.AddSingleton<IActualizarUsuarioRolService, ActualizarUsuarioRolService>();
                 builder.Services.AddSingleton<IEliminarUsuarioRolService, EliminarUsuarioRolService>();
                 builder.Services.AddSingleton<IObtenerUsuariosRolesService, ObtenerUsuariosRolesService>();
 

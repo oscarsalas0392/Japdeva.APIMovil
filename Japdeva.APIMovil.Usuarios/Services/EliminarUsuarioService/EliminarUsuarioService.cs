@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
@@ -16,8 +15,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
         private readonly ILogger<EliminarUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_USUARIO_NO_ENCONTRADO = "Usuario no encontrado.";
-        private const string MENSAJE_USUARIO_ELIMINADO = "Usuario eliminado correctamente.";
-        private const bool EXITO = true;
         private const bool ACTIVO = false;
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
                 if (usuarioExistente is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
                 usuarioExistente.Activo = ACTIVO;
                 await actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuarioExistente);
-                return new OkObjectResult(new RespuestaModel { Mensaje = MENSAJE_USUARIO_ELIMINADO, Exito = EXITO });
+                return new OkObjectResult(null);
             }
             catch (Exception ex)
             {

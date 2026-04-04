@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
@@ -43,8 +42,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                Expression<Func<UsuarioRolEntity, bool>> filtro = ur => ur.IdUsuario == idUsuario && ur.Activo;
-                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<UsuarioRolEntity>(traceId, pagina, filtro);
+                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<UsuarioRolEntity>(traceId, pagina, usuario => usuario.IdUsuario == idUsuario && usuario.Activo);
                 var lista = new List<UsuarioRolRespuestaModel>();
                 foreach (var item in resultadoConsulta.Lista)
                 {
@@ -52,7 +50,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
                     modelo.Id = item.Id;
                     modelo.IdUsuario = item.IdUsuario;
                     modelo.IdRol = item.IdRol;
-                    modelo.IdUsuarioAdministrador = item.IdUsuarioAdministrador;
                     modelo.FechaRegistro = item.FechaRegistro;
                     modelo.Activo = item.Activo;
                     lista.Add(modelo);

@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
@@ -17,6 +16,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
         private readonly ILogger<ActualizarUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_USUARIO_NO_ENCONTRADO = "Usuario no encontrado.";
+        private const string MENSAJE_NOMBRE_REQUERIDO = "El nombre es requerido.";
+        private const string MENSAJE_APELLIDOS_REQUERIDOS = "Los apellidos son requeridos.";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase ActualizarUsuarioService.
@@ -45,13 +46,14 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
-                Expression<Func<UsuarioEntity, bool>> filtro = u => u.Id == solicitud.Id;
-                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, filtro);
+                var usuarioExistente = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario=> usuario.Id == solicitud.Id);
                 if (usuarioExistente is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
+
+                if (string.IsNullOrEmpty(solicitud.Nombre)) throw new ArgumentException(MENSAJE_NOMBRE_REQUERIDO);
+                if (string.IsNullOrEmpty(solicitud.Apellidos)) throw new ArgumentException(MENSAJE_APELLIDOS_REQUERIDOS);
+
                 usuarioExistente.Nombre = solicitud.Nombre;
                 usuarioExistente.Apellidos = solicitud.Apellidos;
-                usuarioExistente.Correo = solicitud.Correo;
-                usuarioExistente.Activo = solicitud.Activo;
                 usuarioExistente.FechaEdicion = DateTime.UtcNow;
                 await actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuarioExistente);
                 var respuesta = new UsuarioRespuestaModel();

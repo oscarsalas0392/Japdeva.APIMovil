@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Models;
-using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService;
+using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioRolService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioRolService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService;
 
@@ -15,15 +15,6 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     [Route("api/[controller]")]
     public class UsuarioRolController : Controller
     {
-        /// <summary>
-        /// Asigna un rol a un usuario.
-        /// </summary>
-        /// <param name="agregarUsuarioRolService">Servicio para asignar roles.</param>
-        /// <param name="solicitud">Datos de la asignación.</param>
-        /// <returns>Resultado de la operación.</returns>
-        [HttpPost("AgregarUsuarioRol")]
-        public Task<IActionResult> AgregarUsuarioRolAsync([FromServices] IAgregarUsuarioRolService agregarUsuarioRolService, [FromBody] AgregarUsuarioRolSolicitudModel solicitud) =>
-            agregarUsuarioRolService.AgregarUsuarioRolAsync(HttpContext.TraceIdentifier, solicitud);
 
         /// <summary>
         /// Obtiene los roles asignados a un usuario.
@@ -36,6 +27,16 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         public Task<IActionResult> ObtenerRolesPorUsuarioAsync([FromServices] IObtenerUsuariosRolesService obtenerUsuariosRolesService,
             [FromQuery(Name = "id-usuario")] int idUsuario, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerUsuariosRolesService.ObtenerRolesPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario, pagina);
+
+        /// <summary>
+        /// Actualiza la asignación de un rol a un usuario.
+        /// </summary>
+        /// <param name="actualizarUsuarioRolService">Servicio para actualizar asignaciones de roles.</param>
+        /// <param name="solicitud">Modelo con los datos de la asignación a actualizar.</param>
+        /// <returns>Resultado de la operación.</returns>
+        [HttpPut("ActualizarUsuarioRol")]
+        public Task<IActionResult> ActualizarUsuarioRolAsync([FromServices] IActualizarUsuarioRolService actualizarUsuarioRolService, [FromBody] ActualizarUsuarioRolSolicitudModel solicitud) =>
+            actualizarUsuarioRolService.ActualizarUsuarioRolAsync(HttpContext.TraceIdentifier, solicitud);
 
         /// <summary>
         /// Elimina la asignación de un rol a un usuario.

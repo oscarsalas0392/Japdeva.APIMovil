@@ -33,9 +33,8 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         /// <summary>
         /// Obtiene o establece el identificador del usuario administrador que realizó la asignación.
         /// </summary>
-        [Required]
         [Column("idUsuarioAdministrador")]
-        public int IdUsuarioAdministrador { get; set; }
+        public int? IdUsuarioAdministrador { get; set; }
 
         /// <summary>
         /// Obtiene o establece la fecha de creación del registro.

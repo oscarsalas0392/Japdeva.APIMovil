@@ -93,8 +93,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                Expression<Func<UsuarioEntity, bool>> filtro = u => u.Id == id;
-                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, filtro);
+                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario=> usuario.Id == id);
                 if (usuario is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
                 var respuesta = new UsuarioRespuestaModel();
                 respuesta.Id = usuario.Id;

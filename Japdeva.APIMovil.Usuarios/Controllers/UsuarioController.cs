@@ -22,6 +22,7 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         /// <param name="agregarUsuarioService">Servicio para registrar usuarios.</param>
         /// <param name="solicitud">Modelo con los datos del usuario a registrar.</param>
         /// <returns>Respuesta del registro del usuario.</returns>
+        [AllowAnonymous]
         [HttpPost("AgregarUsuario")]
         public Task<IActionResult> AgregarUsuarioAsync([FromServices] IAgregarUsuarioService agregarUsuarioService, [FromBody] AgregarUsuarioSolicitudModel solicitud) =>
             agregarUsuarioService.AgregarUsuarioAsync(HttpContext.TraceIdentifier, solicitud);

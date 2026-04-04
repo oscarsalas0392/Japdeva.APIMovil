@@ -15,13 +15,14 @@ namespace Japdeva.APIMovil.Common.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<LimitarSolicitudesMiddleware> _logger;
-        private readonly string _rutaLimitada = Environment.GetEnvironmentVariable(RUTA_AUTENTICAR_ENV) ?? string.Empty;
+        private readonly string _rutasLimitadas = Environment.GetEnvironmentVariable(RUTAS_LIMITADAS_ENV) ?? string.Empty;
         private readonly ConcurrentDictionary<string, RateLimiter> _limitadores = new();
-        private const string RUTA_AUTENTICAR_ENV = "RUTA_AUTENTICAR";
+        private const string RUTAS_LIMITADAS_ENV = "RUTAS_LIMITADAS";
         private const string MENSAJE_LIMITE_EXCEDIDO = "Ha excedido el límite de intentos. Intente más tarde.";
         private const string IP_DESCONOCIDA = "desconocida";
         private const string TRACE_ID = "SYSTEM";
         private const char SEPARADOR_RUTA = '/';
+        private const char SEPARADOR_RUTAS = ',';
         private const int LIMITE_SOLICITUDES = 5;
         private const int VENTANA_MINUTOS = 1;
         private const int COLA_LIMITE = 0;
@@ -49,8 +50,8 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 this._logger.Inicio(TRACE_ID, nombreMetodo);
                 string[] segmentos = context.Request.Path.ToString().Split(SEPARADOR_RUTA);
-                bool esRutaLimitada = !string.IsNullOrEmpty(this._rutaLimitada)
-                    && segmentos.Any(s => s.Equals(this._rutaLimitada, StringComparison.OrdinalIgnoreCase));
+                bool esRutaLimitada = !string.IsNullOrEmpty(this._rutasLimitadas)
+                    && this._rutasLimitadas.Split(SEPARADOR_RUTAS).Any(r => segmentos.Any(s => s.Equals(r.Trim(), StringComparison.OrdinalIgnoreCase)));
                 if (esRutaLimitada)
                 {
                     string ip = context.Connection.RemoteIpAddress?.ToString() ?? IP_DESCONOCIDA;

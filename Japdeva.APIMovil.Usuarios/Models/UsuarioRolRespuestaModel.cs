@@ -14,8 +14,6 @@ namespace Japdeva.APIMovil.Usuarios.Models
         /// <summary>Obtiene o establece el identificador del rol asignado.</summary>
         public int IdRol { get; set; }
 
-        /// <summary>Obtiene o establece el identificador del administrador que realizó la asignación.</summary>
-        public int IdUsuarioAdministrador { get; set; }
 
         /// <summary>Obtiene o establece la fecha de creación del registro.</summary>
         public DateTime FechaRegistro { get; set; }

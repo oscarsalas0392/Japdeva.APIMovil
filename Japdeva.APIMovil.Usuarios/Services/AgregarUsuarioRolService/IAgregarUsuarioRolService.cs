@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Japdeva.APIMovil.Usuarios.Models;
-
 namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
 {
     /// <summary>
@@ -12,7 +9,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioRolService
         /// Asigna un rol a un usuario.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
-        /// <param name="solicitud">Datos de la asignación de rol.</param>
-        Task<IActionResult> AgregarUsuarioRolAsync(string traceId, AgregarUsuarioRolSolicitudModel solicitud);
+        /// <param name="idUsuario">Identificador del usuario.</param>
+        /// <param name="idRol">Identificador del rol a asignar.</param>
+        Task AgregarUsuarioRolAsync(string traceId, int idUsuario, int idRol);
     }
 }

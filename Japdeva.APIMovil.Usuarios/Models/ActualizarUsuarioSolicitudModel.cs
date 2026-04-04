@@ -14,10 +14,5 @@ namespace Japdeva.APIMovil.Usuarios.Models
         /// <summary>Obtiene o establece los apellidos del usuario.</summary>
         public string Apellidos { get; set; } = string.Empty;
 
-        /// <summary>Obtiene o establece el correo electrónico del usuario.</summary>
-        public string Correo { get; set; } = string.Empty;
-
-        /// <summary>Obtiene o establece si el usuario está activo.</summary>
-        public bool Activo { get; set; }
     }
 }
