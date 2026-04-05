@@ -55,7 +55,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarContrasenaUsuarioService
                 if (usuario is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
 
                 if (usuario.Contrasena != solicitud.ContrasenaAnterior)
-                    throw new UnauthorizedAccessException(MENSAJE_CONTRASENA_ANTERIOR_INCORRECTA);
+                    throw new ArgumentException(MENSAJE_CONTRASENA_ANTERIOR_INCORRECTA);
 
                 usuario.Contrasena = solicitud.ContrasenaNueva;
                 usuario.FechaExpiracionContrasena = null;
