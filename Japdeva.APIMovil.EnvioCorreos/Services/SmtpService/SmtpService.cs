@@ -1,12 +1,12 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Japdeva.APIMovil.Common.Extensions;
 
-#pragma warning disable SYSLIB0006, CS0618
 namespace Japdeva.APIMovil.EnvioCorreos.Services.SmtpService
 {
     /// <summary>
-    /// Servicio para el envío de correos electrónicos a través de SMTP.
+    /// Servicio para el envío de correos electrónicos a través de SMTP usando MailKit.
     /// La configuración se obtiene de variables de entorno al iniciar la aplicación.
     /// </summary>
     public class SmtpService : ISmtpService
@@ -17,15 +17,21 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.SmtpService
         private readonly string _usuario;
         private readonly string _contrasena;
         private readonly string _remitente;
-        private readonly bool _usarSsl;
+        private readonly string _remitenteNombre;
+        private readonly SecureSocketOptions _opcionesSeguridad;
+        private readonly int _timeoutConexionSegundos;
         private const string ENV_HOST = "SMTP_HOST";
         private const string ENV_PUERTO = "SMTP_PUERTO";
         private const string ENV_USUARIO = "SMTP_USUARIO";
         private const string ENV_CONTRASENA = "SMTP_CONTRASENA";
         private const string ENV_REMITENTE = "SMTP_REMITENTE";
+        private const string ENV_REMITENTE_NOMBRE = "SMTP_REMITENTE_NOMBRE";
         private const string ENV_USAR_SSL = "SMTP_USAR_SSL";
+        private const string ENV_TIMEOUT_CONEXION = "SMTP_TIMEOUT_SEGUNDOS";
         private const int PUERTO_DEFECTO = 587;
-        private const bool SSL_DEFECTO = true;
+        private const int TIMEOUT_CONEXION_DEFECTO = 30;
+        private const string REMITENTE_NOMBRE_DEFECTO = "Japdeva";
+        private const bool DESCONECTAR_LIMPIAMENTE = true;
 
         /// <summary>
         /// Inicializa el servicio SMTP leyendo la configuración desde variables de entorno.
@@ -38,12 +44,20 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.SmtpService
             this._usuario = Environment.GetEnvironmentVariable(ENV_USUARIO) ?? string.Empty;
             this._contrasena = Environment.GetEnvironmentVariable(ENV_CONTRASENA) ?? string.Empty;
             this._remitente = Environment.GetEnvironmentVariable(ENV_REMITENTE) ?? string.Empty;
-            this._usarSsl = bool.TryParse(Environment.GetEnvironmentVariable(ENV_USAR_SSL), out bool ssl) ? ssl : SSL_DEFECTO;
-            this._puerto = int.TryParse(Environment.GetEnvironmentVariable(ENV_PUERTO), out int puerto) ? puerto : PUERTO_DEFECTO;
+            this._remitenteNombre = Environment.GetEnvironmentVariable(ENV_REMITENTE_NOMBRE) ?? REMITENTE_NOMBRE_DEFECTO;
+            bool puertoParsed = int.TryParse(Environment.GetEnvironmentVariable(ENV_PUERTO), out int puertoVal);
+            this._puerto = puertoParsed ? puertoVal : PUERTO_DEFECTO;
+
+            bool timeoutParsed = int.TryParse(Environment.GetEnvironmentVariable(ENV_TIMEOUT_CONEXION), out int timeoutVal);
+            this._timeoutConexionSegundos = timeoutParsed ? timeoutVal : TIMEOUT_CONEXION_DEFECTO;
+
+            bool usarSslParsed = bool.TryParse(Environment.GetEnvironmentVariable(ENV_USAR_SSL), out bool usarSslVal);
+            bool usarSsl = usarSslParsed && usarSslVal;
+            this._opcionesSeguridad = usarSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.Auto;
         }
 
         /// <summary>
-        /// Envía un correo electrónico a través del servidor SMTP configurado.
+        /// Envía un correo electrónico a través del servidor SMTP configurado usando MailKit.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="destinatario">Dirección de correo del destinatario.</param>
@@ -56,12 +70,26 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.SmtpService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                using var cliente = new SmtpClient(this._host, this._puerto);
-                cliente.EnableSsl = this._usarSsl;
-                cliente.Credentials = new NetworkCredential(this._usuario, this._contrasena);
-                using var mensaje = new MailMessage(this._remitente, destinatario, asunto, cuerpo);
-                mensaje.IsBodyHtml = esCuerpoHtml;
-                await cliente.SendMailAsync(mensaje);
+
+                MimeMessage mensaje = new MimeMessage();
+                mensaje.From.Add(new MailboxAddress(this._remitenteNombre, this._remitente));
+                mensaje.To.Add(MailboxAddress.Parse(destinatario));
+                mensaje.Subject = asunto;
+
+                BodyBuilder bodyBuilder = new BodyBuilder();
+                if (esCuerpoHtml)
+                    bodyBuilder.HtmlBody = cuerpo;
+                else
+                    bodyBuilder.TextBody = cuerpo;
+
+                mensaje.Body = bodyBuilder.ToMessageBody();
+
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(this._timeoutConexionSegundos));
+                using SmtpClient cliente = new SmtpClient();
+                await cliente.ConnectAsync(this._host, this._puerto, SecureSocketOptions.SslOnConnect, cts.Token);
+                await cliente.AuthenticateAsync(this._usuario, this._contrasena, cts.Token);
+                await cliente.SendAsync(mensaje, cancellationToken: cts.Token);
+                await cliente.DisconnectAsync(DESCONECTAR_LIMPIAMENTE, cts.Token);
             }
             catch (Exception ex)
             {
@@ -75,4 +103,3 @@ namespace Japdeva.APIMovil.EnvioCorreos.Services.SmtpService
         }
     }
 }
-#pragma warning restore SYSLIB0006, CS0618

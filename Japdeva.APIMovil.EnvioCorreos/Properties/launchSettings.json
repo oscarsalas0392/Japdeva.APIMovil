@@ -22,12 +22,14 @@
         "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
         "CONNECTION_STRING": "Host=localhost;Port=5432;Database=EnvioCorreos;Username=postgres;Password=1234",
         "SMTP_HOST": "smtp.gmail.com",
-        "SMTP_PUERTO": "587",
-        "SMTP_USUARIO": "",
-        "SMTP_CONTRASENA": "",
-        "SMTP_REMITENTE": "",
+        "SMTP_PUERTO": "465",
+        "SMTP_USUARIO": "japdeva927@gmail.com",
+        "SMTP_CONTRASENA": "umzz kafk xrei bwzb",
+        "SMTP_REMITENTE": "japdeva927@gmail.com",
         "SMTP_USAR_SSL": "true",
-        "CORREO_MAX_INTENTOS": "3"
+        "CORREO_MAX_INTENTOS": "3",
+        "COLAS_URL": "https://localhost:7001",
+        "GRPC_CLAVE_INTERNA": "claveInterna123"
       }
     }
   }

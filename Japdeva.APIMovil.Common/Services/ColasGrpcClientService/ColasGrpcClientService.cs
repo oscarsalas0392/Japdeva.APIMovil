@@ -77,7 +77,7 @@ namespace Japdeva.APIMovil.Common.Services.ColasGrpcClientService
                     IdRpc = idRpc,
                     Prioridad = prioridad,
                     Metadatos = metadatos,
-                    TraceId = traceId
+                    TraceId = Guid.NewGuid().ToString(),
                 };
                 MensajeResponse respuesta = await this._cliente.PublicarMensajeAsync(solicitud, this._cabecerasAuth);
                 return this._mapper.ConvertirMapAModelo(traceId, respuesta);

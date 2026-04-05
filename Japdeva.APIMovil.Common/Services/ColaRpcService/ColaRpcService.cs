@@ -47,7 +47,7 @@ namespace Japdeva.APIMovil.Common.Services.ColaRpcService
                 this._logger.Inicio(traceId, nombreMetodo);
                 string idRpc = Guid.NewGuid().ToString();
                 string metadatos = string.Format(FORMATO_METADATOS_COLA_RESPUESTA, nombreColaRespuesta);
-                await this._colasGrpcClientService.PublicarMensajeAsync(Guid.NewGuid().ToString(), nombreCola, contenido, idRpc, PRIORIDAD_ALTA, metadatos);
+                await this._colasGrpcClientService.PublicarMensajeAsync(traceId, nombreCola, contenido, idRpc, PRIORIDAD_ALTA, metadatos);
                 resultado = await this._colasGrpcClientService.ObtenerMensajePorIdRpcAsync(traceId, nombreColaRespuesta, idRpc, cancellationToken);
             }
             catch (Exception ex)

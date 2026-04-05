@@ -4,6 +4,7 @@ using Japdeva.APIMovil.EnvioCorreos.Services.EnviarCorreoHistoricoService;
 using Japdeva.APIMovil.EnvioCorreos.Services.ProcesarCorreosPendientesService;
 using Japdeva.APIMovil.EnvioCorreos.Services.SmtpService;
 
+
 namespace Japdeva.APIMovil.EnvioCorreos.Extensions
 {
     /// <summary>
@@ -30,6 +31,7 @@ namespace Japdeva.APIMovil.EnvioCorreos.Extensions
 
                 builder.Services.AddHostedService<EnviarCorreosBackGroundService>();
                 builder.Services.AddHostedService<HistoricoCorreosBackGroundService>();
+                builder.Services.AddHostedService<EnviarCorreoPorColaBackGroundService>();
 
                 return builder;
             }
