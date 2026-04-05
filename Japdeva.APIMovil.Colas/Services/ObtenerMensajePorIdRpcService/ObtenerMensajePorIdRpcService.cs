@@ -130,12 +130,10 @@ namespace Japdeva.APIMovil.Colas.Services.ObtenerMensajePorIdRpcService
                 }
 
                 // 1. Registrar espera ANTES de revisar caché (evita race condition)
-                Task<MensajeColasRespuestaModel?> tareaEspera =
-                    this._suscripcionColaService.EsperarMensajePorIdRpcAsync(idRpc, localCts.Token);
+                Task<MensajeColasRespuestaModel?> tareaEspera = this._suscripcionColaService.EsperarMensajePorIdRpcAsync(nombreCola, idRpc, localCts.Token);
 
                 // 2. Buscar en caché (sin consulta a BD)
-                MensajeColasRespuestaModel? enCache =
-                    await this._mensajeColaService.BuscarEnCachePorIdRpcAsync(traceId, nombreCola, idRpc);
+                MensajeColasRespuestaModel? enCache = await this._mensajeColaService.BuscarEnCachePorIdRpcAsync(traceId, nombreCola, idRpc);
                 if (enCache is not null)
                 {
                     await localCts.CancelAsync();

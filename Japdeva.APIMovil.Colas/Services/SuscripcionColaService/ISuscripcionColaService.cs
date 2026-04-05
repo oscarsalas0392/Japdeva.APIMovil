@@ -30,12 +30,13 @@ namespace Japdeva.APIMovil.Colas.Services.SuscripcionColaService
         void NotificarMensajes(string nombreCola, IEnumerable<MensajeColasRespuestaModel> mensajes);
 
         /// <summary>
-        /// Registra una espera puntual por un mensaje con un IdRpc específico.
-        /// Cuando el BackgroundService notifique ese mensaje, la tarea se completa sin polling a BD.
+        /// Registra una espera puntual por un mensaje con un IdRpc específico en una cola concreta.
+        /// Cuando el BackgroundService notifique ese mensaje en esa cola, la tarea se completa sin polling a BD.
         /// </summary>
+        /// <param name="nombreCola">Nombre de la cola donde se espera el mensaje.</param>
         /// <param name="idRpc">Identificador RPC del mensaje esperado.</param>
         /// <param name="cancellationToken">Token de cancelación para respetar el timeout del cliente.</param>
         /// <returns>El mensaje cuando llegue, o null si se cancela la espera.</returns>
-        Task<MensajeColasRespuestaModel?> EsperarMensajePorIdRpcAsync(string idRpc, CancellationToken cancellationToken);
+        Task<MensajeColasRespuestaModel?> EsperarMensajePorIdRpcAsync(string nombreCola, string idRpc, CancellationToken cancellationToken);
     }
 }

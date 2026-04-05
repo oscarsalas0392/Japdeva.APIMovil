@@ -13,10 +13,15 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class ConfigurarServiciosExtension
     {
+
+        private const string USAR_MANEJO_ERRORES_ENV = "MANEJO_ERRORES";
+        private const string MANEJO_ERRORES_DEFAULT = "1";
+
         /// <summary>
         /// Configura los servicios para los microservicios de la aplicación.
         /// </summary>
         /// <param name="app">Instancia de la aplicación web.</param>
+        /// 
         public static void ConfigurarServiciosMicroservicios(this WebApplication app)
         {
             try
@@ -27,7 +32,10 @@ namespace Japdeva.APIMovil.Common.Extensions
                     app.MapOpenApi();
                 }
                 app.UseHttpsRedirection();
-                app.UseMiddleware<ManejoErroresMiddleware>();
+
+                string usarManejoErrores = Environment.GetEnvironmentVariable(USAR_MANEJO_ERRORES_ENV) ?? MANEJO_ERRORES_DEFAULT;
+
+                if(usarManejoErrores == MANEJO_ERRORES_DEFAULT) app.UseMiddleware<ManejoErroresMiddleware>();
                 app.UseAuthentication();
                 app.UseAuthorization();
                 app.MapControllers();

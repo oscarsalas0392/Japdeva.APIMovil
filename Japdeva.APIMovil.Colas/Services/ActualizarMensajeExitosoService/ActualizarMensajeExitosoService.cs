@@ -62,13 +62,17 @@ namespace Japdeva.APIMovil.Colas.Services.ActualizarMensajeExitosoService
                 var mensajeExistente = await consultarRepository.ConsultarAsync<MensajeColaEntity>(traceId, m => m.Id == mensaje.Id);
                 if (mensajeExistente is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ID_INVALIDO, mensaje.Id));
 
-                if (mensajeExistente.TraceId != mensaje.TraceId) throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
+                if (mensajeExistente.TraceId != mensaje.TraceId)
+                {
+                    throw new ArgumentException(string.Format(MENSAJE_ERROR_TRACEID_NO_COINCIDE, mensaje.Id));
+                }
 
                 var estado = this._estadoMensajeService.ObtenerEstadoMensajePorId(traceId, (int)EstadoMensajeModel.Procesado);
                 if (estado is null) throw new KeyNotFoundException(MENSAJE_ERROR_ESTADO_PROCESADO);
 
                 mensajeExistente.EstadoId = estado.Id;
                 mensajeExistente.TraceId = Guid.NewGuid().ToString();
+                mensajeExistente.FechaEdicion = DateTime.UtcNow;
 
                 await actualizarRepository.ActualizarAsync<MensajeColaEntity>(traceId, mensajeExistente);
 

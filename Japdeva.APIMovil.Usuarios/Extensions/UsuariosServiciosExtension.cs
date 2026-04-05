@@ -16,6 +16,7 @@ using Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerTiposCedulaService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService;
+using Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService;
 using Japdeva.APIMovil.Usuarios.Services.RolCacheService;
 using Japdeva.APIMovil.Usuarios.Services.TipoCedulaCacheService;
 
@@ -38,6 +39,7 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
                 if (builder is null) throw new ArgumentNullException(nameof(builder));
 
                 builder.Services.AddSingleton<IAutenticarUsuarioService, AutenticarUsuarioService>();
+                builder.Services.AddSingleton<IOlvidarContrasenaService, OlvidarContrasenaService>();
                 builder.Services.AddSingleton<ICrearUsuarioService, CrearUsuarioService>();
                 builder.Services.AddSingleton<IAgregarUsuarioService, AgregarUsuarioService>();
                 builder.Services.AddSingleton<IActualizarUsuarioService, ActualizarUsuarioService>();

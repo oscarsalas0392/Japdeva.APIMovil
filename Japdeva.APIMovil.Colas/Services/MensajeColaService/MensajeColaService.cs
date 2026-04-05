@@ -60,7 +60,9 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
                 if (cola is null) return null;
                 MensajeColaEntity? entidad;
                 lock (this._mensajesCache)
+                {
                     entidad = this._mensajesCache.FirstOrDefault(m => m.ColaId == cola.Id && m.IdRpc == idRpc);
+                }
                 return entidad is null ? null : MapEntityToRespuestaModel(entidad);
             }
             catch (Exception ex)
@@ -112,7 +114,7 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
                 }
 
                 if (mensajesParaNotificar.Any())
-                    NotificarNuevosMensajes(traceId, mensajesParaNotificar);
+                    await NotificarNuevosMensajesAsync(traceId, mensajesParaNotificar);
             }
             catch (Exception ex)
             {
@@ -144,6 +146,7 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
                 {
                     return this._mensajesCache.Where(x => x.ColaId == cola.Id).ToList();
                 }
+                
             }
             catch (Exception ex)
             {
@@ -189,10 +192,11 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
 
         /// <summary>
         /// Notifica a los suscriptores sobre nuevos mensajes agrupados por cola.
+        /// Busca la cola primero en caché y luego en base de datos para cubrir colas recién creadas.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad para el seguimiento de la operación.</param>
         /// <param name="nuevos">Lista de entidades de mensajes nuevos a notificar.</param>
-        public void NotificarNuevosMensajes(string traceId, List<MensajeColaEntity> nuevos)
+        public async Task NotificarNuevosMensajesAsync(string traceId, List<MensajeColaEntity> nuevos)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -201,7 +205,7 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
                 var porCola = nuevos.GroupBy(m => m.ColaId);
                 foreach (var grupo in porCola)
                 {
-                    var cola = this._colaService.ObtenerColaPorId(grupo.Key);
+                    var cola = await this._colaService.ObtenerColaPorIdAsync(traceId, grupo.Key);
                     if (cola is null) continue;
                     List<MensajeColasRespuestaModel> modelos = grupo.Select(e => MapEntityToRespuestaModel(e)).ToList();
                     this._suscripcionColaService.NotificarMensajes(cola.Nombre, modelos);

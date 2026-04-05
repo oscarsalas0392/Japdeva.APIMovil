@@ -129,11 +129,9 @@ namespace Japdeva.APIMovil.Colas.Services.ColaGrpcService
                 foreach (var entidad in pendientes)
                     await responseStream.WriteAsync(MapEntityToMensajeResponse(entidad));
 
-                await foreach (var mensaje in reader.ReadAllAsync(context.CancellationToken))
-                    await responseStream.WriteAsync(MapToMensajeResponse(mensaje));
+                //await foreach (var mensaje in reader.ReadAllAsync(context.CancellationToken))
+                //    await responseStream.WriteAsync(MapToMensajeResponse(mensaje));
             }
-            catch (OperationCanceledException) { }
-            catch (RpcException) { throw; }
             catch (Exception ex)
             {
                 this._logger.Error(traceId, nombreMetodo, ex);
@@ -227,7 +225,8 @@ namespace Japdeva.APIMovil.Colas.Services.ColaGrpcService
             catch (Exception ex)
             {
                 this._logger.Error(traceId, nombreMetodo, ex);
-                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+                throw;
+               
             }
             finally { this._logger.Fin(traceId, nombreMetodo); }
         }

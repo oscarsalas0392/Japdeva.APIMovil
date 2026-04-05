@@ -10,8 +10,8 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
     {
         private readonly ILogger<MensajesBackgroundService> _logger;
         private readonly IMensajeColaService _mensajeColaService;
-        private const int DELAY_MILISEGUNDOS = 100;
-        private const int DELAY_SEGUNDOS = 2;
+        private const int DELAY_MILISEGUNDOS = 15;
+        private const int DELAY_MILISEGUNDOS_MAXIMOS = 20;
         private const string TRACE_ID = "N/A";
         private const int CANTIDAD_MENSAJES_MINIMA = 0;
 
@@ -50,7 +50,7 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
                         }
                         else
                         {
-                            await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
+                            await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS_MAXIMOS), stoppingToken);
                         }
                     }
                     catch (OperationCanceledException)
@@ -60,7 +60,7 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
                     catch (Exception ex)
                     {
                         this._logger.Error(TRACE_ID, nombreMetodo, ex);
-                        await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
+                        await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS_MAXIMOS), stoppingToken);
                     }
                 }
             }

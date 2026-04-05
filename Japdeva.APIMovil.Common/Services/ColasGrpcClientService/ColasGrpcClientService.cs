@@ -184,7 +184,8 @@ namespace Japdeva.APIMovil.Common.Services.ColasGrpcClientService
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="id">Id del mensaje en Colas.</param>
         /// <param name="traceIdMensaje">TraceId original del mensaje.</param>
-        public async Task ActualizarMensajeEnProcesoAsync(string traceId, long id, string traceIdMensaje)
+        /// <returns>El mensaje actualizado</returns>
+        public async Task<ActualizarMensajeResponse> ActualizarMensajeEnProcesoAsync(string traceId, long id, string traceIdMensaje)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
@@ -193,6 +194,7 @@ namespace Japdeva.APIMovil.Common.Services.ColasGrpcClientService
                 ActualizarMensajeRequest solicitud = new ActualizarMensajeRequest { Id = id, TraceId = traceIdMensaje };
                 ActualizarMensajeResponse respuesta = await this._cliente.ActualizarMensajeEnProcesoAsync(solicitud, this._cabecerasAuth);
                 if (!respuesta.Exito) throw new InvalidOperationException(MENSAJE_ACTUALIZACION_FALLIDA);
+                return respuesta;
             }
             catch (Exception ex)
             {

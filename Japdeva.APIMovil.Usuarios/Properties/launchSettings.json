@@ -20,7 +20,9 @@
         "ISSUER": "https://localhost:7075",
         "AUDIENCE": "apiUsuarios",
         "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
-        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Usuarios;Username=postgres;Password=1234"
+        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Usuarios;Username=postgres;Password=1234",
+        "COLAS_URL": "https://localhost:7001",
+        "GRPC_CLAVE_INTERNA": "claveInterna123"
       }
     }
   }

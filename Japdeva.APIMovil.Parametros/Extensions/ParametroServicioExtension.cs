@@ -1,4 +1,5 @@
 using Japdeva.APIMovil.Parametros.BackgroundServices;
+using Japdeva.APIMovil.Parametros.BackGroundServices;
 using Japdeva.APIMovil.Parametros.Services.MensajeCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
@@ -42,7 +43,7 @@ namespace Japdeva.APIMovil.Parametros.Extensions
 
                 // Registrar servicio de fondo para actualización de cachés
                 builder.Services.AddHostedService<ParametrosBackGroundService>();
-
+                builder.Services.AddHostedService<ObtenerPlantillaBackGroundService>();
                 return builder;
             }
             catch (Exception)

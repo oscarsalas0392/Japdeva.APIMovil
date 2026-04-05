@@ -121,11 +121,12 @@ namespace Japdeva.APIMovil.Colas.Services.SuscripcionColaService
                             canal.Writer.TryWrite(mensaje);
                 }
 
-                // Completar esperas puntuales por IdRpc (ObtenerMensajePorIdRpc)
+                // Completar esperas puntuales por cola+IdRpc (ObtenerMensajePorIdRpc)
                 foreach (MensajeColasRespuestaModel mensaje in listaMensajes)
                 {
+                    string clave = $"{nombreCola}:{mensaje.IdRpc}";
                     if (!string.IsNullOrEmpty(mensaje.IdRpc) &&
-                        this._esperandoPorIdRpc.TryRemove(mensaje.IdRpc, out TaskCompletionSource<MensajeColasRespuestaModel>? tcs))
+                        this._esperandoPorIdRpc.TryRemove(clave, out TaskCompletionSource<MensajeColasRespuestaModel>? tcs))
                         tcs.TrySetResult(mensaje);
                 }
             }
@@ -141,38 +142,39 @@ namespace Japdeva.APIMovil.Colas.Services.SuscripcionColaService
         }
 
         /// <summary>
-        /// Registra una espera puntual por un mensaje con un IdRpc específico.
-        /// Cuando el BackgroundService notifique ese mensaje, la tarea se completa sin polling a BD.
+        /// Registra una espera puntual por un mensaje con un IdRpc específico en una cola concreta.
+        /// Cuando el BackgroundService notifique ese mensaje en esa cola, la tarea se completa sin polling a BD.
         /// </summary>
+        /// <param name="nombreCola">Nombre de la cola donde se espera el mensaje.</param>
         /// <param name="idRpc">Identificador RPC del mensaje esperado.</param>
         /// <param name="cancellationToken">Token de cancelación para respetar el timeout del cliente.</param>
         /// <returns>El mensaje cuando llegue, o null si se cancela la espera.</returns>
-        public async Task<MensajeColasRespuestaModel?> EsperarMensajePorIdRpcAsync(string idRpc, CancellationToken cancellationToken)
+        public async Task<MensajeColasRespuestaModel?> EsperarMensajePorIdRpcAsync(string nombreCola, string idRpc, CancellationToken cancellationToken)
         {
+            string clave = $"{nombreCola}:{idRpc}";
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
-                this._logger.Inicio(idRpc, nombreMetodo);
+                this._logger.Inicio(clave, nombreMetodo);
                 TaskCompletionSource<MensajeColasRespuestaModel> tcs =
                     new TaskCompletionSource<MensajeColasRespuestaModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-                this._esperandoPorIdRpc[idRpc] = tcs;
+                this._esperandoPorIdRpc[clave] = tcs;
                 return await tcs.Task.WaitAsync(cancellationToken);
             }
             catch (OperationCanceledException ex)
             {
-                this._logger.Error(idRpc, nombreMetodo, ex);
+                this._logger.Error(clave, nombreMetodo, ex);
                 throw;
-
             }
             catch (Exception ex)
             {
-                this._logger.Error(idRpc, nombreMetodo, ex);
+                this._logger.Error(clave, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                this._esperandoPorIdRpc.TryRemove(idRpc, out _);
-                this._logger.Fin(idRpc, nombreMetodo);
+                this._esperandoPorIdRpc.TryRemove(clave, out _);
+                this._logger.Fin(clave, nombreMetodo);
             }
         }
     }

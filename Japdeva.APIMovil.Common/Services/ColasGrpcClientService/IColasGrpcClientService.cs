@@ -1,3 +1,4 @@
+using Japdeva.APIMovil.Common.ColasGrpc;
 using Japdeva.APIMovil.Common.Models;
 
 namespace Japdeva.APIMovil.Common.Services.ColasGrpcClientService
@@ -46,7 +47,7 @@ namespace Japdeva.APIMovil.Common.Services.ColasGrpcClientService
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="id">Id del mensaje en Colas.</param>
         /// <param name="traceIdMensaje">TraceId original del mensaje.</param>
-        Task ActualizarMensajeEnProcesoAsync(string traceId, long id, string traceIdMensaje);
+        Task<ActualizarMensajeResponse> ActualizarMensajeEnProcesoAsync(string traceId, long id, string traceIdMensaje);
 
         /// <summary>
         /// Notifica a Colas que el mensaje fue procesado exitosamente.

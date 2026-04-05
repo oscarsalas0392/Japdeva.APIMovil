@@ -40,8 +40,8 @@
         "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
         "ROL_CLIENTE": "Usuario",
         "RUTA_AUTENTICAR": "Autenticar",
-        "RUTAS_SIN_TOKEN": "Autenticar,AgregarUsuario",
-        "RUTAS_LIMITADAS": "Autenticar,AgregarUsuario"
+        "RUTAS_SIN_TOKEN": "Autenticar,AgregarUsuario,OlvidarContrasena",
+        "RUTAS_LIMITADAS": "Autenticar,AgregarUsuario,OlvidarContrasena"
       }
     }
   }

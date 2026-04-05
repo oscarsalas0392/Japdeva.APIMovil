@@ -132,6 +132,52 @@ namespace Japdeva.APIMovil.Colas.Services.ColaService
         }
 
         /// <summary>
+        /// Obtiene una cola por su identificador, buscando primero en caché y luego en base de datos.
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="id">Identificador de la cola a buscar.</param>
+        /// <returns>La entidad de cola encontrada o null si no existe.</returns>
+        public async Task<ColaEntity?> ObtenerColaPorIdAsync(string traceId, long id)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                ColaEntity? cola;
+                lock (this._colasCache)
+                {
+                    cola = this._colasCache.FirstOrDefault(c => c.Id == id);
+                }
+
+                if (cola is null)
+                {
+                    using var scope = this._serviceProvider.CreateScope();
+                    var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                    cola = await consultarRepository.ConsultarAsync<ColaEntity>(traceId, c => c.Id == id);
+                    if (cola is not null)
+                    {
+                        lock (this._colasCache)
+                        {
+                            if (!this._colasCache.Any(c => c.Id == cola.Id))
+                                this._colasCache.Add(cola);
+                        }
+                    }
+                }
+
+                return cola;
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
         /// Cuenta el número total de colas activas en el sistema.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad para el seguimiento de la operación.</param>
