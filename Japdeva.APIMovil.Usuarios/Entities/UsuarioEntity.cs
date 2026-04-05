@@ -75,6 +75,13 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         public DateTime? FechaEdicion { get; set; }
 
         /// <summary>
+        /// Obtiene o establece la fecha de expiración de la contraseña temporal.
+        /// Null indica que la contraseña es permanente y no tiene vencimiento.
+        /// </summary>
+        [Column("fechaExpiracionContrasena")]
+        public DateTime? FechaExpiracionContrasena { get; set; }
+
+        /// <summary>
         /// Obtiene o establece si el usuario está activo en el sistema.
         /// </summary>
         [Column("activo")]

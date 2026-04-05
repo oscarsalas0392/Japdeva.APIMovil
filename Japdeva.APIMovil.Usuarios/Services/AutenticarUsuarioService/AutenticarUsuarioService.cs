@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
@@ -15,7 +16,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
         private readonly ILogger<AutenticarUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private const string MENSAJE_CREDENCIALES_INVALIDAS = "Credenciales inválidas.";
-
+        private const string MENSAJE_CONTRASENA_EXPIRADA = "La contraseña temporal ha expirado. Solicite una nueva contraseña.";
 
         /// <summary>
         /// Inicializa una nueva instancia de AutenticarUsuarioService.
@@ -30,6 +31,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
 
         /// <summary>
         /// Verifica las credenciales del usuario y devuelve sus datos si son válidas.
+        /// Si el usuario entró con contraseña temporal, limpia la fecha de expiración al autenticar.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="solicitud">Credenciales del usuario a autenticar.</param>
@@ -41,11 +43,17 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 if (solicitud is null) throw new ArgumentNullException(nameof(solicitud));
+
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(
-                    traceId, u => u.Correo == solicitud.Correo && u.Activo);
+                var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
+
+                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, u => u.Correo == solicitud.Correo && u.Activo);
+
                 if (usuario is null || usuario.Contrasena != solicitud.Contrasena) throw new UnauthorizedAccessException(MENSAJE_CREDENCIALES_INVALIDAS);
+
+                if (usuario.FechaExpiracionContrasena.HasValue && usuario.FechaExpiracionContrasena.Value < DateTime.UtcNow) throw new UnauthorizedAccessException(MENSAJE_CONTRASENA_EXPIRADA);
+
                 var respuesta = new AutenticarUsuarioRespuestaModel();
                 respuesta.Id = usuario.Id;
                 respuesta.Nombre = usuario.Nombre;

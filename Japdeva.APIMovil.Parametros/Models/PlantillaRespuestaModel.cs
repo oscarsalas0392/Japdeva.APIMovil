@@ -7,5 +7,11 @@ namespace Japdeva.APIMovil.Parametros.Models
     {
         /// <summary>Contenido HTML de la plantilla de correo.</summary>
         public string Plantilla { get; set; } = string.Empty;
+
+        /// <summary>Indica si la plantilla está en formato HTML.</summary>
+        public bool EsHtml { get; set; }
+
+        /// <summary>Asunto del correo asociado a la plantilla.</summary>
+        public string Asunto { get; set; } = string.Empty;
     }
 }

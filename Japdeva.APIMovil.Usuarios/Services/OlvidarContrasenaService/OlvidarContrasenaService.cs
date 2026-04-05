@@ -32,14 +32,12 @@ namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
         private const string COLA_OBTENER_PLANTILLA = "ObtenerPlantilla";
         private const string COLA_RESPUESTA = "Respuesta";
         private const string COLA_ENVIAR_CORREO = "EnviarCorreo";
-        private const string ASUNTO_CORREO = "Recuperación de contraseña";
+        private const string VARIABLE_ANIO = "{{ANIO}}";
         private const string ID_PLANTILLA = "1";
         private const int LONGITUD_CONTRASENA_TEMPORAL = 10;
         private const int INDICE_INICIAL = 0;
         private const int PRIORIDAD_ALTA = 1;
-        private const bool ES_CUERPO_HTML = true;
-        private const string PRUEBA = "oscar.salas03@gmail.com";
-
+        private const int HORAS_VALIDEZ_CONTRASENA_TEMPORAL = 24;
         /// <summary>
         /// Inicializa una nueva instancia de OlvidarContrasenaService.
         /// </summary>
@@ -85,6 +83,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
                 {
                     string contrasenaTemporal = this.GenerarContrasenaTemporal(traceId);
                     usuario.Contrasena = contrasenaTemporal;
+                    usuario.FechaExpiracionContrasena = DateTime.UtcNow.AddHours(HORAS_VALIDEZ_CONTRASENA_TEMPORAL);
                     usuario.FechaEdicion = DateTime.UtcNow;
 
                     var colaMensaje = await this._colaRpcService.EnviarYEsperarRespuestaAsync(traceId, COLA_OBTENER_PLANTILLA, COLA_RESPUESTA, ID_PLANTILLA, CancellationToken.None);
@@ -96,13 +95,14 @@ namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
                     string cuerpo = plantillaRespuestaModel.Plantilla;
                     cuerpo = cuerpo.Replace(VARIABLE_NOMBRE, usuario.Nombre);
                     cuerpo = cuerpo.Replace(VARIABLE_CONTRASENA_TEMPORAL, contrasenaTemporal);
+                    cuerpo = cuerpo.Replace(VARIABLE_ANIO, DateTime.UtcNow.Year.ToString());
 
                     string contenidoCorreo = JsonSerializer.Serialize(new EnviarCorreoSolicitudModel
                     {
-                        Destinatario = PRUEBA,
-                        Asunto = ASUNTO_CORREO,
+                        Destinatario = usuario.Correo,
+                        Asunto = plantillaRespuestaModel.Asunto,
                         Cuerpo = cuerpo,
-                        EsCuerpoHtml = ES_CUERPO_HTML
+                        EsCuerpoHtml = plantillaRespuestaModel.EsHtml
                     });
 
                     await this._colasGrpcClientService.PublicarMensajeAsync(traceId, COLA_ENVIAR_CORREO, contenidoCorreo, Guid.NewGuid().ToString(), PRIORIDAD_ALTA);

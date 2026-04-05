@@ -22,6 +22,19 @@ namespace Japdeva.APIMovil.Parametros.Entities
         [Column("Plantilla")]
         public string Plantilla { get; set; } = string.Empty;
 
+
+        /// <summary>
+        /// Obtiene o establece si la plantilla está en formato HTML.
+        /// </summary>
+        [Column("EsHtml")]
+        public bool EsHtml { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el asunto del correo asociado a la plantilla.
+        /// </summary>
+        [Column("Asunto")]
+        public string Asunto { get; set; } = string.Empty;
+
         /// <summary>
         /// Obtiene o establece el identificador del usuario interno asociado a la plantilla.
         /// </summary>

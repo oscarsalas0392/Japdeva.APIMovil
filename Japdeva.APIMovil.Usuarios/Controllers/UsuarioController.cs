@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Usuarios.Models;
+using Japdeva.APIMovil.Usuarios.Services.ActualizarContrasenaUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService;
@@ -65,5 +66,15 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
         [HttpDelete("EliminarUsuario")]
         public Task<IActionResult> EliminarUsuarioAsync([FromServices] IEliminarUsuarioService eliminarUsuarioService, [FromQuery(Name = "id")] int id) =>
             eliminarUsuarioService.EliminarUsuarioAsync(HttpContext.TraceIdentifier, id);
+
+        /// <summary>
+        /// Actualiza la contraseña de un usuario validando la contraseña anterior.
+        /// </summary>
+        /// <param name="actualizarContrasenaUsuarioService">Servicio para actualizar la contraseña.</param>
+        /// <param name="solicitud">Modelo con el id del usuario, la contraseña anterior y la nueva.</param>
+        /// <returns>Respuesta de la operación.</returns>
+        [HttpPut("ActualizarContrasena")]
+        public Task<IActionResult> ActualizarContrasenaAsync([FromServices] IActualizarContrasenaUsuarioService actualizarContrasenaUsuarioService, [FromBody] ActualizarContrasenaUsuarioSolicitudModel solicitud) =>
+            actualizarContrasenaUsuarioService.ActualizarContrasenaAsync(HttpContext.TraceIdentifier, solicitud);
     }
 }

@@ -115,6 +115,8 @@ namespace Japdeva.APIMovil.Parametros.BackGroundServices
                 
                 PlantillaRespuestaModel plantillaRespuestaModel = new PlantillaRespuestaModel();
                 plantillaRespuestaModel.Plantilla = plantilla.Plantilla;
+                plantillaRespuestaModel.EsHtml = plantilla.EsHtml;
+                plantillaRespuestaModel.Asunto = plantilla.Asunto;
                 string json = JsonConvert.SerializeObject(plantillaRespuestaModel);
                 Task publicar = this._colasGrpcClientService.PublicarMensajeAsync(TRACE_ID_BACKGROUND, colaRespuesta, json, cola.IdRpc, PRIORIDAD_ALTA, string.Empty);
                 Task actualizarMensajeExitoso = this._colasGrpcClientService.ActualizarMensajeExitosoAsync(TRACE_ID_BACKGROUND, cola.Id, traceIdMensaje);
