@@ -5,8 +5,8 @@ namespace Japdeva.APIMovil.BaseDatos.Models
         public string Servidor { get; set; } = string.Empty;
         public int Puerto { get; set; }
         public string UsuarioPostgres { get; set; } = string.Empty;
-        public bool RecrearBaseDatos { get; set; }
+        public bool RecrearTodasBasesDatos { get; set; }
         public List<string> OrdenCarpetas { get; set; } = [];
-        public List<MicroservicioModel> Microservicios { get; set; } = [];
+        public List<BaseDatosModel> BaseDatos { get; set; } = [];
     }
 }

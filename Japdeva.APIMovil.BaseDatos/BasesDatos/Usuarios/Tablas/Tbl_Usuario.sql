@@ -1,4 +1,4 @@
-CREATE TABLE "Tbl_Usuario" (
+CREATE TABLE IF NOT EXISTS "Tbl_Usuario" (
     "id"             SERIAL          NOT NULL,
     "identificacion" VARCHAR(50)     NOT NULL,
     "idTipoCedula"   INTEGER         NOT NULL,

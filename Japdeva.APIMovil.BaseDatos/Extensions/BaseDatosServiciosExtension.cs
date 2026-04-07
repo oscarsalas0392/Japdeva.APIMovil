@@ -17,19 +17,10 @@ namespace Japdeva.APIMovil.BaseDatos.Extensions
         /// <returns>El builder configurado con los servicios de BaseDatos.</returns>
         public static IHostApplicationBuilder AgregarServiciosBaseDatos(this IHostApplicationBuilder builder)
         {
-            try
-            {
-                if (builder is null) throw new ArgumentNullException(nameof(builder));
+            builder.Services.AddSingleton<IBaseDatosService, BaseDatosService>();
+            builder.Services.AddSingleton<IEjecutarScriptsService, EjecutarScriptsService>();
 
-                builder.Services.AddSingleton<IBaseDatosService, BaseDatosService>();
-                builder.Services.AddSingleton<IEjecutarScriptsService, EjecutarScriptsService>();
-
-                return builder;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return builder;
         }
     }
 }

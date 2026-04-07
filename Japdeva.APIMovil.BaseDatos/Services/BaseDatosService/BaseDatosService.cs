@@ -32,6 +32,16 @@ namespace Japdeva.APIMovil.BaseDatos.Services.BaseDatosService
         /// <param name="baseDatos">Nombre de la base de datos destino.</param>
         /// <param name="sentencias">Sentencias SQL a ejecutar en orden.</param>
         /// <param name="onResultado">Callback invocado por cada sentencia: (sentencia, exitoso, mensajeError).</param>
+        /// <summary>
+        /// Verifica que el servidor sea alcanzable y las credenciales sean válidas.
+        /// </summary>
+        public async Task ProbarConexionAsync(string servidor, int puerto, string usuario, string contrasena)
+        {
+            string connectionString = string.Format(PLANTILLA_CONEXION, servidor, puerto, usuario, contrasena, BASE_DATOS_POSTGRES);
+            await using NpgsqlConnection conexion = new NpgsqlConnection(connectionString);
+            await conexion.OpenAsync();
+        }
+
         public async Task EjecutarSentenciasAsync(string servidor, int puerto, string usuario, string contrasena, string baseDatos, IEnumerable<string> sentencias, Func<string, bool, string?, Task> onResultado)
         {
             string connectionString = string.Format(PLANTILLA_CONEXION, servidor, puerto, usuario, contrasena, baseDatos);
@@ -63,6 +73,43 @@ namespace Japdeva.APIMovil.BaseDatos.Services.BaseDatosService
         /// <param name="usuario">Usuario de conexión.</param>
         /// <param name="contrasena">Contraseña de conexión.</param>
         /// <param name="nombreBaseDatos">Nombre de la base de datos a eliminar.</param>
+        /// <summary>
+        /// Retorna los nombres de las columnas actuales de una tabla consultando information_schema.
+        /// </summary>
+        public async Task<List<string>> ObtenerNombresColumnasAsync(string servidor, int puerto, string usuario, string contrasena, string baseDatos, string nombreTabla)
+        {
+            string connectionString = string.Format(PLANTILLA_CONEXION, servidor, puerto, usuario, contrasena, baseDatos);
+            await using NpgsqlConnection conexion = new NpgsqlConnection(connectionString);
+            await conexion.OpenAsync();
+
+            List<string> columnas = [];
+            string sql = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @nombreTabla ORDER BY ordinal_position";
+            await using NpgsqlCommand comando = new NpgsqlCommand(sql, conexion);
+            comando.Parameters.AddWithValue("nombreTabla", nombreTabla);
+            await using NpgsqlDataReader lector = await comando.ExecuteReaderAsync();
+
+            while (await lector.ReadAsync())
+                columnas.Add(lector.GetString(0));
+
+            return columnas;
+        }
+
+        /// <summary>
+        /// Verifica si una base de datos existe consultando pg_database.
+        /// </summary>
+        public async Task<bool> BaseDatosExisteAsync(string servidor, int puerto, string usuario, string contrasena, string nombreBaseDatos)
+        {
+            string connectionString = string.Format(PLANTILLA_CONEXION, servidor, puerto, usuario, contrasena, BASE_DATOS_POSTGRES);
+            await using NpgsqlConnection conexion = new NpgsqlConnection(connectionString);
+            await conexion.OpenAsync();
+
+            string sql = "SELECT 1 FROM pg_database WHERE datname = @nombre";
+            await using NpgsqlCommand comando = new NpgsqlCommand(sql, conexion);
+            comando.Parameters.AddWithValue("nombre", nombreBaseDatos);
+            object? resultado = await comando.ExecuteScalarAsync();
+            return resultado != null;
+        }
+
         public async Task EliminarBaseDatosAsync(string servidor, int puerto, string usuario, string contrasena, string nombreBaseDatos)
         {
             try

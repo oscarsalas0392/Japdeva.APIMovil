@@ -1,4 +1,4 @@
-CREATE TABLE "Tbl_Reclamo" (
+CREATE TABLE IF NOT EXISTS"Tbl_Reclamo" (
     id                              BIGSERIAL,
     titulo                          VARCHAR(200) NOT NULL,
     descripcion                     VARCHAR(1000) NOT NULL,
