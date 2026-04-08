@@ -11,6 +11,7 @@ using Japdeva.APIMovil.Usuarios.Services.DepartamentoCacheService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarDepartamentoUsuarioService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioRolService;
 using Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService;
+using Japdeva.APIMovil.Usuarios.Services.NotificarContrasenaTemporalService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosUsuariosService;
 using Japdeva.APIMovil.Usuarios.Services.ObtenerRolesService;
@@ -41,6 +42,7 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
 
                 builder.Services.AddSingleton<IAutenticarUsuarioService, AutenticarUsuarioService>();
                 builder.Services.AddSingleton<IActualizarContrasenaUsuarioService, ActualizarContrasenaUsuarioService>();
+                builder.Services.AddSingleton<INotificarContrasenaTemporalService, NotificarContrasenaTemporalService>();
                 builder.Services.AddSingleton<IOlvidarContrasenaService, OlvidarContrasenaService>();
                 builder.Services.AddSingleton<ICrearUsuarioService, CrearUsuarioService>();
                 builder.Services.AddSingleton<IAgregarUsuarioService, AgregarUsuarioService>();
@@ -66,6 +68,8 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
                 builder.Services.AddSingleton<IObtenerDepartamentosUsuariosService, ObtenerDepartamentosUsuariosService>();
 
                 builder.Services.AddHostedService<UsuariosBackGroundService>();
+                builder.Services.AddHostedService<ObtenerUsuarioBackGroundService>();
+                builder.Services.AddHostedService<ObtenerCorreosPorDepartamentoBackGroundService>();
 
                 return builder;
             }

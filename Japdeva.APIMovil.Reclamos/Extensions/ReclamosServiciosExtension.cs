@@ -15,6 +15,9 @@ using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheSe
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.ListaRespuestaReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarResolucionUsuarioService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarUsuarioReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoHistoricoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoService;
@@ -81,6 +84,9 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
               
                 builder.Services.AddSingleton<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
                 builder.Services.AddSingleton<IEditarDepartamentoReclamoService, EditarDepartamentoReclamoService>();
+                builder.Services.AddSingleton<INotificarDepartamentoService, NotificarDepartamentoService>();
+                builder.Services.AddSingleton<INotificarResolucionUsuarioService, NotificarResolucionUsuarioService>();
+                builder.Services.AddSingleton<INotificarUsuarioReclamoService, NotificarUsuarioReclamoService>();
 
                 builder.Services.AddScoped<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
                 builder.Services.AddScoped<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();

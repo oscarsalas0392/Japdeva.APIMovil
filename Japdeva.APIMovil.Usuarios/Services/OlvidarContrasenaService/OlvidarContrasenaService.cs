@@ -1,14 +1,11 @@
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
-using Japdeva.APIMovil.Common.Services.ColaRpcService;
-using Japdeva.APIMovil.Common.Services.ColasGrpcClientService;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
+using Japdeva.APIMovil.Usuarios.Services.NotificarContrasenaTemporalService;
 
 namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
 {
@@ -18,47 +15,34 @@ namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
     public class OlvidarContrasenaService : IOlvidarContrasenaService
     {
         private readonly ILogger<OlvidarContrasenaService> _logger;
-        private readonly IColaRpcService _colaRpcService;
-        private readonly IColasGrpcClientService _colasGrpcClientService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly INotificarContrasenaTemporalService _notificarContrasenaTemporalService;
         private const string MENSAJE_CORREO_REQUERIDO = "El correo es requerido.";
         private const string MENSAJE_CORREO_INVALIDO = "El formato del correo no es válido.";
-        private const string MENSAJE_ERROR_PLANTILLA_NO_OBTENIDA = "No se pudo obtener la plantilla de correo desde la cola.";
-        private const string MENSAJE_ERROR_PLANTILLA_INVALIDA = "La respuesta de la plantilla de correo no pudo ser deserializada.";
         private const string PATRON_CORREO = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
         private const string CARACTERES_CONTRASENA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        private const string VARIABLE_NOMBRE = "{{NOMBRE}}";
-        private const string VARIABLE_CONTRASENA_TEMPORAL = "{{CONTRASENA_TEMPORAL}}";
-        private const string COLA_OBTENER_PLANTILLA = "ObtenerPlantilla";
-        private const string COLA_RESPUESTA = "Respuesta";
-        private const string COLA_ENVIAR_CORREO = "EnviarCorreo";
-        private const string VARIABLE_ANIO = "{{ANIO}}";
-        private const string ID_PLANTILLA = "1";
         private const int LONGITUD_CONTRASENA_TEMPORAL = 10;
         private const int INDICE_INICIAL = 0;
-        private const int PRIORIDAD_ALTA = 1;
         private const int HORAS_VALIDEZ_CONTRASENA_TEMPORAL = 24;
+
         /// <summary>
         /// Inicializa una nueva instancia de OlvidarContrasenaService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
         /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
-        /// <param name="colaRpcService">Servicio RPC para publicar mensajes en la cola con espera de respuesta.</param>
-        /// <param name="colasGrpcClientService">Cliente gRPC de colas para publicación directa sin espera.</param>
+        /// <param name="notificarContrasenaTemporalService">Servicio para enviar la contraseña temporal por correo.</param>
         public OlvidarContrasenaService(
             ILogger<OlvidarContrasenaService> logger,
             IServiceProvider serviceProvider,
-            IColaRpcService colaRpcService,
-            IColasGrpcClientService colasGrpcClientService)
+            INotificarContrasenaTemporalService notificarContrasenaTemporalService)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this._colaRpcService = colaRpcService;
-            this._colasGrpcClientService = colasGrpcClientService;
+            this._notificarContrasenaTemporalService = notificarContrasenaTemporalService;
         }
 
         /// <summary>
-        /// Genera una contraseña temporal, obtiene la plantilla de correo y publica el envío a la cola de EnvioCorreos.
+        /// Genera una contraseña temporal, la persiste y dispara en segundo plano el envío del correo.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="solicitud">Datos de la solicitud con el correo del usuario.</param>
@@ -86,28 +70,9 @@ namespace Japdeva.APIMovil.Usuarios.Services.OlvidarContrasenaService
                     usuario.FechaExpiracionContrasena = DateTime.UtcNow.AddHours(HORAS_VALIDEZ_CONTRASENA_TEMPORAL);
                     usuario.FechaEdicion = DateTime.UtcNow;
 
-                    var colaMensaje = await this._colaRpcService.EnviarYEsperarRespuestaAsync(traceId, COLA_OBTENER_PLANTILLA, COLA_RESPUESTA, ID_PLANTILLA, CancellationToken.None);
-                    if (colaMensaje is null) throw new InvalidOperationException(MENSAJE_ERROR_PLANTILLA_NO_OBTENIDA);
-
-                    var plantillaRespuestaModel = JsonSerializer.Deserialize<PlantillaRespuestaModel>(colaMensaje.Contenido);
-                    if (plantillaRespuestaModel is null) throw new InvalidOperationException(MENSAJE_ERROR_PLANTILLA_INVALIDA);
-
-                    string cuerpo = plantillaRespuestaModel.Plantilla;
-                    cuerpo = cuerpo.Replace(VARIABLE_NOMBRE, usuario.Nombre);
-                    cuerpo = cuerpo.Replace(VARIABLE_CONTRASENA_TEMPORAL, contrasenaTemporal);
-                    cuerpo = cuerpo.Replace(VARIABLE_ANIO, DateTime.UtcNow.Year.ToString());
-
-                    string contenidoCorreo = JsonSerializer.Serialize(new EnviarCorreoSolicitudModel
-                    {
-                        Destinatario = usuario.Correo,
-                        Asunto = plantillaRespuestaModel.Asunto,
-                        Cuerpo = cuerpo,
-                        EsCuerpoHtml = plantillaRespuestaModel.EsHtml
-                    });
-
-                    await this._colasGrpcClientService.PublicarMensajeAsync(traceId, COLA_ENVIAR_CORREO, contenidoCorreo, Guid.NewGuid().ToString(), PRIORIDAD_ALTA);
-
                     await actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuario);
+
+                    _ = Task.Run(() => this._notificarContrasenaTemporalService.NotificarAsync(traceId, usuario.Nombre, usuario.Correo, contrasenaTemporal));
                 }
 
                 return new OkResult();

@@ -17,6 +17,7 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
         private readonly ILogger<GuardarMensajesHistoricoService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private const int PAGINA_INICIAL = 1;
+        private const bool HAY_MAS_MENSAJES = true;
         /// <summary>
         /// Inicializa una nueva instancia de la clase GuardarMensajesHistoricoService.
         /// </summary>
@@ -40,39 +41,42 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                List<MensajeColaHistoricoEntity> mensajesHistorico = new List<MensajeColaHistoricoEntity>();
-
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
                 var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
-                int pagina = PAGINA_INICIAL;
-                var mensajes = await consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
-                    traceId, pagina, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
-                                              mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
 
-                if (mensajes is null || !mensajes.Lista.Any()) return;
-
-                foreach (var mensaje in mensajes.Lista)
+                bool continuar = HAY_MAS_MENSAJES;
+                while (continuar)
                 {
-                    MensajeColaHistoricoEntity mensajeColaHistoricoEntity = new MensajeColaHistoricoEntity();
-                    mensajeColaHistoricoEntity.IdMensajeCola = mensaje.Id;
-                    mensajeColaHistoricoEntity.ColaId = mensaje.ColaId;
-                    mensajeColaHistoricoEntity.ContadorReintentos = mensaje.ContadorReintentos;
-                    mensajeColaHistoricoEntity.ContenidoMensaje = mensaje.ContenidoMensaje;
-                    mensajeColaHistoricoEntity.EstadoId = mensaje.EstadoId;
-                    mensajeColaHistoricoEntity.FechaEdicion = mensaje.FechaEdicion;
-                    mensajeColaHistoricoEntity.FechaRegistro = mensaje.FechaRegistro;
-                    mensajeColaHistoricoEntity.MensajeError = mensaje.MensajeError;
-                    mensajeColaHistoricoEntity.PrioridadId = mensaje.PrioridadId;
-                    mensajeColaHistoricoEntity.Metadatos = mensaje.Metadatos;
-                    mensajeColaHistoricoEntity.TraceId = mensaje.TraceId;
-                    mensajeColaHistoricoEntity.FechaArchivado = DateTime.UtcNow;
-                    mensajesHistorico.Add(mensajeColaHistoricoEntity);
-                }
+                    var mensajes = await consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
+                        traceId, PAGINA_INICIAL, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
+                                                            mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
 
-                await agregarRepository.AgregarVariosAsync<MensajeColaHistoricoEntity>(traceId, mensajesHistorico);
-                await eliminarRepository.EliminarVariosAsync<MensajeColaEntity>(traceId, mensajes.Lista);
+                    if (mensajes is null || !mensajes.Lista.Any()) { continuar = false; break; }
+
+                    List<MensajeColaHistoricoEntity> mensajesHistorico = new List<MensajeColaHistoricoEntity>();
+                    foreach (var mensaje in mensajes.Lista)
+                    {
+                        MensajeColaHistoricoEntity mensajeColaHistoricoEntity = new MensajeColaHistoricoEntity();
+                        mensajeColaHistoricoEntity.IdMensajeCola = mensaje.Id;
+                        mensajeColaHistoricoEntity.ColaId = mensaje.ColaId;
+                        mensajeColaHistoricoEntity.ContadorReintentos = mensaje.ContadorReintentos;
+                        mensajeColaHistoricoEntity.ContenidoMensaje = mensaje.ContenidoMensaje;
+                        mensajeColaHistoricoEntity.EstadoId = mensaje.EstadoId;
+                        mensajeColaHistoricoEntity.FechaEdicion = mensaje.FechaEdicion;
+                        mensajeColaHistoricoEntity.FechaRegistro = mensaje.FechaRegistro;
+                        mensajeColaHistoricoEntity.MensajeError = mensaje.MensajeError;
+                        mensajeColaHistoricoEntity.PrioridadId = mensaje.PrioridadId;
+                        mensajeColaHistoricoEntity.Metadatos = mensaje.Metadatos;
+                        mensajeColaHistoricoEntity.TraceId = mensaje.TraceId;
+                        mensajeColaHistoricoEntity.FechaArchivado = DateTime.UtcNow;
+                        mensajesHistorico.Add(mensajeColaHistoricoEntity);
+                    }
+
+                    await agregarRepository.AgregarVariosAsync<MensajeColaHistoricoEntity>(traceId, mensajesHistorico);
+                    await eliminarRepository.EliminarVariosAsync<MensajeColaEntity>(traceId, mensajes.Lista);
+                }
             }
             catch (Exception ex)
             {
