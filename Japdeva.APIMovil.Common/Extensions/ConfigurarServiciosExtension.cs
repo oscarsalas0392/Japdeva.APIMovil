@@ -13,7 +13,7 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class ConfigurarServiciosExtension
     {
-
+        private const string POLITICA_CORS_GATEWAY = "PoliticaCorsGateway";
         private const string USAR_MANEJO_ERRORES_ENV = "MANEJO_ERRORES";
         private const string MANEJO_ERRORES_DEFAULT = "1";
 
@@ -62,6 +62,7 @@ namespace Japdeva.APIMovil.Common.Extensions
                     app.MapOpenApi();
                 }
                 app.UseHttpsRedirection();
+                app.UseCors(POLITICA_CORS_GATEWAY);
                 app.UseMiddleware<ManejoErroresGatewayMiddleware>();
                 app.UseAuthorization();
                 app.MapControllers();

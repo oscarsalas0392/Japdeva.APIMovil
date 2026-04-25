@@ -18,6 +18,7 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class AgregarServiciosExtension
     {
+        private const string POLITICA_CORS_GATEWAY = "PoliticaCorsGateway";
 
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
@@ -68,6 +69,15 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddSingleton<IEncriptarHelperService, EncriptarHelperService>();
                 builder.Services.AddHttpClient();
                 builder.Services.AddOcelot(builder.Configuration);
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy(POLITICA_CORS_GATEWAY, policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+                });
                 return builder;
             }
             catch (Exception)

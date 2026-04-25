@@ -56,7 +56,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
 
                     if (resultadoPagina is null || !resultadoPagina.Lista.Any())
                     {
-                       throw new Exception(MENSAJE_ERROR_NO_SE_PUEDEN_OBTENER_LOS_DATOS_DE_ORDEN_NIVEL_PROCESO);
+                        this._logger.LogWarning(MENSAJE_ERROR_NO_SE_PUEDEN_OBTENER_LOS_DATOS_DE_ORDEN_NIVEL_PROCESO);
+                        break;
                     }
 
                     listaCache.AddRange(resultadoPagina.Lista);
