@@ -18,9 +18,9 @@ namespace Japdeva.APIMovil.Parametros.Data
         }
 
         /// <summary>
-        /// Obtiene o establece la colección de mensajes en la base de datos.
+        /// Obtiene o establece la colección de parámetros del sistema en la base de datos.
         /// </summary>
-        public DbSet<MensajeEntity> Mensajes { get; set; } = null!;
+        public DbSet<ParametroEntity> Parametros { get; set; } = null!;
 
         /// <summary>
         /// Obtiene o establece la colección de menús en la base de datos.
@@ -36,11 +36,6 @@ namespace Japdeva.APIMovil.Parametros.Data
         /// Obtiene o establece la colección de pantallas en la base de datos.
         /// </summary>
         public DbSet<PantallaEntity> Pantallas { get; set; } = null!;
-
-        /// <summary>
-        /// Obtiene o establece la colección de tipos de mensajes en la base de datos.
-        /// </summary>
-        public DbSet<TipoMensajeEntity> TiposMensajes { get; set; } = null!;
 
         /// <summary>
         /// Obtiene o establece la colección de plantillas de correos en la base de datos.

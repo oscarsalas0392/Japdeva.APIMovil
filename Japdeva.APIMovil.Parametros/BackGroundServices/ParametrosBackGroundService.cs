@@ -1,10 +1,9 @@
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Parametros.Services.MensajeCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.PantallaCacheService;
+using Japdeva.APIMovil.Parametros.Services.ParametroCacheService;
 using Japdeva.APIMovil.Parametros.Services.PlantillaCorreoCacheService;
-using Japdeva.APIMovil.Parametros.Services.TipoMensajeCacheService;
 
 namespace Japdeva.APIMovil.Parametros.BackgroundServices
 {
@@ -76,23 +75,20 @@ namespace Japdeva.APIMovil.Parametros.BackgroundServices
                 var pantallaCache = scope.ServiceProvider.GetRequiredService<IPantallaCacheService>();
                 var menuCache = scope.ServiceProvider.GetRequiredService<IMenuCacheService>();
                 var menuPerfilCache = scope.ServiceProvider.GetRequiredService<IMenuPerfilCacheService>();
-                var mensajeCache = scope.ServiceProvider.GetRequiredService<IMensajeCacheService>();
-                var tipoMensajeCache = scope.ServiceProvider.GetRequiredService<ITipoMensajeCacheService>();
+                var parametroCache = scope.ServiceProvider.GetRequiredService<IParametroCacheService>();
                 var plantillaCorreoCache = scope.ServiceProvider.GetRequiredService<IPlantillaCorreoCacheService>();
 
                 Task tareaPantallaCache = pantallaCache.LlenarCachePantallaAsync(TRACE_ID_BACKGROUND);
                 Task tareaMenuCache = menuCache.LlenarCacheMenuAsync(TRACE_ID_BACKGROUND);
                 Task tareaMenuPerfilCache = menuPerfilCache.LlenarCacheMenuPerfilAsync(TRACE_ID_BACKGROUND);
-                Task tareaMensajeCache = mensajeCache.LlenarCacheMensajesAsync(TRACE_ID_BACKGROUND);
-                Task tareaTipoMensajeCache = tipoMensajeCache.LlenarCacheTipoMensajesAsync(TRACE_ID_BACKGROUND);
+                Task tareaParametroCache = parametroCache.LlenarCacheParametrosAsync(TRACE_ID_BACKGROUND);
                 Task tareaPlantillaCorreoCache = plantillaCorreoCache.LlenarCachePlantillaCorreosAsync(TRACE_ID_BACKGROUND);
 
                 await Task.WhenAll(
                     tareaPantallaCache,
                     tareaMenuCache,
                     tareaMenuPerfilCache,
-                    tareaMensajeCache,
-                    tareaTipoMensajeCache,
+                    tareaParametroCache,
                     tareaPlantillaCorreoCache);
 
             }

@@ -9,3 +9,11 @@ WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 2);
 INSERT INTO "Tbl_Cola" ("id", "nombre", "activo", "fechaRegistro")
 SELECT 3, 'EnviarCorreo', TRUE, NOW()
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 3);
+
+INSERT INTO "Tbl_Cola" ("id", "nombre", "activo", "fechaRegistro")
+SELECT 4, 'ObtenerUsuario', TRUE, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 4);
+
+INSERT INTO "Tbl_Cola" ("id", "nombre", "activo", "fechaRegistro")
+SELECT 5, 'ObtenerCorreosPorDepartamento', TRUE, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 5);

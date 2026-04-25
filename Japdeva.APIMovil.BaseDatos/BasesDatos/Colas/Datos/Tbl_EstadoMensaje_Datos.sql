@@ -7,7 +7,7 @@ SELECT 2, 'EnProceso', 'Mensaje siendo procesado por un consumidor'
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoMensaje" WHERE "id" = 2);
 
 INSERT INTO "Tbl_EstadoMensaje" ("id", "nombre", "descripcion")
-SELECT 3, 'Exitoso', 'Mensaje procesado correctamente'
+SELECT 3, 'Procesado', 'Mensaje procesado correctamente'
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoMensaje" WHERE "id" = 3);
 
 INSERT INTO "Tbl_EstadoMensaje" ("id", "nombre", "descripcion")
@@ -15,5 +15,9 @@ SELECT 4, 'Fallido', 'Procesamiento fallido, pendiente de reintento'
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoMensaje" WHERE "id" = 4);
 
 INSERT INTO "Tbl_EstadoMensaje" ("id", "nombre", "descripcion")
-SELECT 5, 'Expirado', 'Mensaje no procesado dentro del tiempo limite'
+SELECT 5, 'Cancelado', 'Mensaje cancelado manualmente'
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoMensaje" WHERE "id" = 5);
+
+INSERT INTO "Tbl_EstadoMensaje" ("id", "nombre", "descripcion")
+SELECT 6, 'Expirado', 'Mensaje no procesado dentro del tiempo limite'
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoMensaje" WHERE "id" = 6);

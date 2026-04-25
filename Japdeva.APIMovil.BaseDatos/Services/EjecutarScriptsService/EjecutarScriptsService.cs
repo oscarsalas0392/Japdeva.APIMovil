@@ -26,6 +26,11 @@ namespace Japdeva.APIMovil.BaseDatos.Services.EjecutarScriptsService
         private const string ARG_CARPETA = "--carpeta";
         private const string EXTENSION_SQL = "*.sql";
         private const string ARCHIVO_ORDEN = "orden.json";
+        private const string OPCION_NO_RECREAR = "0";
+        private const string OPCION_RECREAR_TODAS = "1";
+        private const string OPCION_RECREAR_ESPECIFICAS = "2";
+        private const string SEPARADOR_SELECCION = ",";
+        private const int INDICE_BASE = 1;
         private const string PATRON_NOMBRE_BD   = @"CREATE\s+DATABASE\s+(?:IF\s+NOT\s+EXISTS\s+)?""?(\w+)""?";
         private const string CARPETA_INDICES     = "Indices";
         private const string CARPETA_DATOS       = "Datos";
@@ -99,7 +104,7 @@ namespace Japdeva.APIMovil.BaseDatos.Services.EjecutarScriptsService
                     config.Servidor        = this.LeerValor("Servidor", config.Servidor);
                     config.Puerto          = int.TryParse(this.LeerValor("Puerto", config.Puerto.ToString()), out int puerto) ? puerto : config.Puerto;
                     config.UsuarioPostgres = this.LeerValor("Usuario", config.UsuarioPostgres);
-                    config.RecrearTodasBasesDatos = this.LeerOpcionBinaria("Volver a crear todas las BD", config.RecrearTodasBasesDatos);
+                    this.LeerOpcionRecreacion(config, microservicios);
 
                     Console.Write($"Contrasena [{config.UsuarioPostgres}]: ");
                     contrasena = this.LeerContrasena();
@@ -613,6 +618,88 @@ namespace Japdeva.APIMovil.BaseDatos.Services.EjecutarScriptsService
             } while (tecla.Key != ConsoleKey.Enter);
 
             return contrasena;
+        }
+
+        private void LeerOpcionRecreacion(ConfiguracionModel config, IEnumerable<BaseDatosModel> microservicios)
+        {
+            while (true)
+            {
+                Console.Write("Recrear BD     (0=No, 1=Todas, 2=Seleccionar) [0]: ");
+                string entrada = Console.ReadLine() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(entrada) || entrada == OPCION_NO_RECREAR)
+                {
+                    config.RecrearTodasBasesDatos = false;
+                    return;
+                }
+
+                if (entrada == OPCION_RECREAR_TODAS)
+                {
+                    config.RecrearTodasBasesDatos = true;
+                    return;
+                }
+
+                if (entrada == OPCION_RECREAR_ESPECIFICAS)
+                {
+                    this.LeerSeleccionEspecifica(microservicios);
+                    return;
+                }
+
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("                Valor invalido. Ingrese 0, 1 o 2.");
+                Console.ResetColor();
+            }
+        }
+
+        private void LeerSeleccionEspecifica(IEnumerable<BaseDatosModel> microservicios)
+        {
+            List<BaseDatosModel> lista = microservicios.ToList();
+
+            Console.WriteLine();
+            for (int i = 0; i < lista.Count; i++)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write($"  [{i + INDICE_BASE}] ");
+                Console.ResetColor();
+                Console.WriteLine(lista[i].Nombre);
+            }
+            Console.WriteLine();
+
+            while (true)
+            {
+                Console.Write("Seleccione numeros separados por coma: ");
+                string entrada = Console.ReadLine() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(entrada))
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("  Debe seleccionar al menos una base de datos.");
+                    Console.ResetColor();
+                    continue;
+                }
+
+                bool hayErrores = false;
+                foreach (BaseDatosModel bd in lista) bd.RecrearBaseDatos = false;
+
+                foreach (string parte in entrada.Split(SEPARADOR_SELECCION))
+                {
+                    if (int.TryParse(parte.Trim(), out int numero) && numero >= INDICE_BASE && numero <= lista.Count)
+                    {
+                        lista[numero - INDICE_BASE].RecrearBaseDatos = true;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"  Numero invalido: '{parte.Trim()}'. Debe estar entre {INDICE_BASE} y {lista.Count}.");
+                        Console.ResetColor();
+                        foreach (BaseDatosModel bd in lista) bd.RecrearBaseDatos = false;
+                        hayErrores = true;
+                        break;
+                    }
+                }
+
+                if (!hayErrores) break;
+            }
         }
 
         private void EscribirEncabezado(ConfiguracionModel config)

@@ -1,14 +1,13 @@
 using Japdeva.APIMovil.Parametros.BackgroundServices;
 using Japdeva.APIMovil.Parametros.BackGroundServices;
-using Japdeva.APIMovil.Parametros.Services.MensajeCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
-using Japdeva.APIMovil.Parametros.Services.ObtenerMensajePorPantallaService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService;
+using Japdeva.APIMovil.Parametros.Services.ObtenerParametroService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerPlantillaNuevoReclamoService;
 using Japdeva.APIMovil.Parametros.Services.PantallaCacheService;
+using Japdeva.APIMovil.Parametros.Services.ParametroCacheService;
 using Japdeva.APIMovil.Parametros.Services.PlantillaCorreoCacheService;
-using Japdeva.APIMovil.Parametros.Services.TipoMensajeCacheService;
 
 namespace Japdeva.APIMovil.Parametros.Extensions
 {
@@ -32,12 +31,11 @@ namespace Japdeva.APIMovil.Parametros.Extensions
                 builder.Services.AddSingleton<IPantallaCacheService, PantallaCacheService>();
                 builder.Services.AddSingleton<IMenuCacheService, MenuCacheService>();
                 builder.Services.AddSingleton<IMenuPerfilCacheService, MenuPerfilCacheService>();
-                builder.Services.AddSingleton<IMensajeCacheService, MensajeCacheService>();
-                builder.Services.AddSingleton<ITipoMensajeCacheService, TipoMensajeCacheService>();
+                builder.Services.AddSingleton<IParametroCacheService, ParametroCacheService>();
                 builder.Services.AddSingleton<IPlantillaCorreoCacheService, PlantillaCorreoCacheService>();
 
                 // Registrar servicios de negocio
-                builder.Services.AddScoped<IObtenerMensajePorPantallaService, ObtenerMensajePorPantallaService>();
+                builder.Services.AddScoped<IObtenerParametroService, ObtenerParametroService>();
                 builder.Services.AddScoped<IObtenerMenuPorPerfilService, ObtenerMenuPorPerfilService>();
                 builder.Services.AddScoped<IObtenerPlantillaNuevoReclamoService, ObtenerPlantillaNuevoReclamoService>();
 
