@@ -36,7 +36,6 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Puede contener la ruta del archivo, contenido codificado o identificador del documento.
         /// </summary>
         [Column("documento")]
-        [MaxLength(4000)]
         [MinLength(1)]
         [Required]
         public string Documento { get; set; } = string.Empty;

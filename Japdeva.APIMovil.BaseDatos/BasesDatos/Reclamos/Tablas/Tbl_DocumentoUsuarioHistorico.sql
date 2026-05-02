@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "Tbl_DocumentoUsuarioHistorico" (
     id                      BIGSERIAL,
     "idReclamo"            BIGINT NOT NULL,
     "nombreDocumento"      VARCHAR(255) NOT NULL,
-    documento              VARCHAR(4000) NOT NULL,
+    documento              TEXT NOT NULL,
     "fechaRegistro"        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
 	CONSTRAINT pk_DocumentoUsuarioHistorico_id PRIMARY KEY(id),

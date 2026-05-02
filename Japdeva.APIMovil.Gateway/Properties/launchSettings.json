@@ -14,7 +14,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "https://localhost:7069;http://localhost:5179",
+      "applicationUrl": "https://+:7069;http://+:5179",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "RUTAS_CON_TOKEN": "Usuarios,Parametros,Reclamos,EnvioCorreos",
@@ -40,8 +40,8 @@
         "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
         "ROL_CLIENTE": "Usuario",
         "RUTA_AUTENTICAR": "Autenticar",
-        "RUTAS_SIN_TOKEN": "Autenticar,AgregarUsuario,OlvidarContrasena",
-        "RUTAS_LIMITADAS": "Autenticar,AgregarUsuario,OlvidarContrasena"
+        "RUTAS_SIN_TOKEN": "Autenticar,AgregarUsuario,OlvidarContrasena,ObtenerTodosLosTiposCedula",
+        "RUTAS_LIMITADAS": "Autenticar,AgregarUsuario,OlvidarContrasena,ObtenerTodosLosTiposCedula"
       }
     }
   }
