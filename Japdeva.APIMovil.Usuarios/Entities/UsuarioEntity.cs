@@ -82,6 +82,19 @@ namespace Japdeva.APIMovil.Usuarios.Entities
         public DateTime? FechaExpiracionContrasena { get; set; }
 
         /// <summary>
+        /// Obtiene o establece el número de teléfono del usuario.
+        /// </summary>
+        [MaxLength(20)]
+        [Column("telefono")]
+        public string? Telefono { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la fecha de nacimiento del usuario.
+        /// </summary>
+        [Column("fechaNacimiento")]
+        public DateTime? FechaNacimiento { get; set; }
+
+        /// <summary>
         /// Obtiene o establece si el usuario está activo en el sistema.
         /// </summary>
         [Column("activo")]

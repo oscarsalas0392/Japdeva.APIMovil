@@ -11,5 +11,7 @@ CREATE TABLE IF NOT EXISTS"Tbl_DetalleReclamoHistorico" (
 
 	
 	CONSTRAINT pk_DetalleReclamoHistorico_id PRIMARY KEY(id),
-	CONSTRAINT fk_DetalleReclamoHistorico_idNivelProceso FOREIGN KEY ("idNivelProceso") REFERENCES "Tbl_NivelProceso"(id)
+	CONSTRAINT fk_DetalleReclamoHistorico_idReclamo FOREIGN KEY ("idReclamo") REFERENCES "Tbl_Reclamo"(id),
+	CONSTRAINT fk_DetalleReclamoHistorico_idNivelProceso FOREIGN KEY ("idNivelProceso") REFERENCES "Tbl_NivelProceso"(id),
+	CONSTRAINT fk_DetalleReclamoHistorico_idEstadoDetalleReclamo FOREIGN KEY ("idEstadoDetalleReclamo") REFERENCES "Tbl_EstadoDetalleReclamo"(id)
 );

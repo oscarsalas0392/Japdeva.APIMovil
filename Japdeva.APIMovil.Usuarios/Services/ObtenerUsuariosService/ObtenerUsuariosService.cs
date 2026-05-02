@@ -56,6 +56,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
                     usuarioModelo.Nombre = usuario.Nombre;
                     usuarioModelo.Apellidos = usuario.Apellidos;
                     usuarioModelo.Correo = usuario.Correo;
+                    usuarioModelo.Telefono = usuario.Telefono;
+                    usuarioModelo.FechaNacimiento = usuario.FechaNacimiento;
                     usuarioModelo.FechaRegistro = usuario.FechaRegistro;
                     usuarioModelo.FechaEdicion = usuario.FechaEdicion;
                     usuarioModelo.Activo = usuario.Activo;
@@ -102,6 +104,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
                 respuesta.Nombre = usuario.Nombre;
                 respuesta.Apellidos = usuario.Apellidos;
                 respuesta.Correo = usuario.Correo;
+                respuesta.Telefono = usuario.Telefono;
+                respuesta.FechaNacimiento = usuario.FechaNacimiento;
                 respuesta.FechaRegistro = usuario.FechaRegistro;
                 respuesta.FechaEdicion = usuario.FechaEdicion;
                 respuesta.Activo = usuario.Activo;

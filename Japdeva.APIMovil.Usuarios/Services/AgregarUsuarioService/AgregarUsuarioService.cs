@@ -78,6 +78,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 nuevoUsuario.Apellidos = solicitud.Apellidos;
                 nuevoUsuario.Correo = solicitud.Correo;
                 nuevoUsuario.Contrasena = solicitud.Contrasena;
+                nuevoUsuario.Telefono = solicitud.Telefono;
+                nuevoUsuario.FechaNacimiento = solicitud.FechaNacimiento;
                 nuevoUsuario.FechaRegistro = DateTime.UtcNow;
                 nuevoUsuario.Activo = ACTIVO;
 
@@ -89,6 +91,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarUsuarioService
                 respuesta.Nombre = nuevoUsuario.Nombre;
                 respuesta.Apellidos = nuevoUsuario.Apellidos;
                 respuesta.Correo = nuevoUsuario.Correo;
+                respuesta.Telefono = nuevoUsuario.Telefono;
+                respuesta.FechaNacimiento = nuevoUsuario.FechaNacimiento;
                 respuesta.FechaRegistro = nuevoUsuario.FechaRegistro;
                 respuesta.Activo = nuevoUsuario.Activo;
 

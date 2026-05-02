@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS "Tbl_NivelProceso" (
     "idDepartamento"   BIGINT NOT NULL,
     "idUsuarioInterno" BIGINT NOT NULL,
     "fechaRegistro"    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "activo"           BOOLEAN NOT NULL DEFAULT TRUE
+    "activo"           BOOLEAN NOT NULL DEFAULT TRUE,
+    "idProceso"        INTEGER NOT NULL DEFAULT 1 REFERENCES "Tbl_Proceso"("id")
 );

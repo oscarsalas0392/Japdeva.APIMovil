@@ -81,7 +81,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
                 if (editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso is not null)
                 {
                     var nivelSiguienteProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso.Value);
-                    if (nivelSiguienteProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
+                    if (nivelSiguienteProceso is null || nivelSiguienteProceso.IdProceso != (int)ProcesoModel.Reclamo) throw new ArgumentException(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso.Value));
                     idNivelSiguienteProceso = nivelSiguienteProceso.Id;
                 }
 

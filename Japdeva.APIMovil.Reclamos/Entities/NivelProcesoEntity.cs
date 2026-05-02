@@ -64,6 +64,11 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         [Column("activo")]
         public bool Activo { get; set; }
 
-        
+        /// <summary>
+        /// Obtiene o establece el identificador del proceso al que pertenece este nivel.
+        /// Permite identificar si el nivel corresponde al proceso de Reclamo o de Apelación.
+        /// </summary>
+        [Column("idProceso")]
+        public int IdProceso { get; set; }
     }
 }

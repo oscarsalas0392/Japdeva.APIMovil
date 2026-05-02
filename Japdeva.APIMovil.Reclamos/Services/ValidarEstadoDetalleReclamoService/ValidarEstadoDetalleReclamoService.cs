@@ -102,7 +102,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
                 using var scope = this._serviceProvider.CreateScope();
 
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                var nivelProceso = await consultarRepository.ConsultarAsync<NivelProcesoEntity>(traceId, x => x.Id == idNivelSiguienteProceso);
+                var nivelProceso = await consultarRepository.ConsultarAsync<NivelProcesoEntity>(traceId, x => x.Id == idNivelSiguienteProceso && x.IdProceso == (int)ProcesoModel.Reclamo);
                 if(nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
 
                 if (estadoDetalle.DevolucionProceso)

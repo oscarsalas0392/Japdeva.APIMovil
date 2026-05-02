@@ -89,7 +89,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
                 var estadoReclamo = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, (int)EstadoReclamoModel.Pendiente);
                 if (estadoReclamo is null) throw new Exception(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE);
 
-                var nivelProceso = this._nivelProcesoCacheService.ObtenerPrimerNivel(traceId);
+                var nivelProceso = this._nivelProcesoCacheService.ObtenerPrimerNivelPorProceso(traceId, (int)ProcesoModel.Reclamo);
                 if (nivelProceso is null) throw new Exception(MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE);
 
                 ReclamoEntity reclamoEntity = new ReclamoEntity();

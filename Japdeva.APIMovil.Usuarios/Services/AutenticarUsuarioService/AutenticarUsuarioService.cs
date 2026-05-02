@@ -60,6 +60,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AutenticarUsuarioService
                 respuesta.Apellidos = usuario.Apellidos;
                 respuesta.Correo = usuario.Correo;
                 respuesta.Identificacion = usuario.Identificacion;
+                respuesta.Telefono = usuario.Telefono;
+                respuesta.FechaNacimiento = usuario.FechaNacimiento;
                 return new OkObjectResult(respuesta);
             }
             catch (ArgumentException ex)

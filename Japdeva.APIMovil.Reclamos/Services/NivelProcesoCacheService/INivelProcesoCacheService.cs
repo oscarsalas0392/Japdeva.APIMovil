@@ -36,6 +36,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService
         /// </returns>
         NivelProcesoEntity? ObtenerPrimerNivel(string traceId);
 
+        /// <summary>
+        /// Obtiene el primer nivel de proceso activo filtrado por tipo de proceso.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="idProceso">Identificador del proceso (Reclamo=1, Apelación=2).</param>
+        /// <returns>
+        /// La entidad <see cref="NivelProcesoEntity"/> correspondiente al primer nivel activo del proceso indicado,
+        /// o <c>null</c> si no se encuentra.
+        /// </returns>
+        NivelProcesoEntity? ObtenerPrimerNivelPorProceso(string traceId, int idProceso);
+
 
         /// <summary>
         /// Obtiene una lista paginada de niveles de proceso desde el cache, aplicando un filtro opcional.

@@ -29,6 +29,12 @@ namespace Japdeva.APIMovil.Usuarios.Models
         /// <summary>Obtiene o establece la fecha de última modificación.</summary>
         public DateTime? FechaEdicion { get; set; }
 
+        /// <summary>Obtiene o establece el número de teléfono del usuario.</summary>
+        public string? Telefono { get; set; }
+
+        /// <summary>Obtiene o establece la fecha de nacimiento del usuario.</summary>
+        public DateTime? FechaNacimiento { get; set; }
+
         /// <summary>Obtiene o establece si el usuario está activo.</summary>
         public bool Activo { get; set; }
     }

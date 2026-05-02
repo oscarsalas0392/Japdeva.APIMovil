@@ -30,32 +30,20 @@ namespace Japdeva.APIMovil.Reclamos.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            try
+            foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
             {
-                foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
+                foreach (var propiedad in tipoEntidad.GetProperties())
                 {
-                    foreach (var propiedad in tipoEntidad.GetProperties())
+                    if (propiedad.ClrType == typeof(DateTime))
                     {
-                        if (propiedad.ClrType == typeof(DateTime))
-                        {
-                            propiedad.SetValueConverter(
-                                new ValueConverter<DateTime, DateTime>(
-                                    v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
-                                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
-                                )
-                            );
-                        }
+                        propiedad.SetValueConverter(
+                            new ValueConverter<DateTime, DateTime>(
+                                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                                v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                            )
+                        );
                     }
                 }
-
-            }
-            catch (Exception)
-            {
-
-            }
-            finally 
-            {
-            
             }
         }
 
@@ -97,6 +85,12 @@ namespace Japdeva.APIMovil.Reclamos.Data
         public DbSet<EstadoDetalleReclamoEntity> EstadosDetalleReclamos { get; set; } = null!;
 
         /// <summary>
+        /// Obtiene o establece el conjunto de entidades de procesos.
+        /// Representa el catálogo de tipos de proceso: Reclamo y Apelación.
+        /// </summary>
+        public DbSet<ProcesoEntity> Procesos { get; set; } = null!;
+
+        /// <summary>
         /// Obtiene o establece el conjunto de entidades de niveles de proceso.
         /// Representa la configuración de los flujos y secuencias de atención de reclamos.
         /// </summary>
@@ -115,6 +109,18 @@ namespace Japdeva.APIMovil.Reclamos.Data
         /// Representa la relación entre estados de detalle y órdenes de proceso.
         /// </summary>
         public DbSet<EstadoDetalleReclamoNivelProcesoEntity> EstadoDetalleReclamoOrdenProcesos { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece el conjunto de entidades de apelaciones de reclamos.
+        /// Representa las apelaciones presentadas por usuarios externos ante resoluciones de reclamos.
+        /// </summary>
+        public DbSet<ApelacionReclamoEntity> ApelacionesReclamos { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece el conjunto de entidades de detalles de apelaciones de reclamos.
+        /// Representa el seguimiento y las acciones realizadas durante el proceso de apelación.
+        /// </summary>
+        public DbSet<DetalleApelacionReclamoEntity> DetalleApelacionesReclamos { get; set; } = null!;
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades históricas de detalles de reclamos.

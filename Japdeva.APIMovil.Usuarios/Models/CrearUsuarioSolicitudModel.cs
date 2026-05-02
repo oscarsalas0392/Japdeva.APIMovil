@@ -11,13 +11,18 @@ namespace Japdeva.APIMovil.Usuarios.Models
         public string Nombre { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece el correo electrónico del usuario.
+        /// Obtiene o establece el correo electrï¿½nico del usuario.
         /// </summary>
         public string Correo { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece el teléfono del usuario.
+        /// Obtiene o establece el telÃ©fono del usuario.
         /// </summary>
-        public string Telefono { get; set; } = string.Empty;
+        public string? Telefono { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la fecha de nacimiento del usuario.
+        /// </summary>
+        public DateTime? FechaNacimiento { get; set; }
     }
 }

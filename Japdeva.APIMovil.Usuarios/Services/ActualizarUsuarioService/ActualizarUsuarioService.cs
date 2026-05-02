@@ -54,6 +54,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
 
                 usuarioExistente.Nombre = solicitud.Nombre;
                 usuarioExistente.Apellidos = solicitud.Apellidos;
+                usuarioExistente.Telefono = solicitud.Telefono;
+                usuarioExistente.FechaNacimiento = solicitud.FechaNacimiento;
                 usuarioExistente.FechaEdicion = DateTime.UtcNow;
                 await actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuarioExistente);
                 var respuesta = new UsuarioRespuestaModel();
@@ -63,6 +65,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioService
                 respuesta.Nombre = usuarioExistente.Nombre;
                 respuesta.Apellidos = usuarioExistente.Apellidos;
                 respuesta.Correo = usuarioExistente.Correo;
+                respuesta.Telefono = usuarioExistente.Telefono;
+                respuesta.FechaNacimiento = usuarioExistente.FechaNacimiento;
                 respuesta.FechaRegistro = usuarioExistente.FechaRegistro;
                 respuesta.FechaEdicion = usuarioExistente.FechaEdicion;
                 respuesta.Activo = usuarioExistente.Activo;

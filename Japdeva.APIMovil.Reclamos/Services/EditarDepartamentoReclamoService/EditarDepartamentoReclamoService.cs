@@ -41,7 +41,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoReclamoService
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
                 var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
-                if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_DEPARTAMENTO_RECLAMO_NO_ENCONTRADO, idDepartamentoReclamo));
+                if (reclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_DEPARTAMENTO_RECLAMO_NO_ENCONTRADO, idReclamo));
 
                 reclamo.IdDepartamentoActual = idDepartamentoReclamo;
                 await actualizarRepository.ActualizarAsync<ReclamoEntity>(traceId, reclamo);

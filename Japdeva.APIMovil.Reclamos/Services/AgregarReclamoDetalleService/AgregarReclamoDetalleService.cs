@@ -64,7 +64,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
                 var agregarRepository = serviceScope.ServiceProvider.GetRequiredService<IAgregarRepository>();
 
                 var nivelProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, idNivelSiguienteProceso);
-                if(nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
+                if (nivelProceso is null || nivelProceso.IdProceso != (int)ProcesoModel.Reclamo) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
 
                 var estadoDetalle = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, (int)EstadoDetalleReclamoModel.Pendiente);
                 if (estadoDetalle is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO, (int)EstadoDetalleReclamoModel.Pendiente));

@@ -21,3 +21,12 @@ CREATE INDEX IF NOT EXISTS "Idx_EstadoDetalleReclamoOrdenProceso_IdNivelProceso"
 
 CREATE INDEX IF NOT EXISTS "Idx_OrdenNivelProceso_IdNivelSuperior"
     ON "Tbl_OrdenNivelProceso" ("idNivelSuperior");
+
+CREATE INDEX IF NOT EXISTS "Idx_DetalleReclamo_IdDepartamento"
+    ON "Tbl_DetalleReclamo" ("idDepartamento");
+
+CREATE INDEX IF NOT EXISTS "Idx_ApelacionReclamo_IdReclamo"
+    ON "Tbl_ApelacionReclamo" ("idReclamo");
+
+CREATE INDEX IF NOT EXISTS "Idx_ApelacionReclamo_IdEstadoReclamo"
+    ON "Tbl_ApelacionReclamo" ("idEstadoReclamo");

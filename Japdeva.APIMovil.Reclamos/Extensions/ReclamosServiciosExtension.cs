@@ -1,4 +1,14 @@
 ﻿using Japdeva.APIMovil.Reclamos.BackgroundServices;
+using Japdeva.APIMovil.Reclamos.Services.AgregarApelacionReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.AgregarApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ListaRespuestaApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorFechaEstadoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
@@ -57,6 +67,16 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
             try
             {
 
+                builder.Services.AddSingleton<IAgregarApelacionReclamoDetalleService, AgregarApelacionReclamoDetalleService>();
+                builder.Services.AddSingleton<IAgregarApelacionReclamoService, AgregarApelacionReclamoService>();
+                builder.Services.AddSingleton<IEditarApelacionReclamoService, EditarApelacionReclamoService>();
+                builder.Services.AddSingleton<IEditarApelacionReclamoDetalleService, EditarApelacionReclamoDetalleService>();
+                builder.Services.AddSingleton<IEditarDepartamentoApelacionReclamoService, EditarDepartamentoApelacionReclamoService>();
+                builder.Services.AddSingleton<IValidarEstadoDetalleApelacionReclamoService, ValidarEstadoDetalleApelacionReclamoService>();
+                builder.Services.AddSingleton<IListaRespuestaApelacionReclamoService, ListaRespuestaApelacionReclamoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorDepartamentoService, ObtenerApelacionesPorDepartamentoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorFechaEstadoService, ObtenerApelacionesPorFechaEstadoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorUsuarioService, ObtenerApelacionesPorUsuarioService>();
                 builder.Services.AddSingleton<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
                 builder.Services.AddSingleton<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
                 builder.Services.AddSingleton<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();

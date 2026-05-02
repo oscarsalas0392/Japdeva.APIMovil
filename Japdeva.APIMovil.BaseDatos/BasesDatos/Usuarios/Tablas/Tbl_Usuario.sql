@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS "Tbl_Usuario" (
     "fechaRegistro"  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 	"fechaExpiracionContrasena"  TIMESTAMPTZ NULL DEFAULT NULL,
     "fechaEdicion"   TIMESTAMPTZ     NULL,
-    "activo"         BOOLEAN         NOT NULL DEFAULT TRUE,
+    "telefono"           VARCHAR(20)     NULL,
+    "fechaNacimiento"    DATE            NULL,
+    "activo"             BOOLEAN         NOT NULL DEFAULT TRUE,
     CONSTRAINT "PK_Tbl_Usuario"              PRIMARY KEY ("id"),
     CONSTRAINT "FK_Tbl_Usuario_TipoCedula"   FOREIGN KEY ("idTipoCedula")
         REFERENCES "Tbl_TipoCedula" ("id")
