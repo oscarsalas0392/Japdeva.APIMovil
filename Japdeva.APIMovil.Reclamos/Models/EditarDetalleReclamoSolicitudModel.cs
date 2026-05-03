@@ -8,7 +8,7 @@
         /// <summary>
         /// Obtiene o establece el identificador único del detalle del reclamo.
         /// </summary>
-        public long Id { get; set; }
+        public long IdDetalleReclamo { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del estado del detalle del reclamo.
@@ -21,7 +21,7 @@
         /// Obtiene o establece el identificador del nivel del siguiente proceso asociado al detalle del reclamo.
         /// Indica el flujo o etapa a la que avanzará el reclamo tras la acción actual.
         /// </summary>
-        public int IdNivelSiguienteProceso { get; set; }
+        public int? IdNivelSiguienteProceso { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del usuario interno asignado al detalle.

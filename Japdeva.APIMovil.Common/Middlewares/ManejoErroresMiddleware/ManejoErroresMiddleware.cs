@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 
@@ -16,11 +17,12 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private readonly ILogger<ManejoErroresMiddleware> _logger;
         private const string MENSAJE_TIMEOUT = "La solicitud ha excedido el tiempo de espera.";
         private const string MENSAJE_BAD_REQUEST = "La solicitud contiene datos inválidos.";
+        private const string MENSAJE_TOKEN_EXPIRADO = "Token expirado.";
         private const string MENSAJE_ERROR_INTERNO = "La solicitud ha fallado.";
-        private const string MENSAJE_EXITO = "Solicitud procesada con éxito.";
+        private const string MENSAJE_EXITO = "Transacción realizada con éxito";
         private const int POSICION_INICIO_STREAM = 0;
-        private const bool EXITO = true; 
         private const bool ERROR = false;
+        private const bool EXITO = true;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de manejo de errores.
@@ -45,15 +47,25 @@ namespace Japdeva.APIMovil.Common.Middlewares
             Stream streamOriginal = contextoHttp.Response.Body;
             try
             {
+                this._logger.Inicio(contextoHttp.TraceIdentifier, nombreMetodo);
                 using MemoryStream streamTemporal = new MemoryStream();
                 contextoHttp.Response.Body = streamTemporal;
-                this._logger.Inicio(contextoHttp.TraceIdentifier, nombreMetodo);
                 await this._siguiente(contextoHttp);
                 streamTemporal.Seek(POSICION_INICIO_STREAM, SeekOrigin.Begin);
-                string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
-                respuesta.Exito = EXITO; // Usar constante en vez de valor quemado
+                string contenido = await new StreamReader(streamTemporal).ReadToEndAsync();
+                contextoHttp.Response.Body = streamOriginal;
+                contextoHttp.Response.ContentLength = null;
+                respuesta.Exito = EXITO;
+                respuesta.Datos = contenido;
                 respuesta.Mensaje = MENSAJE_EXITO;
-                respuesta.Datos = string.IsNullOrEmpty(contenidoRespuesta) ? null : contenidoRespuesta;
+                await contextoHttp.Response.WriteAsJsonAsync(respuesta);
+            }
+            catch (SecurityTokenExpiredException ex)
+            {
+                contextoHttp.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = ERROR;
+                respuesta.Mensaje = MENSAJE_TOKEN_EXPIRADO;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
@@ -61,7 +73,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
+                respuesta.Exito = ERROR;
                 respuesta.Mensaje = MENSAJE_TIMEOUT;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -70,7 +82,26 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
+                respuesta.Exito = ERROR;
+                respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
+                contextoHttp.Response.Body = streamOriginal;
+                await contextoHttp.Response.WriteAsJsonAsync(respuesta);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                contextoHttp.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = ERROR;
+                respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
+                contextoHttp.Response.Body = streamOriginal;
+                await contextoHttp.Response.WriteAsJsonAsync(respuesta);
+            }
+
+            catch (KeyNotFoundException ex)
+            {
+                contextoHttp.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
+                respuesta.Exito = ERROR;
                 respuesta.Mensaje = ex.Message ?? MENSAJE_BAD_REQUEST;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
@@ -79,11 +110,12 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 contextoHttp.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 this._logger.Error(contextoHttp.TraceIdentifier, nombreMetodo, ex);
-                respuesta.Exito = ERROR; // Usar constante en vez de valor quemado
+                respuesta.Exito = ERROR;
                 respuesta.Mensaje = MENSAJE_ERROR_INTERNO;
                 contextoHttp.Response.Body = streamOriginal;
                 await contextoHttp.Response.WriteAsJsonAsync(respuesta);
             }
+
             finally
             {
                 this._logger.Fin(contextoHttp.TraceIdentifier, nombreMetodo);

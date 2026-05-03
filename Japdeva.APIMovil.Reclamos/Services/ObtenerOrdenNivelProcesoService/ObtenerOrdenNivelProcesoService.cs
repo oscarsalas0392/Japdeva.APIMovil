@@ -17,9 +17,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerOrdenNivelProcesoService
         private readonly IOrdenNivelProcesoCacheService _ordenNivelProcesoCacheService;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
 
-        private const string MENSAJE_ERROR_ID_PAGINA = "No se encontraron niveles de proceso para los Ids:";
-        private const string SEPARADOR_LISTA = ", ";
-
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerOrdenNivelProcesoService"/>.
         /// </summary>
@@ -57,7 +54,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerOrdenNivelProcesoService
                 List<int> listaNiveles = ordenesNivelProceso.Lista.Select(x => x.IdNivelInferior).Distinct().ToList();
                 
                 var nivelesProceso = this._nivelProcesoCacheService.ObtenerLista( traceId, pagina, x => listaNiveles.Contains(x.Id));
-                if (nivelesProceso is null || !nivelesProceso.Lista.Any()) throw new Exception($"{MENSAJE_ERROR_ID_PAGINA} {string.Join(SEPARADOR_LISTA, listaNiveles)}");
 
                 List<int> listaIdDepartamentos = nivelesProceso.Lista.Select(x => (int)x.IdDepartamento).Distinct().ToList();
 
@@ -72,7 +68,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerOrdenNivelProcesoService
                     ordenNivelProcesoRespuestaModel.IdNivelSuperior = ordenNivelProceso.IdNivelSuperior;
                     ordenNivelProcesoRespuestaModel.IdNivelInferior = ordenNivelProceso.IdNivelInferior;
                     ordenNivelProcesoRespuestaModel.DevolucionNivel = ordenNivelProceso.DevolucionNivel;
-                    ordenNivelProcesoRespuestaModel.FinalizacionProceso = ordenNivelProceso.FinalizacionProceso;
                     ordenNivelProcesoRespuestaModel.IdDepartamento = nivelProceso.IdDepartamento;
                     ordenNivelProcesoRespuestaModel.DescripcionDepartamento = "";
                     listaRespuesta.Add(ordenNivelProcesoRespuestaModel);

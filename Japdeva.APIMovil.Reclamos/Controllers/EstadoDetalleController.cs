@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService;
 
 namespace Japdeva.APIMovil.Reclamos.Controllers
@@ -6,6 +7,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para gestionar las operaciones relacionadas con los estados detalle de los reclamos.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class EstadoDetalleController : Controller

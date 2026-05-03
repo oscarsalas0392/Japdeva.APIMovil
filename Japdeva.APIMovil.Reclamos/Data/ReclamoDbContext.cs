@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Japdeva.APIMovil.Reclamos.Entities;
 
 namespace Japdeva.APIMovil.Reclamos.Data
@@ -17,6 +18,35 @@ namespace Japdeva.APIMovil.Reclamos.Data
         public ReclamoDbContext(DbContextOptions<ReclamoDbContext> options) : base(options)
         {
         }
+
+        /// <summary>
+        /// Configura el modelo de Entity Framework Core aplicando una conversión global
+        /// para todas las propiedades de tipo <see cref="DateTime"/>.
+        /// Esta configuración es especialmente importante al trabajar con PostgreSQL y
+        /// columnas del tipo <c>timestamp with time zone</c>, ya que el proveedor Npgsql
+        /// solo admite valores en UTC y produce excepciones cuando se utilizan fechas con
+        /// <see cref="DateTimeKind.Local"/> o <see cref="DateTimeKind.Unspecified"/>.
+        /// </summary>
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var propiedad in tipoEntidad.GetProperties())
+                {
+                    if (propiedad.ClrType == typeof(DateTime))
+                    {
+                        propiedad.SetValueConverter(
+                            new ValueConverter<DateTime, DateTime>(
+                                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                                v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                            )
+                        );
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades de reclamos.
@@ -55,6 +85,12 @@ namespace Japdeva.APIMovil.Reclamos.Data
         public DbSet<EstadoDetalleReclamoEntity> EstadosDetalleReclamos { get; set; } = null!;
 
         /// <summary>
+        /// Obtiene o establece el conjunto de entidades de procesos.
+        /// Representa el catálogo de tipos de proceso: Reclamo y Apelación.
+        /// </summary>
+        public DbSet<ProcesoEntity> Procesos { get; set; } = null!;
+
+        /// <summary>
         /// Obtiene o establece el conjunto de entidades de niveles de proceso.
         /// Representa la configuración de los flujos y secuencias de atención de reclamos.
         /// </summary>
@@ -73,6 +109,18 @@ namespace Japdeva.APIMovil.Reclamos.Data
         /// Representa la relación entre estados de detalle y órdenes de proceso.
         /// </summary>
         public DbSet<EstadoDetalleReclamoNivelProcesoEntity> EstadoDetalleReclamoOrdenProcesos { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece el conjunto de entidades de apelaciones de reclamos.
+        /// Representa las apelaciones presentadas por usuarios externos ante resoluciones de reclamos.
+        /// </summary>
+        public DbSet<ApelacionReclamoEntity> ApelacionesReclamos { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece el conjunto de entidades de detalles de apelaciones de reclamos.
+        /// Representa el seguimiento y las acciones realizadas durante el proceso de apelación.
+        /// </summary>
+        public DbSet<DetalleApelacionReclamoEntity> DetalleApelacionesReclamos { get; set; } = null!;
 
         /// <summary>
         /// Obtiene o establece el conjunto de entidades históricas de detalles de reclamos.

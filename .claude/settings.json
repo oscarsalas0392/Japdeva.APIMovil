@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -f \"Japdeva.APIMovil.Reclamos/Models/MensajeRespuestaModel.cs\" ])",
+      "Bash(grep -v \"obj\\\\|Colas\\\\\\\\\\\\|Common\\\\\\\\\\\\|Parametros\\\\\\\\\")",
+      "Bash(dotnet add:*)"
+    ]
+  }
+}

@@ -16,7 +16,13 @@
       "launchBrowser": false,
       "applicationUrl": "https://localhost:7219;http://localhost:5215",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ISSUER": "https://localhost:7075",
+        "AUDIENCE": "apiReclamos",
+        "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Reclamos;Username=postgres;Password=1234",
+        "COLAS_URL": "https://localhost:7001",
+        "GRPC_CLAVE_INTERNA": "claveInterna123"
       }
     }
   }

@@ -56,7 +56,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
 
                     if (resultadoPagina is null || !resultadoPagina.Lista.Any())
                     {
-                       throw new Exception(MENSAJE_ERROR_NO_SE_PUEDEN_OBTENER_LOS_DATOS_DE_ORDEN_NIVEL_PROCESO);
+                        this._logger.LogWarning(MENSAJE_ERROR_NO_SE_PUEDEN_OBTENER_LOS_DATOS_DE_ORDEN_NIVEL_PROCESO);
+                        break;
                     }
 
                     listaCache.AddRange(resultadoPagina.Lista);
@@ -96,13 +97,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._orderNivelProcesoEntityCache)
-                {
-                    return this._orderNivelProcesoEntityCache.FirstOrDefault(
-                        x => x.IdNivelSuperior == idNivelSuperior 
-                             && x.IdNivelInferior == idNivelInferior 
-                             && x.Activo == ESTADO_ACTIVO);
-                }
+  
+                return this._orderNivelProcesoEntityCache.FirstOrDefault(
+                    x => x.IdNivelSuperior == idNivelSuperior 
+                    && x.IdNivelInferior == idNivelInferior 
+                    && x.Activo == ESTADO_ACTIVO);
+                
             }
             catch (Exception ex)
             {
@@ -133,25 +133,23 @@ namespace Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService
                 this._logger.Inicio(traceId, nombreMetodo);
 
                 RespuestaListaModel<OrdenNivelProcesoEntity> respuestaListaModel = new RespuestaListaModel<OrdenNivelProcesoEntity>();
-                lock (this._orderNivelProcesoEntityCache)
+      
+                IEnumerable<OrdenNivelProcesoEntity> query = this._orderNivelProcesoEntityCache;
+
+                if (filtro is not null)
                 {
-                    IEnumerable<OrdenNivelProcesoEntity> query = this._orderNivelProcesoEntityCache;
-
-                    if (filtro is not null)
-                    {
                         query = query.Where(filtro);
-                    }
-
-                    var listaRespuesta = query.Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
-                                       .Take(TAMANIO_PAGINA)
-                                       .ToList();
-
-                    respuestaListaModel.CantidadPaginas = (int)Math.Ceiling((double)query.Count() / TAMANIO_PAGINA);
-                    respuestaListaModel.TotalRegistros = query.Count();
-                    respuestaListaModel.Lista = listaRespuesta;
-                    respuestaListaModel.PaginaActual = pagina;
                 }
 
+                var listaRespuesta = query.Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
+                            .Take(TAMANIO_PAGINA)
+                            .ToList();
+
+                respuestaListaModel.CantidadPaginas = (int)Math.Ceiling((double)query.Count() / TAMANIO_PAGINA);
+                respuestaListaModel.TotalRegistros = query.Count();
+                respuestaListaModel.Lista = listaRespuesta;
+                respuestaListaModel.PaginaActual = pagina;
+                
                 return respuestaListaModel;
             }
             catch (Exception ex)

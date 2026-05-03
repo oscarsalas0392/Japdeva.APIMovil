@@ -58,7 +58,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
                     DocumentoInternoEntity documentoInternoEntity = new DocumentoInternoEntity();
                     documentoInternoEntity.Activo = DOCUMENTO_INTERNO_ACTIVO;
                     documentoInternoEntity.Documento = archivo.ContenidoArchivo;
-                    documentoInternoEntity.FechaRegistro = DateTime.Now;
+                    documentoInternoEntity.FechaRegistro = DateTime.UtcNow;
                     documentoInternoEntity.IdDetalleReclamo = detalleReclamo.Id;
                     documentoInternoEntity.NombreDocumento = archivo.NombreArchivo;
                     listaDocumentoInterno.Add(documentoInternoEntity);

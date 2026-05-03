@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService;
@@ -11,6 +12,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// Controlador para gestionar las operaciones relacionadas con los reclamos.
     /// </summary>
     /// 
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ReclamoController : Controller
@@ -22,7 +24,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <param name="reclamo">Modelo con los datos del reclamo a agregar.</param>
         /// <returns>Resultado de la operación de agregar reclamo.</returns>
         [HttpPost("AgregarReclamo")]
-        public Task<IActionResult> AgregarReclamo([FromServices] AgregarReclamoService agregarReclamoService, [FromBody] AgregarReclamoSolicitudModel reclamo) =>
+        public Task<IActionResult> AgregarReclamo([FromServices] IAgregarReclamoService agregarReclamoService, [FromBody] AgregarReclamoSolicitudModel reclamo) =>
             agregarReclamoService.AgregarReclamoAsync(HttpContext.TraceIdentifier, reclamo);
 
 
@@ -35,7 +37,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <param name="pagina">Número de la página a consultar.</param>
         /// <returns>Resultado de la operación de obtención de reclamos por usuario.</returns>
         [HttpGet("ObtenerReclamoPorUsuario")]
-        public Task<IActionResult> ObtenerReclamoPorUsuario([FromServices] ObtenerReclamosPorUsuarioService obtenerReclamosPorUsuarioService,
+        public Task<IActionResult> ObtenerReclamoPorUsuario([FromServices] IObtenerReclamosPorUsuarioService obtenerReclamosPorUsuarioService,
             [FromQuery(Name = "id-usuario")] int idUsuario, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamosPorUsuarioService.ObtenerReclamosPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario, idEstadoReclamo, pagina);
 
@@ -48,7 +50,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <param name="pagina">Número de la página a consultar.</param>
         /// <returns>Resultado de la operación de obtención de reclamos por departamento.</returns>
         [HttpGet("ObtenerReclamoPorDepartamento")]
-        public Task<IActionResult> ObtenerReclamoPorDepartamento([FromServices] ObtenerReclamoPorDepartamentoService obtenerReclamoPorDepartamentoService,
+        public Task<IActionResult> ObtenerReclamoPorDepartamento([FromServices] IObtenerReclamoPorDepartamentoService obtenerReclamoPorDepartamentoService,
             [FromQuery(Name = "id-departamento")] int idDepartamento, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamoPorDepartamentoService.ObtenerReclamosPorDepartamentoAsync(HttpContext.TraceIdentifier, idDepartamento, pagina);
 
@@ -63,7 +65,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <param name="pagina">Número de la página a consultar.</param>
         /// <returns>Resultado de la operación de obtención de reclamos por fecha y estado.</returns>
         [HttpGet("ObtenerReclamoPorFechaEstado")]
-        public Task<IActionResult> ObtenerReclamoPorFechaEstado([FromServices] ObtenerReclamosPorFechaIngresoService obtenerReclamosPorFechaIngresoService,
+        public Task<IActionResult> ObtenerReclamoPorFechaEstado([FromServices] IObtenerReclamosPorFechaIngresoService obtenerReclamosPorFechaIngresoService,
             [FromQuery(Name = "fecha-inicio")] DateTime fechaInicio, [FromQuery(Name = "fecha-fin")] DateTime fechaFin, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamosPorFechaIngresoService.ObtenerReclamosPorFechaIngresoAsync(HttpContext.TraceIdentifier, fechaInicio, fechaFin, idEstadoReclamo, pagina);
 

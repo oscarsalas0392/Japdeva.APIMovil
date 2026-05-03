@@ -1,8 +1,19 @@
 ﻿using Japdeva.APIMovil.Reclamos.BackgroundServices;
+using Japdeva.APIMovil.Reclamos.Services.AgregarApelacionReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.AgregarApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ListaRespuestaApelacionReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorFechaEstadoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService;
@@ -14,6 +25,9 @@ using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheSe
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.ListaRespuestaReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarResolucionUsuarioService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarUsuarioReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoHistoricoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoHistoricoService;
@@ -53,6 +67,16 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
             try
             {
 
+                builder.Services.AddSingleton<IAgregarApelacionReclamoDetalleService, AgregarApelacionReclamoDetalleService>();
+                builder.Services.AddSingleton<IAgregarApelacionReclamoService, AgregarApelacionReclamoService>();
+                builder.Services.AddSingleton<IEditarApelacionReclamoService, EditarApelacionReclamoService>();
+                builder.Services.AddSingleton<IEditarApelacionReclamoDetalleService, EditarApelacionReclamoDetalleService>();
+                builder.Services.AddSingleton<IEditarDepartamentoApelacionReclamoService, EditarDepartamentoApelacionReclamoService>();
+                builder.Services.AddSingleton<IValidarEstadoDetalleApelacionReclamoService, ValidarEstadoDetalleApelacionReclamoService>();
+                builder.Services.AddSingleton<IListaRespuestaApelacionReclamoService, ListaRespuestaApelacionReclamoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorDepartamentoService, ObtenerApelacionesPorDepartamentoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorFechaEstadoService, ObtenerApelacionesPorFechaEstadoService>();
+                builder.Services.AddSingleton<IObtenerApelacionesPorUsuarioService, ObtenerApelacionesPorUsuarioService>();
                 builder.Services.AddSingleton<IAgregarDocumentoInternoService, AgregarDocumentoInternoService>();
                 builder.Services.AddSingleton<IAgregarDocumentoUsuarioService, AgregarDocumentoUsuarioService>();
                 builder.Services.AddSingleton<IAgregarReclamoDetalleService, AgregarReclamoDetalleService>();
@@ -76,14 +100,19 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
                 builder.Services.AddSingleton<IEstadoDetalleReclamoOrdenProcesoCacheService, EstadoDetalleReclamoOrdenProcesoCacheService>();
                 builder.Services.AddSingleton<IEstadoReclamoCacheService, EstadoReclamoCacheService>();
                 builder.Services.AddSingleton<INivelProcesoCacheService, NivelProcesoCacheService>();
-                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
-                builder.Services.AddSingleton<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
-                builder.Services.AddSingleton<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
+                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();           
+              
                 builder.Services.AddSingleton<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
+                builder.Services.AddSingleton<IEditarDepartamentoReclamoService, EditarDepartamentoReclamoService>();
+                builder.Services.AddSingleton<INotificarDepartamentoService, NotificarDepartamentoService>();
+                builder.Services.AddSingleton<INotificarResolucionUsuarioService, NotificarResolucionUsuarioService>();
+                builder.Services.AddSingleton<INotificarUsuarioReclamoService, NotificarUsuarioReclamoService>();
 
-            
+                builder.Services.AddScoped<IEnvioHistoricoDetalleReclamoService, EnvioHistoricoDetalleReclamoService>();
+                builder.Services.AddScoped<IEnvioHistoricoDocumentoInternoService, EnvioHistoricoDocumentoInternoService>();
+                builder.Services.AddScoped<IEnvioHistoricoDocumentoUsuarioService, EnvioHistoricoDocumentoUsuarioService>();
+                builder.Services.AddScoped<IValidarEnvioReclamoHistoricoService, ValidarEnvioReclamoHistoricoService>();
+
                 builder.Services.AddHostedService<HistoricoBackGroundService>();
                 builder.Services.AddHostedService<ParametrosBackGroundService>();
 

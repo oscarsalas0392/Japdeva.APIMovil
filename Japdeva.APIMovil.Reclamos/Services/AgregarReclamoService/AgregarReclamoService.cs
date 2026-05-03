@@ -1,16 +1,14 @@
-﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
-using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
-
+using Japdeva.APIMovil.Reclamos.Services.NotificarDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.NotificarUsuarioReclamoService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
 {
@@ -27,14 +25,14 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         private readonly IAgregarReclamoDetalleService _agregarReclamoDetalleService;
         private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
         private readonly INivelProcesoCacheService _nivelProcesoCacheService;
-
+        private readonly INotificarUsuarioReclamoService _notificarUsuarioReclamoService;
+        private readonly INotificarDepartamentoService _notificarDepartamentoService;
         private const int MINIMO_REGISTROS = 1;
         private const string MENSAJE_TITULO_REQUERIDO = "El titulo es requerido";
         private const string MENSAJE_DESCRIPCION_REQUERIDA = "El descripcion es requerida";
         private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
         private const string MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE = "El estado reclamo no existe.";
         private const string MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE = "La orden de proceso inicial no existe.";
-
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="AgregarReclamoService"/>.
@@ -45,13 +43,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         /// <param name="agregarReclamoDetalleService">Servicio para agregar detalles del reclamo.</param>
         /// <param name="estadoReclamoCacheService">Servicio de caché para estados de reclamo.</param>
         /// <param name="nivelProcesoCacheService">Servicio de caché para niveles de proceso.</param>
+        /// <param name="notificarUsuarioReclamoService">Servicio para notificar al usuario externo sobre su reclamo.</param>
+        /// <param name="notificarDepartamentoService">Servicio para notificar al departamento sobre nuevos reclamos.</param>
         public AgregarReclamoService(
             ILogger<AgregarReclamoService> logger,
             IAgregarDocumentoUsuarioService agregarDocumentoUsuarioService,
             IServiceProvider serviceProvider,
             IAgregarReclamoDetalleService agregarReclamoDetalleService,
             IEstadoReclamoCacheService estadoReclamoCacheService,
-            INivelProcesoCacheService nivelProcesoCacheService)
+            INivelProcesoCacheService nivelProcesoCacheService,
+            INotificarUsuarioReclamoService notificarUsuarioReclamoService,
+            INotificarDepartamentoService notificarDepartamentoService)
         {
             this._logger = logger;
             this._agregarDocumentoUsuarioService = agregarDocumentoUsuarioService;
@@ -59,6 +61,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
             this._agregarReclamoDetalleService = agregarReclamoDetalleService;
             this._estadoReclamoCacheService = estadoReclamoCacheService;
             this._nivelProcesoCacheService = nivelProcesoCacheService;
+            this._notificarUsuarioReclamoService = notificarUsuarioReclamoService;
+            this._notificarDepartamentoService = notificarDepartamentoService;
         }
 
         /// <summary>
@@ -72,62 +76,54 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService
         public async Task<IActionResult> AgregarReclamoAsync(string traceId, AgregarReclamoSolicitudModel reclamo)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IDbContextTransaction? transaccion = null;
-            using var scope = this._serviceProvider.CreateScope();
-            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
-               
-                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
-              
-                transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
                 this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
+                var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+
                 if (string.IsNullOrEmpty(reclamo.Titulo)) throw new ArgumentException(MENSAJE_TITULO_REQUERIDO);
                 if (string.IsNullOrEmpty(reclamo.Descripcion)) throw new ArgumentException(MENSAJE_DESCRIPCION_REQUERIDA);
-
                 if (reclamo.ListaDocumentos is null || reclamo.ListaDocumentos.Count < MINIMO_REGISTROS) throw new ArgumentException(MENSAJE_ERROR_LISTA_NULA);
 
                 var estadoReclamo = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, (int)EstadoReclamoModel.Pendiente);
                 if (estadoReclamo is null) throw new Exception(MENSAJE_ERROR_ESTADO_RECLAMO_NO_EXISTE);
 
-                var nivelProceso = this._nivelProcesoCacheService.ObtenerPrimerNivel(traceId);
+                var nivelProceso = this._nivelProcesoCacheService.ObtenerPrimerNivelPorProceso(traceId, (int)ProcesoModel.Reclamo);
                 if (nivelProceso is null) throw new Exception(MENSAJE_ERROR_ORDEN_PROCESO_NO_EXISTE);
 
                 ReclamoEntity reclamoEntity = new ReclamoEntity();
                 reclamoEntity.Titulo = reclamo.Titulo;
                 reclamoEntity.Descripcion = reclamo.Descripcion;
                 reclamoEntity.IdEstadoReclamo = estadoReclamo.Id;
-                reclamoEntity.FechaRegistro = DateTime.Now;
+                reclamoEntity.FechaRegistro = DateTime.UtcNow;
                 reclamoEntity.IdUsuarioExterno = reclamo.IdUsuarioExterno;
                 reclamoEntity.IdDepartamentoActual = nivelProceso.IdDepartamento;
-
                 await agregarRepository.AgregarAsync<ReclamoEntity>(traceId, reclamoEntity);
 
                 Task agregarDocumento = this._agregarDocumentoUsuarioService.AgregarDocumentoUsuarioAsync(traceId, reclamoEntity.Id, reclamo.ListaDocumentos);
                 Task agregarDetalleReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, reclamoEntity.Id, nivelProceso.Id);
                 await Task.WhenAll(agregarDocumento, agregarDetalleReclamo);
 
-                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+                _ = Task.Run(() => this._notificarUsuarioReclamoService.NotificarNuevoReclamoAsync(traceId, reclamoEntity.Id, reclamoEntity.IdUsuarioExterno));
+                _ = Task.Run(() => this._notificarDepartamentoService.NotificarNuevoReclamoAsync(traceId, reclamoEntity.IdDepartamentoActual, reclamoEntity.Id, reclamoEntity.IdUsuarioExterno));
 
                 AgregarReclamoRespuestaModel agregarReclamoRespuestaModel = new AgregarReclamoRespuestaModel();
                 agregarReclamoRespuestaModel.Id = reclamoEntity.Id;
-                agregarReclamoRespuestaModel.TItulo = reclamoEntity.Titulo;
+                agregarReclamoRespuestaModel.Titulo = reclamoEntity.Titulo;
                 agregarReclamoRespuestaModel.Descripcion = reclamoEntity.Descripcion;
 
                 return new OkObjectResult(agregarReclamoRespuestaModel);
             }
             catch (Exception ex)
             {
-                await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally
             {
-                await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }
-
     }
 }

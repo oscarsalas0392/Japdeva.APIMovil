@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService;
 
@@ -7,6 +8,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para exponer los endpoints relacionados con los documentos de usuario asociados a un reclamo.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentoUsuarioController : Controller

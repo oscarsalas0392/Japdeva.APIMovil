@@ -1,9 +1,11 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDetalleReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.EnvioHistoricoDocumentoUsuarioService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
@@ -18,13 +20,18 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
         private readonly ILogger<ValidarEnvioReclamoHistoricoService> _logger;
         private readonly IEnvioHistoricoDetalleReclamoService _envioHistoricoDetalleReclamoService;
         private readonly IEnvioHistoricoDocumentoUsuarioService _envioHistoricoDocumentoUsuarioService;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IEnvioHistoricoDocumentoInternoService _envioHistoricoDocumentoInternoService;
+        private readonly IActualizarRepository _actualizarRepository;
+        private readonly IGeneralRepository _generalRepository;
+        private readonly IConsultarListaRepository _consultarListaRepository;
 
         private readonly string _mesesRestar = Environment.GetEnvironmentVariable("MESES_ENVIO_HISTORICO") ?? MESES_ENVIO_HISTORICO_DEFECTO;
         private const int PAGINA_INICIAL = 1;
         private const string MENSAJE_ERROR_VARIABLE_ENTORNO_MESES_INVALIDA = "La variable de entorno para meses de envío histórico no es un número válido.";
         private const string MESES_ENVIO_HISTORICO_DEFECTO = "3";
         private const int FACTOR_RESTA_MES = -1;
+        private const bool ESTA_EN_HISTORICO = true;
+
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de validación de envío histórico de reclamos.
@@ -38,12 +45,20 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
             ILogger<ValidarEnvioReclamoHistoricoService> logger,
             IEnvioHistoricoDetalleReclamoService envioHistoricoDetalleReclamoService,
             IEnvioHistoricoDocumentoUsuarioService envioHistoricoDocumentoUsuarioService,
-            IServiceProvider serviceProvider)
+            IEnvioHistoricoDocumentoInternoService envioHistoricoDocumentoInternoService,
+            IConsultarListaRepository consultarListaRepository,
+            IGeneralRepository generalRepository,
+            IActualizarRepository actualizarRepository
+            )
         {
             this._logger = logger;
-            this._serviceProvider = serviceProvider;
+            this._consultarListaRepository = consultarListaRepository;
             this._envioHistoricoDetalleReclamoService = envioHistoricoDetalleReclamoService;
             this._envioHistoricoDocumentoUsuarioService = envioHistoricoDocumentoUsuarioService;
+            this._envioHistoricoDocumentoInternoService = envioHistoricoDocumentoInternoService;
+            this._consultarListaRepository = consultarListaRepository;
+            this._generalRepository = generalRepository;
+            this._actualizarRepository = actualizarRepository;
         }
 
         /// <summary>
@@ -57,15 +72,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
         public async Task ValidarEnvioReclamoHistoricoAsync(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            using var scope = this._serviceProvider.CreateScope();
-            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
-            var transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
+           
+            var transaccion = await this._generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
             try 
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
-                // Validar y convertir configuración de meses
                 if (!int.TryParse(this._mesesRestar, out int mesesARestar))
                 {
                     throw new Exception(MENSAJE_ERROR_VARIABLE_ENTORNO_MESES_INVALIDA);
@@ -73,34 +85,34 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService
 
                 DateTime fechaCorte = DateTime.Now.AddMonths(mesesARestar * FACTOR_RESTA_MES);
 
-                // Obtener reclamos elegibles para envío histórico
-                var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, PAGINA_INICIAL,
+                var reclamos = await this._consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, PAGINA_INICIAL,
                     x => x.FechaRegistro <= fechaCorte
                     && x.IdEstadoReclamo != (int)EstadoReclamoModel.EnProceso
-                    && x.IdEstadoReclamo != (int)EstadoReclamoModel.Pendiente);
+                    && x.IdEstadoReclamo != (int)EstadoReclamoModel.Pendiente
+                    && x.EstaEnHistorico == !ESTA_EN_HISTORICO);
 
-                // Procesar cada reclamo de forma paralela
-                foreach(var reclamo in reclamos.Lista)
+                foreach (var reclamo in reclamos.Lista)
                 {
-                    Task tareaEnvioHistoricoDocumentoUsuario = this._envioHistoricoDocumentoUsuarioService.EnviarHistoricoDocumentoUsuarioAsync(traceId, reclamo.Id);
-                    Task tareaDetalleReclamo = this._envioHistoricoDetalleReclamoService.EnviarHistoricoDetalleReclamoAsync(traceId, reclamo.Id);
                     
-                    await Task.WhenAll(tareaEnvioHistoricoDocumentoUsuario, tareaDetalleReclamo);
+                    await this._envioHistoricoDocumentoUsuarioService.EnviarHistoricoDocumentoUsuarioAsync(traceId, reclamo.Id);
+                    await this._envioHistoricoDetalleReclamoService.EnviarHistoricoDetalleReclamoAsync(traceId, reclamo.Id);
+                    await this._envioHistoricoDocumentoInternoService.EnviarHistoricoDocumentoInternoAsync(traceId, reclamo.Id);
+                    reclamo.EstaEnHistorico = ESTA_EN_HISTORICO;
+                    await this._actualizarRepository.ActualizarAsync<ReclamoEntity>(traceId, reclamo);
+
                 }
 
-                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+                if(reclamos.Lista.Any()) await this._generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
             }
             catch(Exception ex)
             {
                 this._logger.Error(traceId, nombreMetodo, ex);
-                if (transaccion is not null) 
-                    await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
+                if (transaccion is not null)  await this._generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 throw;
             }
             finally
             {
-                if(transaccion is not null)  
-                    await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
+                if(transaccion is not null) await this._generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

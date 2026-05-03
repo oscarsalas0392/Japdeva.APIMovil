@@ -85,7 +85,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     }
                     string token = this._generarTokenService.GenerarToken(traceId, issuer, audience, claveSecreta, rol);
                     token = $"{BEARER_PREFIX} {token}";
-                    context.Request.Headers.Append(AUTHORIZATION_HEADER, token);              
+                    context.Request.Headers[AUTHORIZATION_HEADER] = token;              
                 }
                 await this._next(context);
             }

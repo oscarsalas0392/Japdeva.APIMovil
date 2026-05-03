@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioHistoricoService;
 
 
@@ -7,6 +8,9 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// <summary>
     /// Controlador para exponer los endpoints relacionados con el histórico de documentos de usuario.
     /// </summary>
+    [Authorize]
+    [ApiController]
+    [Route("api/[controller]")]
     public class DocumentoUsuarioHistoricoController : Controller
     {
        /// <summary>

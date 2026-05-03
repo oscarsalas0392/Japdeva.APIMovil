@@ -10,8 +10,8 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
     {
         private readonly ILogger<MensajesBackgroundService> _logger;
         private readonly IMensajeColaService _mensajeColaService;
-        private const int DELAY_MILISEGUNDOS = 100;
-        private const int DELAY_SEGUNDOS = 2;
+        private const int DELAY_MILISEGUNDOS = 15;
+        private const int DELAY_MILISEGUNDOS_MAXIMOS = 20;
         private const string TRACE_ID = "N/A";
         private const int CANTIDAD_MENSAJES_MINIMA = 0;
 
@@ -34,27 +34,35 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            this._logger.Inicio(TRACE_ID, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    int cantidadMensajesPendientes = await this._mensajeColaService.ContarMensajesPendientesAsync(TRACE_ID);
+                    try
+                    {
+                        int cantidadMensajesPendientes = await this._mensajeColaService.ContarMensajesPendientesAsync(TRACE_ID);
 
-                    if (cantidadMensajesPendientes > CANTIDAD_MENSAJES_MINIMA)
-                    {
-                        await this._mensajeColaService.LlenarCacheMensajesAsync(TRACE_ID);
-                        await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        if (cantidadMensajesPendientes > CANTIDAD_MENSAJES_MINIMA)
+                        {
+                            await this._mensajeColaService.LlenarCacheMensajesAsync(TRACE_ID);
+                            await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS), stoppingToken);
+                        }
+                        else
+                        {
+                            await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS_MAXIMOS), stoppingToken);
+                        }
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(DELAY_SEGUNDOS), stoppingToken);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID, nombreMetodo, ex);
+                        await Task.Delay(TimeSpan.FromMilliseconds(DELAY_MILISEGUNDOS_MAXIMOS), stoppingToken);
                     }
                 }
-            }
-            catch (Exception ex )
-            {
-                this._logger.Error(TRACE_ID, nombreMetodo, ex);
             }
             finally
             {

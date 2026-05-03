@@ -20,7 +20,7 @@ namespace Japdeva.APIMovil.Reclamos.Models
         /// Confirmación del título que fue registrado en el sistema.
         /// </summary>
         [JsonPropertyName("titulo")]
-        public string TItulo { get; set; } = string.Empty;
+        public string Titulo { get; set; } = string.Empty;
 
         /// <summary>
         /// Obtiene o establece la descripción del reclamo creado.

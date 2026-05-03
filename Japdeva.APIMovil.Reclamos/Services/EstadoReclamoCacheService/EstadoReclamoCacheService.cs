@@ -74,10 +74,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._estadoReclamoEntityCache)
-                {
-                    return this._estadoReclamoEntityCache.FirstOrDefault(p => p.Id == idEstadoReclamo && p.Activo == ESTADO_ACTIVO);
-                }
+                return this._estadoReclamoEntityCache.FirstOrDefault(p => p.Id == idEstadoReclamo && p.Activo == ESTADO_ACTIVO);
+                
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoHistoricoService;
 
 namespace Japdeva.APIMovil.Reclamos.Controllers
@@ -7,6 +8,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     /// Controlador para exponer el detalle histórico de un reclamo.
     /// </summary>
 
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DetalleReclamoHistoricoController : Controller

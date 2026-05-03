@@ -78,11 +78,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                lock (this._estadoDetalleReclamoOrdenProcesoEntityCache)
-                {
-                    return this._estadoDetalleReclamoOrdenProcesoEntityCache.FirstOrDefault(p => p.IdNivelProceso == idNivelProceso && p.IdEstadoDetalleReclamo == idEstadoDetalleReclamo
+                return this._estadoDetalleReclamoOrdenProcesoEntityCache.FirstOrDefault(p => p.IdNivelProceso == idNivelProceso && p.IdEstadoDetalleReclamo == idEstadoDetalleReclamo
                     && p.Activo == ESTADO_ACTIVO);
-                }
+                
             }
             catch (Exception ex)
             {
@@ -111,24 +109,23 @@ namespace Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCac
                 this._logger.Inicio(traceId, nombreMetodo);
 
                 RespuestaListaModel<EstadoDetalleReclamoNivelProcesoEntity> respuestaListaModel = new RespuestaListaModel<EstadoDetalleReclamoNivelProcesoEntity>();
-                lock (this._estadoDetalleReclamoOrdenProcesoEntityCache)
+    
+                IEnumerable<EstadoDetalleReclamoNivelProcesoEntity> query = this._estadoDetalleReclamoOrdenProcesoEntityCache;
+
+                if (filtro is not null)
                 {
-                    IEnumerable<EstadoDetalleReclamoNivelProcesoEntity> query = this._estadoDetalleReclamoOrdenProcesoEntityCache;
-
-                    if (filtro is not null)
-                    {
-                        query = query.Where(filtro);
-                    }
-
-                    var listaRespuesta = query.Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
-                                       .Take(TAMANIO_PAGINA)
-                                       .ToList();
-
-                    respuestaListaModel.CantidadPaginas = (int)Math.Ceiling((double)query.Count() / TAMANIO_PAGINA);
-                    respuestaListaModel.TotalRegistros = query.Count();
-                    respuestaListaModel.Lista = listaRespuesta;
-                    respuestaListaModel.PaginaActual = pagina;
+                     query = query.Where(filtro);
                 }
+
+                var listaRespuesta = query.Skip((pagina - AJUSTE_PAGINA_BASE_CERO) * TAMANIO_PAGINA)
+                                    .Take(TAMANIO_PAGINA)
+                                    .ToList();
+
+                respuestaListaModel.CantidadPaginas = (int)Math.Ceiling((double)query.Count() / TAMANIO_PAGINA);
+                respuestaListaModel.TotalRegistros = query.Count();
+                respuestaListaModel.Lista = listaRespuesta;
+                respuestaListaModel.PaginaActual = pagina;
+                
 
                 return respuestaListaModel;
             }

@@ -9,7 +9,7 @@
         /// Envía el histórico de documentos internos asociados a un detalle de reclamo.
         /// </summary>
         /// <param name="traceId">Identificador de traza para seguimiento de la operación.</param>
-        /// <param name="idDetalleReclamo">Identificador del detalle del reclamo.</param>
-        Task EnviarHistoricoDocumentoInternoAsync(string traceId, long idDetalleReclamo);
+        /// <param name="idReclamo">Identificador del reclamo.</param>
+        Task EnviarHistoricoDocumentoInternoAsync(string traceId, long idReclamo);
     }
 }

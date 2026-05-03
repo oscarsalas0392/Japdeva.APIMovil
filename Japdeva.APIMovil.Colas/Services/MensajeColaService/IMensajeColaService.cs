@@ -1,4 +1,5 @@
 using Japdeva.APIMovil.Colas.Entities;
+using Japdeva.APIMovil.Colas.Models;
 
 namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
 {
@@ -7,6 +8,15 @@ namespace Japdeva.APIMovil.Colas.Services.MensajeColaService
     /// </summary>
     public interface IMensajeColaService
     {
+        /// <summary>
+        /// Busca un mensaje en el caché en memoria por su IdRpc y nombre de cola.
+        /// No realiza ninguna consulta a la base de datos.
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="nombreCola">Nombre de la cola donde buscar.</param>
+        /// <param name="idRpc">Identificador RPC del mensaje.</param>
+        /// <returns>El modelo del mensaje si está en caché, o null si no se encontró.</returns>
+        Task<MensajeColasRespuestaModel?> BuscarEnCachePorIdRpcAsync(string traceId, string nombreCola, string idRpc);
 
         /// <summary>
         /// Llena el caché de mensajes con datos activos desde el repositorio.

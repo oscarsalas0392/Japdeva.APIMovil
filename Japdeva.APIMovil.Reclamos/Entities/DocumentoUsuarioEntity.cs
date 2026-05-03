@@ -36,7 +36,6 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Puede contener la ruta del archivo, contenido codificado o identificador del documento.
         /// </summary>
         [Column("documento")]
-        [MaxLength(4000)]
         [MinLength(1)]
         [Required]
         public string Documento { get; set; } = string.Empty;
@@ -47,10 +46,5 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         [Column("fechaRegistro")]
         public DateTime FechaRegistro { get; set; }
 
-        /// <summary>
-        /// Obtiene o establece el indicador de si el documento está activo en el sistema.
-        /// </summary>
-        [Column("activo")]
-        public bool Activo { get; set; }
     }
 }

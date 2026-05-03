@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
-using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
@@ -68,41 +66,47 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         public async Task<IActionResult> EditarReclamoDetalleAsync(string traceId, EditarDetalleReclamoSolicitudModel editarDetalleReclamoSolicitudModel)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-            IDbContextTransaction? transaccion = null;
             using var scope = this._serviceProvider.CreateScope();
-            var generalRepository = scope.ServiceProvider.GetRequiredService<IGeneralRepository>();
             try
             {
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
-                transaccion = await generalRepository.ObtenerTransaccionBaseDatosAsync(traceId);
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                var reclamoDetalle = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=>x.Id == editarDetalleReclamoSolicitudModel.Id);
-                if (reclamoDetalle is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
+                var reclamoDetalle = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=>x.Id == editarDetalleReclamoSolicitudModel.IdDetalleReclamo);
+                if (reclamoDetalle is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.IdDetalleReclamo));
 
-                var nivelSiguienteProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso);
-                if (nivelSiguienteProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
+                int? idNivelSiguienteProceso = null;
+
+                if (editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso is not null)
+                {
+                    var nivelSiguienteProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso.Value);
+                    if (nivelSiguienteProceso is null || nivelSiguienteProceso.IdProceso != (int)ProcesoModel.Reclamo) throw new ArgumentException(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso.Value));
+                    idNivelSiguienteProceso = nivelSiguienteProceso.Id;
+                }
 
                 var estadoEstadoDetalleReclamo = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo);
-                if(estadoEstadoDetalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.Id));
+                if(estadoEstadoDetalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.IdDetalleReclamo));
 
                 var estadoDetalleReclamoOrdenProceso = this._estadoDetalleReclamoOrdenProcesoCacheService.ObtenerEstadoDetalleReclamoOrdenProceso(traceId, reclamoDetalle.IdNivelProceso, editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo);
                 if(estadoDetalleReclamoOrdenProceso is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO, reclamoDetalle.IdNivelProceso));
 
                 reclamoDetalle.IdEstadoDetalleReclamo = editarDetalleReclamoSolicitudModel.IdEstadoDetalleReclamo;
-                reclamoDetalle.FechaEdicion = DateTime.Now;
+                reclamoDetalle.FechaEdicion = DateTime.UtcNow;
                 reclamoDetalle.IdUsuarioInterno = editarDetalleReclamoSolicitudModel.IdUsuarioInterno;
 
                 string descripcionResolucion = editarDetalleReclamoSolicitudModel.DescripcionResolucion;
                 int nivelProcesoActual = reclamoDetalle.IdNivelProceso;
-                int nivelProcesoSiguiente = nivelSiguienteProceso.Id;
+           
                 long idReclamo = reclamoDetalle.IdReclamo;
                 await actualizarRepository.ActualizarAsync<DetalleReclamoEntity>(traceId, reclamoDetalle);
-                await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, idReclamo, 
-                    nivelProcesoActual, nivelProcesoSiguiente, descripcionResolucion);
 
-                await generalRepository.RealizarCommitBaseDatosAsync(traceId, transaccion);
+
+                if (idNivelSiguienteProceso is not null)
+                {
+                    await this._validarEstadoDetalleReclamoService.ValidarEstadoDetalleReclamoAsync(traceId, estadoEstadoDetalleReclamo, idReclamo,
+                        nivelProcesoActual, idNivelSiguienteProceso.Value, descripcionResolucion);
+                }
 
                 EditarDetalleReclamoRespuestaModel editarDetalleReclamoRespuestaModel = new EditarDetalleReclamoRespuestaModel();
                 editarDetalleReclamoRespuestaModel.Id = idReclamo;
@@ -115,13 +119,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
             catch (Exception ex)
             {
 
-                if(transaccion is not null) await generalRepository.RealizarDevolucionCambiosBaseDatosAsync(traceId, transaccion);
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
             finally 
             {
-                await generalRepository.LimpiarTransaccionAsync(traceId, transaccion);
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }

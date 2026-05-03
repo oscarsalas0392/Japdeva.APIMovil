@@ -1,10 +1,10 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Japdeva.APIMovil.Colas.Entities;
 using Japdeva.APIMovil.Colas.Models;
 using Japdeva.APIMovil.Colas.Services.ColaService;
 using Japdeva.APIMovil.Colas.Services.EstadoMensajeService;
+using Japdeva.APIMovil.Colas.Services.SuscripcionColaService;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 
@@ -19,6 +19,7 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         private readonly ILogger<EnviarMensajeService> _logger;
         private readonly IEstadoMensajeService _estadoMensajeService;
         private readonly IColaService _colaService;
+        private readonly ISuscripcionColaService _suscripcionColaService;
         private readonly IServiceProvider _serviceProvider;
         
         private const int NUMERO_REINTENTOS = 3;
@@ -39,12 +40,14 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
         /// <param name="serviceProvider">Proveedor de servicios para la inyección de dependencias.</param>
         /// <param name="colaService">Servicio para gestionar colas.</param>
         /// <param name="estadoMensajeService">Servicio para gestionar estados de mensajes.</param>
-        public EnviarMensajeService(ILogger<EnviarMensajeService> logger, IServiceProvider serviceProvider, IColaService colaService, IEstadoMensajeService estadoMensajeService)
+        /// <param name="suscripcionColaService">Servicio de suscripciones para notificación push a suscriptores.</param>
+        public EnviarMensajeService(ILogger<EnviarMensajeService> logger, IServiceProvider serviceProvider, IColaService colaService, IEstadoMensajeService estadoMensajeService, ISuscripcionColaService suscripcionColaService)
         {
             this._logger = logger;
             this._colaService = colaService;
             this._estadoMensajeService = estadoMensajeService;
             this._serviceProvider = serviceProvider;
+            this._suscripcionColaService = suscripcionColaService;
         }
 
         /// <summary>
@@ -84,11 +87,12 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
 
                 var mensajeEntity = new MensajeColaEntity();
                 mensajeEntity.ColaId = cola.Id;
+                mensajeEntity.IdRpc = mensaje.IdRpc;
                 mensajeEntity.ContenidoMensaje = mensaje.ContenidoMensaje;
                 mensajeEntity.EstadoId = estadoCola.Id;
                 mensajeEntity.PrioridadId = mensaje.Prioridad;
                 mensajeEntity.FechaRegistro = DateTime.UtcNow;
-                mensajeEntity.Metadatos = JsonSerializer.Serialize(mensaje.Metadatos) ?? METADATOS_VACIO;
+                mensajeEntity.Metadatos = mensaje.Metadatos ?? METADATOS_VACIO;
                 mensajeEntity.ContadorReintentos = INICIO_REINTENTOS;
                 mensajeEntity.TraceId = mensaje.TraceId;
                 var _agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
@@ -96,11 +100,14 @@ namespace Japdeva.APIMovil.Colas.Services.EnviarMensajeService
 
                 MensajeColasRespuestaModel mensajeColasRespuestaModel = new MensajeColasRespuestaModel();
                 mensajeColasRespuestaModel.Id = mensajeEntity.Id;
+                mensajeColasRespuestaModel.IdRpc = mensaje.IdRpc;
                 mensajeColasRespuestaModel.Cola = mensajeEntity.ColaId;
                 mensajeColasRespuestaModel.Mensaje = mensajeEntity.ContenidoMensaje;
                 mensajeColasRespuestaModel.Estado = mensajeEntity.EstadoId;
-                mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId;
+                mensajeColasRespuestaModel.TraceId = mensajeEntity.TraceId ?? string.Empty;
+                mensajeColasRespuestaModel.MetaDatos = mensajeEntity.Metadatos ?? string.Empty;
                 mensajeColasRespuestaModel.TraceIdDiferente = TRACE_ID_DIFERENTE;
+                this._suscripcionColaService.NotificarMensajes(mensaje.NombreCola, new[] { mensajeColasRespuestaModel });
                 return new OkObjectResult(mensajeColasRespuestaModel);
             }
             catch (ArgumentException ex)

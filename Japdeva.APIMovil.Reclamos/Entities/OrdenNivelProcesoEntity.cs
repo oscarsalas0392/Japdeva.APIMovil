@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Japdeva.APIMovil.Reclamos.Entities
 {
@@ -14,6 +15,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// Identificador único de la relación jerárquica entre niveles de proceso.
         /// </summary>
         [Column("id")]
+        [Key]
         public int Id { get; set; }
 
         /// <summary>
@@ -33,12 +35,6 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         /// </summary>
         [Column("devolucionNivel")]
         public bool DevolucionNivel { get; set; }
-
-        /// <summary>
-        /// Indica si la orden de proceso representa la finalización del proceso en la jerarquía.
-        /// </summary>
-        [Column("finalizacionProceso")]
-        public bool FinalizacionProceso { get; set; }
 
         /// <summary>
         /// Obtiene o establece el identificador del usuario interno que configuró esta orden de proceso.

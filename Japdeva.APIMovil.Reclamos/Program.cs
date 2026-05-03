@@ -5,6 +5,7 @@ using Japdeva.APIMovil.Reclamos.Extensions;
 WebApplication.CreateBuilder(args)
 .AgregarPostgreSQL<ReclamoDbContext>()
 .AgregarServiciosMicroservicios()
+.AgregarClienteColasGrpc()
 .AgregarServiciosReclamos()
 .Build()
 .ConfigurarServiciosMicroservicios();
