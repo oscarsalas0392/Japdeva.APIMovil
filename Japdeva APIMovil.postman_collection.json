@@ -426,6 +426,65 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Obtener Parametro Por Nombre",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametroPorNombre?nombre=TerminosCondiciones",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametroPorNombre"],
+              "query": [{ "key": "nombre", "value": "TerminosCondiciones" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Parametros Por Nombres",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametrosPorNombres?nombres=TelefonoContacto&nombres=EmailContacto&nombres=NombreOficina&nombres=DireccionOficina&nombres=HorarioOficina",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametrosPorNombres"],
+              "query": [
+                { "key": "nombres", "value": "TelefonoContacto" },
+                { "key": "nombres", "value": "EmailContacto" },
+                { "key": "nombres", "value": "NombreOficina" },
+                { "key": "nombres", "value": "DireccionOficina" },
+                { "key": "nombres", "value": "HorarioOficina" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener FAQs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametrosPorNombres?nombres=FaqCrearReclamo&nombres=FaqTiempoResolucion&nombres=FaqDocumentos&nombres=FaqSeguimiento",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametrosPorNombres"],
+              "query": [
+                { "key": "nombres", "value": "FaqCrearReclamo" },
+                { "key": "nombres", "value": "FaqTiempoResolucion" },
+                { "key": "nombres", "value": "FaqDocumentos" },
+                { "key": "nombres", "value": "FaqSeguimiento" }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

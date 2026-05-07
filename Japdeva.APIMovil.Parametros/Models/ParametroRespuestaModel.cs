@@ -16,9 +16,14 @@ namespace Japdeva.APIMovil.Parametros.Models
         public string Nombre { get; set; } = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece el valor del parámetro.
+        /// Obtiene o establece el primer valor del parámetro. Para FAQ corresponde a la pregunta.
         /// </summary>
-        public string Valor { get; set; } = string.Empty;
+        public string Valor1 { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el segundo valor del parámetro. Para FAQ corresponde a la respuesta.
+        /// </summary>
+        public string? Valor2 { get; set; }
 
         /// <summary>
         /// Obtiene o establece la descripción del parámetro.
