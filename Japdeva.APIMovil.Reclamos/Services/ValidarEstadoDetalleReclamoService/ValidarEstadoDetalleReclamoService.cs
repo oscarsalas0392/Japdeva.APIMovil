@@ -83,38 +83,20 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
 
-                if (estadoDetalle.RechazaProceso)
-                {
-                    if(string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);
-                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Rechazado);
-                    this.DispararNotificacionResolucion(traceId, idReclamo, descripcionResolucion, ESTADO_RECHAZADO);
+                if (await this.ManejarFinalizacionReclamoAsync(traceId, estadoDetalle, idReclamo, descripcionResolucion))
                     return;
-                }
-
-                if (estadoDetalle.FinalizarProceso)
-                {
-                    if (string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);
-                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Completado);
-                    this.DispararNotificacionResolucion(traceId, idReclamo, descripcionResolucion, ESTADO_COMPLETADO);
-                    return;
-                }
 
                 using var scope = this._serviceProvider.CreateScope();
-
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                var nivelProceso = await consultarRepository.ConsultarAsync<NivelProcesoEntity>(traceId, x => x.Id == idNivelSiguienteProceso && x.IdProceso == (int)ProcesoModel.Reclamo);
-                if(nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
 
-                if (estadoDetalle.DevolucionProceso)
-                {
-                    var ordenNivelProceso = this._ordenNivelProcesoCacheService.ObtenerOrdenNivelProcesoCache(traceId, idNivelActual, nivelProceso.Id);
-                    if(ordenNivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO, idNivelActual, nivelProceso.Id));
-                    if(!ordenNivelProceso.DevolucionNivel) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION, idNivelActual, nivelProceso.Id));
-                }
+                var nivelProceso = await consultarRepository.ConsultarAsync<NivelProcesoEntity>(traceId, x => x.Id == idNivelSiguienteProceso && x.IdProceso == (int)ProcesoModel.Reclamo);
+                if (nivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));
+
+                this.ValidarDevolucionNivel(traceId, estadoDetalle, idNivelActual, nivelProceso.Id);
 
                 Task tareaAgregarReclamo = this._agregarReclamoDetalleService.AgregarReclamoDetalleAsync(traceId, idReclamo, idNivelSiguienteProceso);
-                Task tareaActualizarDepartamentoReclamo = this._editarDepartamentoReclamoService.EditarDepartamentoReclamoAsync(traceId, idReclamo, nivelProceso.IdDepartamento);
-                await Task.WhenAll(tareaAgregarReclamo, tareaActualizarDepartamentoReclamo);
+                Task tareaActualizarDepartamento = this._editarDepartamentoReclamoService.EditarDepartamentoReclamoAsync(traceId, idReclamo, nivelProceso.IdDepartamento);
+                await Task.WhenAll(tareaAgregarReclamo, tareaActualizarDepartamento);
 
                 long idDepartamento = nivelProceso.IdDepartamento;
                 _ = Task.Run(async () =>
@@ -123,6 +105,82 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
                     if (reclamo is not null)
                         await this._notificarDepartamentoService.NotificarNuevoReclamoAsync(traceId, idDepartamento, idReclamo, reclamo.IdUsuarioExterno);
                 });
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        private const bool PROCESO_FINALIZADO = true;
+        private const bool PROCESO_CONTINUA = false;
+
+        /// <summary>
+        /// Evalúa si el estado finaliza el proceso por rechazo o completado, ejecuta la acción correspondiente y notifica al usuario.
+        /// Retorna verdadero si el proceso fue finalizado, falso si debe continuar al siguiente nivel.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="estadoDetalle">Entidad del estado del detalle a evaluar.</param>
+        /// <param name="idReclamo">Identificador del reclamo.</param>
+        /// <param name="descripcionResolucion">Descripción de la resolución aplicada.</param>
+        /// <returns>Verdadero si el proceso fue finalizado, falso si debe avanzar.</returns>
+        public async Task<bool> ManejarFinalizacionReclamoAsync(string traceId, EstadoDetalleReclamoEntity estadoDetalle, long idReclamo, string descripcionResolucion)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                if (estadoDetalle.RechazaProceso)
+                {
+                    if (string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);
+                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Rechazado);
+                    this.DispararNotificacionResolucion(traceId, idReclamo, descripcionResolucion, ESTADO_RECHAZADO);
+                    return PROCESO_FINALIZADO;
+                }
+
+                if (estadoDetalle.FinalizarProceso)
+                {
+                    if (string.IsNullOrWhiteSpace(descripcionResolucion)) throw new ArgumentException(MENSAJE_ERROR_DESCRIPCION_RESOLUCION_OBLIGATORIA);
+                    await this._editarReclamoService.EditarReclamoAsync(traceId, idReclamo, descripcionResolucion, (int)EstadoReclamoModel.Completado);
+                    this.DispararNotificacionResolucion(traceId, idReclamo, descripcionResolucion, ESTADO_COMPLETADO);
+                    return PROCESO_FINALIZADO;
+                }
+
+                return PROCESO_CONTINUA;
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
+
+        /// <summary>
+        /// Valida que la devolución al nivel anterior sea válida según la configuración de orden de niveles.
+        /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="estadoDetalle">Entidad del estado del detalle a evaluar.</param>
+        /// <param name="idNivelActual">Identificador del nivel actual del proceso.</param>
+        /// <param name="idNivelSiguiente">Identificador del nivel al que se devuelve.</param>
+        public void ValidarDevolucionNivel(string traceId, EstadoDetalleReclamoEntity estadoDetalle, int idNivelActual, int idNivelSiguiente)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                if (!estadoDetalle.DevolucionProceso) return;
+                var ordenNivelProceso = this._ordenNivelProcesoCacheService.ObtenerOrdenNivelProcesoCache(traceId, idNivelActual, idNivelSiguiente);
+                if (ordenNivelProceso is null) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ENCONTRADO, idNivelActual, idNivelSiguiente));
+                if (!ordenNivelProceso.DevolucionNivel) throw new Exception(string.Format(MENSAJE_ERROR_ORDEN_NIVEL_PROCESO_NO_ES_DEVOLUCION, idNivelActual, idNivelSiguiente));
             }
             catch (Exception ex)
             {

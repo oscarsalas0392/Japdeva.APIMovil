@@ -711,6 +711,25 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Obtener Reclamo Por Usuario Ordenado",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Reclamos/api/Reclamo/ObtenerReclamoPorUsuarioOrdenado?id-usuario=1&pagina=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Reclamos", "api", "Reclamo", "ObtenerReclamoPorUsuarioOrdenado"],
+              "query": [
+                { "key": "id-usuario", "value": "1" },
+                { "key": "pagina", "value": "1" }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

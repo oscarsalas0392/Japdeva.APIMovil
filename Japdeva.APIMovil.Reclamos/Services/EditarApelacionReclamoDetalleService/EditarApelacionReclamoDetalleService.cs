@@ -52,6 +52,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoDetalleServic
         /// <summary>
         /// Edita un detalle de apelación existente con validaciones y control de workflow.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="solicitud">Modelo con los datos de la edición del detalle.</param>
+        /// <returns>Resultado de la operación con la información del detalle editado.</returns>
         public async Task<IActionResult> EditarApelacionReclamoDetalleAsync(string traceId, EditarDetalleApelacionReclamoSolicitudModel solicitud)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

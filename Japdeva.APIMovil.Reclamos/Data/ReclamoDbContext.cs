@@ -30,20 +30,30 @@ namespace Japdeva.APIMovil.Reclamos.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
+            try
             {
-                foreach (var propiedad in tipoEntidad.GetProperties())
+                foreach (var tipoEntidad in modelBuilder.Model.GetEntityTypes())
                 {
-                    if (propiedad.ClrType == typeof(DateTime))
+                    foreach (var propiedad in tipoEntidad.GetProperties())
                     {
-                        propiedad.SetValueConverter(
-                            new ValueConverter<DateTime, DateTime>(
-                                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
-                                v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
-                            )
-                        );
+                        if (propiedad.ClrType == typeof(DateTime))
+                        {
+                            propiedad.SetValueConverter(
+                                new ValueConverter<DateTime, DateTime>(
+                                    v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                                )
+                            );
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
             }
         }
 

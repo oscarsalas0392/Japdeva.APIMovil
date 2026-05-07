@@ -29,6 +29,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ListaRespuestaApelacionReclamoServi
         /// <summary>
         /// Convierte una lista de entidades de apelación en modelos de respuesta enriquecidos con datos del estado.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="listaApelacionEntity">Lista de entidades de apelación a procesar.</param>
+        /// <returns>Lista de modelos de respuesta con la información de las apelaciones.</returns>
         public async Task<List<ApelacionReclamoRespuestaModel>> ObtenerListaRespuestaApelacionReclamoAsync(string traceId, List<ApelacionReclamoEntity> listaApelacionEntity)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

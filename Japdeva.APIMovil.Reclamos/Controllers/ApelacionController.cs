@@ -18,12 +18,6 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     public class ApelacionController : Controller
     {
         /// <summary>
-        /// Agrega una nueva apelación sobre un reclamo resuelto.
-        /// </summary>
-        /// <param name="agregarApelacionReclamoService">Servicio para agregar apelaciones.</param>
-        /// <param name="apelacion">Modelo con los datos de la apelación a agregar.</param>
-        /// <returns>Resultado de la operación de agregar apelación.</returns>
-        /// <summary>
         /// Edita el detalle de una apelación, avanzando, devolviendo o finalizando el workflow según el estado indicado.
         /// </summary>
         /// <param name="editarApelacionReclamoDetalleService">Servicio para editar el detalle de apelación.</param>
@@ -35,6 +29,12 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
             [FromBody] EditarDetalleApelacionReclamoSolicitudModel solicitud) =>
             editarApelacionReclamoDetalleService.EditarApelacionReclamoDetalleAsync(HttpContext.TraceIdentifier, solicitud);
 
+        /// <summary>
+        /// Agrega una nueva apelación sobre un reclamo resuelto.
+        /// </summary>
+        /// <param name="agregarApelacionReclamoService">Servicio para agregar apelaciones.</param>
+        /// <param name="apelacion">Modelo con los datos de la apelación a agregar.</param>
+        /// <returns>Resultado de la operación de agregar apelación.</returns>
         [HttpPost("AgregarApelacion")]
         public Task<IActionResult> AgregarApelacion(
             [FromServices] IAgregarApelacionReclamoService agregarApelacionReclamoService,

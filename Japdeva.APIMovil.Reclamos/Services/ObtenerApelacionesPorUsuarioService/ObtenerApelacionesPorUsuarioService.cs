@@ -40,6 +40,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorUsuarioService
         /// <summary>
         /// Obtiene una lista paginada de apelaciones filtradas por usuario y estado.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="idUsuario">Identificador del usuario externo propietario de las apelaciones.</param>
+        /// <param name="idEstadoReclamo">Identificador del estado a filtrar.</param>
+        /// <param name="pagina">Número de página para la consulta paginada.</param>
+        /// <returns>Lista paginada de apelaciones del usuario que cumplen los criterios.</returns>
         public async Task<IActionResult> ObtenerApelacionesPorUsuarioAsync(string traceId, int idUsuario, int idEstadoReclamo, int pagina)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
@@ -90,6 +95,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorUsuarioService
         /// <summary>
         /// Realiza la consulta paginada de apelaciones para un usuario y estado específicos.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="idUsuario">Identificador del usuario externo.</param>
+        /// <param name="idEstadoReclamo">Identificador del estado a filtrar.</param>
+        /// <param name="pagina">Número de página para la consulta paginada.</param>
+        /// <returns>Modelo de respuesta con la lista paginada de apelaciones.</returns>
         public async Task<RespuestaListaModel<ApelacionReclamoRespuestaModel>> RealizarConsultaApelacionPorUsuarioAsync(string traceId, int idUsuario, int idEstadoReclamo, int pagina)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

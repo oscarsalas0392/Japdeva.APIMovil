@@ -36,6 +36,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorFechaEstadoSer
         /// <summary>
         /// Obtiene una lista paginada de apelaciones filtradas por rango de fechas de ingreso y estado.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="fechaInicio">Fecha de inicio del rango a consultar.</param>
+        /// <param name="fechaFin">Fecha de fin del rango a consultar.</param>
+        /// <param name="idEstadoReclamo">Identificador del estado a filtrar.</param>
+        /// <param name="pagina">Número de página para la consulta paginada.</param>
+        /// <returns>Lista paginada de apelaciones que cumplen los criterios.</returns>
         public async Task<IActionResult> ObtenerApelacionesPorFechaEstadoAsync(string traceId, DateTime fechaInicio, DateTime fechaFin, int idEstadoReclamo, int pagina)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
