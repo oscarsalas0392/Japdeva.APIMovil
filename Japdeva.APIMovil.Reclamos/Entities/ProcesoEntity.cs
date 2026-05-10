@@ -19,7 +19,7 @@ namespace Japdeva.APIMovil.Reclamos.Entities
         public int Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece el nombre del proceso (por ejemplo: Reclamo, Apelación).
+        /// Obtiene o establece el nombre del proceso.
         /// </summary>
         [Column("nombre")]
         [MaxLength(100)]

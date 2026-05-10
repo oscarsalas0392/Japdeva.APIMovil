@@ -4,6 +4,7 @@ using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerParametroService;
+using Japdeva.APIMovil.Parametros.Services.ObtenerParametrosService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerPlantillaNuevoReclamoService;
 using Japdeva.APIMovil.Parametros.Services.PantallaCacheService;
 using Japdeva.APIMovil.Parametros.Services.ParametroCacheService;
@@ -36,6 +37,7 @@ namespace Japdeva.APIMovil.Parametros.Extensions
 
                 // Registrar servicios de negocio
                 builder.Services.AddScoped<IObtenerParametroService, ObtenerParametroService>();
+                builder.Services.AddScoped<IObtenerParametrosService, ObtenerParametrosService>();
                 builder.Services.AddScoped<IObtenerMenuPorPerfilService, ObtenerMenuPorPerfilService>();
                 builder.Services.AddScoped<IObtenerPlantillaNuevoReclamoService, ObtenerPlantillaNuevoReclamoService>();
 

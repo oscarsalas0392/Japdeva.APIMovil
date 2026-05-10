@@ -37,6 +37,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerApelacionesPorDepartamentoSe
         /// <summary>
         /// Obtiene una lista paginada de apelaciones activas asignadas al departamento indicado.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="idDepartamento">Identificador del departamento a consultar.</param>
+        /// <param name="pagina">Número de página para la consulta paginada.</param>
+        /// <returns>Lista paginada de apelaciones activas del departamento.</returns>
         public async Task<IActionResult> ObtenerApelacionesPorDepartamentoAsync(string traceId, int idDepartamento, int pagina)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

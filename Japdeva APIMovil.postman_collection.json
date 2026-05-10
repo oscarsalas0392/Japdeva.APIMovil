@@ -152,6 +152,22 @@
           "response": []
         },
         {
+          "name": "Obtener Usuario Por Identificacion",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Usuarios/api/Usuario/ObtenerUsuarioPorIdentificacion?identificacion=402130753",
+              "host": ["{{baseUrl}}"],
+              "path": ["Usuarios", "api", "Usuario", "ObtenerUsuarioPorIdentificacion"],
+              "query": [{ "key": "identificacion", "value": "402130753" }]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Actualizar Contrasena",
           "request": {
             "method": "PUT",
@@ -301,19 +317,18 @@
           "response": []
         },
         {
-          "name": "Obtener Roles Por Usuario",
+          "name": "Obtener Rol Por Usuario",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/Usuarios/api/UsuarioRol/ObtenerRolesPorUsuario?id-usuario=1&pagina=1",
+              "raw": "{{baseUrl}}/Usuarios/api/UsuarioRol/ObtenerRolPorUsuario?id-usuario=1",
               "host": ["{{baseUrl}}"],
-              "path": ["Usuarios", "api", "UsuarioRol", "ObtenerRolesPorUsuario"],
+              "path": ["Usuarios", "api", "UsuarioRol", "ObtenerRolPorUsuario"],
               "query": [
-                { "key": "id-usuario", "value": "1" },
-                { "key": "pagina", "value": "1" }
+                { "key": "id-usuario", "value": "1" }
               ]
             }
           },
@@ -356,19 +371,18 @@
           "response": []
         },
         {
-          "name": "Obtener Departamentos Por Usuario",
+          "name": "Obtener Departamento Por Usuario",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/Usuarios/api/DepartamentoUsuario/ObtenerDepartamentosPorUsuario?id-usuario=1&pagina=1",
+              "raw": "{{baseUrl}}/Usuarios/api/DepartamentoUsuario/ObtenerDepartamentoPorUsuario?id-usuario=1",
               "host": ["{{baseUrl}}"],
-              "path": ["Usuarios", "api", "DepartamentoUsuario", "ObtenerDepartamentosPorUsuario"],
+              "path": ["Usuarios", "api", "DepartamentoUsuario", "ObtenerDepartamentoPorUsuario"],
               "query": [
-                { "key": "id-usuario", "value": "1" },
-                { "key": "pagina", "value": "1" }
+                { "key": "id-usuario", "value": "1" }
               ]
             }
           },
@@ -423,6 +437,65 @@
               "host": ["{{baseUrl}}"],
               "path": ["Parametros", "api", "Menu", "ObtenerMenusPorPerfil"],
               "query": [{ "key": "idPerfil", "value": "1" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Parametro Por Nombre",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametroPorNombre?nombre=TerminosCondiciones",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametroPorNombre"],
+              "query": [{ "key": "nombre", "value": "TerminosCondiciones" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Parametros Por Nombres",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametrosPorNombres?nombres=TelefonoContacto&nombres=EmailContacto&nombres=NombreOficina&nombres=DireccionOficina&nombres=HorarioOficina",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametrosPorNombres"],
+              "query": [
+                { "key": "nombres", "value": "TelefonoContacto" },
+                { "key": "nombres", "value": "EmailContacto" },
+                { "key": "nombres", "value": "NombreOficina" },
+                { "key": "nombres", "value": "DireccionOficina" },
+                { "key": "nombres", "value": "HorarioOficina" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener FAQs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Parametros/api/Parametro/ObtenerParametrosPorNombres?nombres=FaqCrearReclamo&nombres=FaqTiempoResolucion&nombres=FaqDocumentos&nombres=FaqSeguimiento",
+              "host": ["{{baseUrl}}"],
+              "path": ["Parametros", "api", "Parametro", "ObtenerParametrosPorNombres"],
+              "query": [
+                { "key": "nombres", "value": "FaqCrearReclamo" },
+                { "key": "nombres", "value": "FaqTiempoResolucion" },
+                { "key": "nombres", "value": "FaqDocumentos" },
+                { "key": "nombres", "value": "FaqSeguimiento" }
+              ]
             }
           },
           "response": []
@@ -708,6 +781,25 @@
               "raw": "{{baseUrl}}/Reclamos/api/OrdenNivel/ObtenerOrdenNiveles",
               "host": ["{{baseUrl}}"],
               "path": ["Reclamos", "api", "OrdenNivel", "ObtenerOrdenNiveles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Reclamo Por Usuario Ordenado",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Reclamos/api/Reclamo/ObtenerReclamoPorUsuarioOrdenado?id-usuario=1&pagina=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Reclamos", "api", "Reclamo", "ObtenerReclamoPorUsuarioOrdenado"],
+              "query": [
+                { "key": "id-usuario", "value": "1" },
+                { "key": "pagina", "value": "1" }
+              ]
             }
           },
           "response": []

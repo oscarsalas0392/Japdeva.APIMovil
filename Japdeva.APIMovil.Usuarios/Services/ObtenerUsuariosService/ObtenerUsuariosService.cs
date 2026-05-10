@@ -121,5 +121,46 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosService
                 this._logger.Fin(traceId, nombreMetodo);
             }
         }
+
+        /// <summary>
+        /// Obtiene un usuario activo por su número de identificación (cédula).
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad.</param>
+        /// <param name="identificacion">Número de identificación del usuario a buscar.</param>
+        /// <returns>Resultado con el usuario encontrado.</returns>
+        public async Task<IActionResult> ObtenerUsuarioPorIdentificacionAsync(string traceId, string identificacion)
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {
+                this._logger.Inicio(traceId, nombreMetodo);
+                using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, u => u.Identificacion == identificacion && u.Activo);
+                if (usuario is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
+                var respuesta = new UsuarioRespuestaModel();
+                respuesta.Id = usuario.Id;
+                respuesta.Identificacion = usuario.Identificacion;
+                respuesta.IdTipoCedula = usuario.IdTipoCedula;
+                respuesta.Nombre = usuario.Nombre;
+                respuesta.Apellidos = usuario.Apellidos;
+                respuesta.Correo = usuario.Correo;
+                respuesta.Telefono = usuario.Telefono;
+                respuesta.FechaNacimiento = usuario.FechaNacimiento;
+                respuesta.FechaRegistro = usuario.FechaRegistro;
+                respuesta.FechaEdicion = usuario.FechaEdicion;
+                respuesta.Activo = usuario.Activo;
+                return new OkObjectResult(respuesta);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);
+            }
+        }
     }
 }

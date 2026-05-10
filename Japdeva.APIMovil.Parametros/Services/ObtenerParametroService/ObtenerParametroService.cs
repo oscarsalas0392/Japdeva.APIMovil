@@ -50,7 +50,8 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerParametroService
                 {
                     Id = parametroEntity.Id,
                     Nombre = parametroEntity.Nombre,
-                    Valor = parametroEntity.Valor,
+                    Valor1 = parametroEntity.Valor1,
+                    Valor2 = parametroEntity.Valor2,
                     Descripcion = parametroEntity.Descripcion
                 };
 

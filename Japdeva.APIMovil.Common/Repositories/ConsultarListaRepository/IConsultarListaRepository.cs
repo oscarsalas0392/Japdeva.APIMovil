@@ -16,5 +16,15 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository
         /// <param name="filtro">Expresión de filtro para la consulta (opcional)</param>
         /// <returns>Modelo de respuesta con la lista de entidades y metadatos de paginación</returns>
         Task<Models.RespuestaListaModel<T>> ConsultarListaAsync<T>(string traceId, int pagina, Expression<Func<T, bool>>? filtro = null) where T : class;
+
+        /// <summary>
+        /// Consulta una lista de entidades con paginación, filtro opcional y ordenamiento.
+        /// </summary>
+        /// <param name="traceId">Identificador de trazabilidad</param>
+        /// <param name="pagina">Número de página a consultar (1-based)</param>
+        /// <param name="ordenar">Función que aplica el ordenamiento a la consulta</param>
+        /// <param name="filtro">Expresión de filtro para la consulta (opcional)</param>
+        /// <returns>Modelo de respuesta con la lista de entidades ordenada y metadatos de paginación</returns>
+        Task<Models.RespuestaListaModel<T>> ConsultarListaOrdenadaAsync<T>(string traceId, int pagina, Func<IQueryable<T>, IOrderedQueryable<T>> ordenar, Expression<Func<T, bool>>? filtro = null) where T : class;
     }
 }

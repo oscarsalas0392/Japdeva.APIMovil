@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
-using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
 
@@ -27,38 +26,30 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
             this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
+        private const string MENSAJE_ROL_NO_ENCONTRADO = "No se encontró un rol activo para el usuario.";
+
         /// <summary>
-        /// Retorna los roles asignados al usuario indicado.
+        /// Retorna el rol activo asignado al usuario indicado.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="idUsuario">Identificador del usuario.</param>
-        /// <param name="pagina">Número de página.</param>
-        /// <returns>Lista paginada de asignaciones de roles.</returns>
-        public async Task<IActionResult> ObtenerRolesPorUsuarioAsync(string traceId, int idUsuario, int pagina)
+        /// <returns>El rol activo del usuario o NotFound si no tiene rol asignado.</returns>
+        public async Task<IActionResult> ObtenerRolPorUsuarioAsync(string traceId, int idUsuario)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
-                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<UsuarioRolEntity>(traceId, pagina, usuario => usuario.IdUsuario == idUsuario && usuario.Activo);
-                var lista = new List<UsuarioRolRespuestaModel>();
-                foreach (var item in resultadoConsulta.Lista)
-                {
-                    var modelo = new UsuarioRolRespuestaModel();
-                    modelo.Id = item.Id;
-                    modelo.IdUsuario = item.IdUsuario;
-                    modelo.IdRol = item.IdRol;
-                    modelo.FechaRegistro = item.FechaRegistro;
-                    modelo.Activo = item.Activo;
-                    lista.Add(modelo);
-                }
-                var respuesta = new RespuestaListaModel<UsuarioRolRespuestaModel>();
-                respuesta.TotalRegistros = resultadoConsulta.TotalRegistros;
-                respuesta.CantidadPaginas = resultadoConsulta.CantidadPaginas;
-                respuesta.PaginaActual = resultadoConsulta.PaginaActual;
-                respuesta.Lista = lista;
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var usuarioRol = await consultarRepository.ConsultarAsync<UsuarioRolEntity>(traceId, u => u.IdUsuario == idUsuario && u.Activo);
+                if (usuarioRol is null) throw new KeyNotFoundException(MENSAJE_ROL_NO_ENCONTRADO);
+                var respuesta = new UsuarioRolRespuestaModel();
+                respuesta.Id = usuarioRol.Id;
+                respuesta.IdUsuario = usuarioRol.IdUsuario;
+                respuesta.IdRol = usuarioRol.IdRol;
+                respuesta.FechaRegistro = usuarioRol.FechaRegistro;
+                respuesta.Activo = usuarioRol.Activo;
                 return new OkObjectResult(respuesta);
             }
             catch (Exception ex)

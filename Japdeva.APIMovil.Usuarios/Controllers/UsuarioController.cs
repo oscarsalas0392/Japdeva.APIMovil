@@ -58,6 +58,16 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
             obtenerUsuariosService.ObtenerUsuarioPorIdAsync(HttpContext.TraceIdentifier, id);
 
         /// <summary>
+        /// Obtiene un usuario activo por su número de identificación (cédula).
+        /// </summary>
+        /// <param name="obtenerUsuariosService">Servicio para obtener usuarios.</param>
+        /// <param name="identificacion">El número de identificación del usuario a buscar.</param>
+        /// <returns>Respuesta con el usuario encontrado.</returns>
+        [HttpGet("ObtenerUsuarioPorIdentificacion")]
+        public Task<IActionResult> ObtenerUsuarioPorIdentificacionAsync([FromServices] IObtenerUsuariosService obtenerUsuariosService, [FromQuery(Name = "identificacion")] string identificacion) =>
+            obtenerUsuariosService.ObtenerUsuarioPorIdentificacionAsync(HttpContext.TraceIdentifier, identificacion);
+
+        /// <summary>
         /// Elimina un usuario por su identificador.
         /// </summary>
         /// <param name="eliminarUsuarioService">Servicio para eliminar usuarios.</param>

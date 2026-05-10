@@ -26,16 +26,15 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
             agregarDepartamentoUsuarioService.AgregarDepartamentoUsuarioAsync(HttpContext.TraceIdentifier, solicitud);
 
         /// <summary>
-        /// Obtiene los departamentos asignados a un usuario.
+        /// Obtiene el departamento activo asignado a un usuario, incluyendo su descripción.
         /// </summary>
-        /// <param name="obtenerDepartamentosUsuariosService">Servicio para obtener departamentos del usuario.</param>
+        /// <param name="obtenerDepartamentosUsuariosService">Servicio para obtener el departamento del usuario.</param>
         /// <param name="idUsuario">Identificador del usuario.</param>
-        /// <param name="pagina">Número de página.</param>
-        /// <returns>Lista de asignaciones de departamentos.</returns>
-        [HttpGet("ObtenerDepartamentosPorUsuario")]
-        public Task<IActionResult> ObtenerDepartamentosPorUsuarioAsync([FromServices] IObtenerDepartamentosUsuariosService obtenerDepartamentosUsuariosService,
-            [FromQuery(Name = "id-usuario")] int idUsuario, [FromQuery(Name = "pagina")] int pagina) =>
-            obtenerDepartamentosUsuariosService.ObtenerDepartamentosPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario, pagina);
+        /// <returns>El departamento activo del usuario con su descripción.</returns>
+        [HttpGet("ObtenerDepartamentoPorUsuario")]
+        public Task<IActionResult> ObtenerDepartamentoPorUsuarioAsync([FromServices] IObtenerDepartamentosUsuariosService obtenerDepartamentosUsuariosService,
+            [FromQuery(Name = "id-usuario")] int idUsuario) =>
+            obtenerDepartamentosUsuariosService.ObtenerDepartamentoPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario);
 
         /// <summary>
         /// Elimina la asignación de un usuario a un departamento.

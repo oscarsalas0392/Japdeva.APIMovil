@@ -31,6 +31,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoService
         /// <summary>
         /// Edita una apelación existente actualizando su descripción de resolución y estado.
         /// </summary>
+        /// <param name="traceId">Identificador único para rastreo de la operación.</param>
+        /// <param name="idApelacionReclamo">Identificador único de la apelación a editar.</param>
+        /// <param name="descripcionResolucion">Nueva descripción de la resolución.</param>
+        /// <param name="idEstadoReclamo">Nuevo identificador del estado.</param>
         public async Task EditarApelacionReclamoAsync(string traceId, long idApelacionReclamo, string descripcionResolucion, int idEstadoReclamo)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();

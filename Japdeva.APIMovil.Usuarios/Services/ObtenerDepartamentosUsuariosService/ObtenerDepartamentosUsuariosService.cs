@@ -1,65 +1,68 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Japdeva.APIMovil.Common.Extensions;
-using Japdeva.APIMovil.Common.Models;
-using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Usuarios.Entities;
 using Japdeva.APIMovil.Usuarios.Models;
+using Japdeva.APIMovil.Usuarios.Services.DepartamentoCacheService;
 
 namespace Japdeva.APIMovil.Usuarios.Services.ObtenerDepartamentosUsuariosService
 {
     /// <summary>
-    /// Servicio para consultar los departamentos asignados a un usuario.
+    /// Servicio para consultar el departamento asignado a un usuario.
     /// </summary>
     public class ObtenerDepartamentosUsuariosService : IObtenerDepartamentosUsuariosService
     {
         private readonly ILogger<ObtenerDepartamentosUsuariosService> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDepartamentoCacheService _departamentoCacheService;
+
+        private const string MENSAJE_DEPARTAMENTO_NO_ENCONTRADO = "No se encontró un departamento activo para el usuario.";
 
         /// <summary>
         /// Inicializa una nueva instancia de ObtenerDepartamentosUsuariosService.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos.</param>
         /// <param name="serviceProvider">Proveedor de servicios para resolver dependencias.</param>
-        public ObtenerDepartamentosUsuariosService(ILogger<ObtenerDepartamentosUsuariosService> logger, IServiceProvider serviceProvider)
+        /// <param name="departamentoCacheService">Servicio de caché para obtener la descripción del departamento.</param>
+        public ObtenerDepartamentosUsuariosService(
+            ILogger<ObtenerDepartamentosUsuariosService> logger,
+            IServiceProvider serviceProvider,
+            IDepartamentoCacheService departamentoCacheService)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this._departamentoCacheService = departamentoCacheService;
         }
 
         /// <summary>
-        /// Retorna los departamentos asignados al usuario indicado.
+        /// Retorna el departamento activo asignado al usuario indicado, incluyendo su descripción.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="idUsuario">Identificador del usuario.</param>
-        /// <param name="pagina">Número de página.</param>
-        /// <returns>Lista paginada de asignaciones de departamentos.</returns>
-        public async Task<IActionResult> ObtenerDepartamentosPorUsuarioAsync(string traceId, int idUsuario, int pagina)
+        /// <returns>El departamento activo del usuario con su descripción, o NotFound si no tiene asignación.</returns>
+        public async Task<IActionResult> ObtenerDepartamentoPorUsuarioAsync(string traceId, int idUsuario)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var scope = this._serviceProvider.CreateScope();
-                var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                var resultadoConsulta = await consultarListaRepository.ConsultarListaAsync<DepartamentoUsuarioEntity>(traceId, pagina, asociacion => asociacion.IdUsuario == idUsuario && asociacion.Activo);
-                var lista = new List<DepartamentoUsuarioRespuestaModel>();
-                foreach (var item in resultadoConsulta.Lista)
-                {
-                    var modelo = new DepartamentoUsuarioRespuestaModel();
-                    modelo.Id = item.Id;
-                    modelo.IdUsuario = item.IdUsuario;
-                    modelo.IdDepartamento = item.IdDepartamento;
-                    modelo.IdUsuarioAdministrador = item.IdUsuarioAdministrador;
-                    modelo.FechaRegistro = item.FechaRegistro;
-                    modelo.Activo = item.Activo;
-                    lista.Add(modelo);
-                }
-                var respuesta = new RespuestaListaModel<DepartamentoUsuarioRespuestaModel>();
-                respuesta.TotalRegistros = resultadoConsulta.TotalRegistros;
-                respuesta.CantidadPaginas = resultadoConsulta.CantidadPaginas;
-                respuesta.PaginaActual = resultadoConsulta.PaginaActual;
-                respuesta.Lista = lista;
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                var asignacion = await consultarRepository.ConsultarAsync<DepartamentoUsuarioEntity>(traceId, a => a.IdUsuario == idUsuario && a.Activo);
+                if (asignacion is null) throw new KeyNotFoundException(MENSAJE_DEPARTAMENTO_NO_ENCONTRADO);
+
+                var departamento = this._departamentoCacheService.ObtenerPorId(traceId, asignacion.IdDepartamento);
+
+                var respuesta = new DepartamentoUsuarioRespuestaModel();
+                respuesta.Id = asignacion.Id;
+                respuesta.IdUsuario = asignacion.IdUsuario;
+                respuesta.IdDepartamento = asignacion.IdDepartamento;
+                respuesta.DescripcionDepartamento = departamento is null ? string.Empty : departamento.Descripcion;
+                respuesta.IdUsuarioAdministrador = asignacion.IdUsuarioAdministrador;
+                respuesta.FechaRegistro = asignacion.FechaRegistro;
+                respuesta.Activo = asignacion.Activo;
+
                 return new OkObjectResult(respuesta);
             }
             catch (Exception ex)

@@ -4,6 +4,7 @@ using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioOrdenadoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService;
 
 namespace Japdeva.APIMovil.Reclamos.Controllers
@@ -51,7 +52,8 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <returns>Resultado de la operación de obtención de reclamos por departamento.</returns>
         [HttpGet("ObtenerReclamoPorDepartamento")]
         public Task<IActionResult> ObtenerReclamoPorDepartamento([FromServices] IObtenerReclamoPorDepartamentoService obtenerReclamoPorDepartamentoService,
-            [FromQuery(Name = "id-departamento")] int idDepartamento, [FromQuery(Name = "pagina")] int pagina) =>
+            [FromQuery(Name = "id-departamento")] int idDepartamento,
+            [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamoPorDepartamentoService.ObtenerReclamosPorDepartamentoAsync(HttpContext.TraceIdentifier, idDepartamento, pagina);
 
 
@@ -68,6 +70,20 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         public Task<IActionResult> ObtenerReclamoPorFechaEstado([FromServices] IObtenerReclamosPorFechaIngresoService obtenerReclamosPorFechaIngresoService,
             [FromQuery(Name = "fecha-inicio")] DateTime fechaInicio, [FromQuery(Name = "fecha-fin")] DateTime fechaFin, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamosPorFechaIngresoService.ObtenerReclamosPorFechaIngresoAsync(HttpContext.TraceIdentifier, fechaInicio, fechaFin, idEstadoReclamo, pagina);
+
+        /// <summary>
+        /// Obtiene todos los reclamos de un usuario ordenados del más reciente al más antiguo, paginados.
+        /// </summary>
+        /// <param name="obtenerReclamosPorUsuarioOrdenadoService">Servicio para obtener los reclamos ordenados por fecha.</param>
+        /// <param name="idUsuario">Identificador del usuario.</param>
+        /// <param name="pagina">Número de la página a consultar.</param>
+        /// <returns>Resultado de la operación de obtención de reclamos ordenados por fecha descendente.</returns>
+        [HttpGet("ObtenerReclamoPorUsuarioOrdenado")]
+        public Task<IActionResult> ObtenerReclamoPorUsuarioOrdenado(
+            [FromServices] IObtenerReclamosPorUsuarioOrdenadoService obtenerReclamosPorUsuarioOrdenadoService,
+            [FromQuery(Name = "id-usuario")] int idUsuario,
+            [FromQuery(Name = "pagina")] int pagina) =>
+            obtenerReclamosPorUsuarioOrdenadoService.ObtenerReclamosPorUsuarioOrdenadoAsync(HttpContext.TraceIdentifier, idUsuario, pagina);
 
     }
 }

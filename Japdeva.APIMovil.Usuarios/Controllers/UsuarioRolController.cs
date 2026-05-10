@@ -17,16 +17,15 @@ namespace Japdeva.APIMovil.Usuarios.Controllers
     {
 
         /// <summary>
-        /// Obtiene los roles asignados a un usuario.
+        /// Obtiene el rol activo asignado a un usuario.
         /// </summary>
-        /// <param name="obtenerUsuariosRolesService">Servicio para obtener roles del usuario.</param>
+        /// <param name="obtenerUsuariosRolesService">Servicio para obtener el rol del usuario.</param>
         /// <param name="idUsuario">Identificador del usuario.</param>
-        /// <param name="pagina">Número de página.</param>
-        /// <returns>Lista de asignaciones de roles.</returns>
-        [HttpGet("ObtenerRolesPorUsuario")]
-        public Task<IActionResult> ObtenerRolesPorUsuarioAsync([FromServices] IObtenerUsuariosRolesService obtenerUsuariosRolesService,
-            [FromQuery(Name = "id-usuario")] int idUsuario, [FromQuery(Name = "pagina")] int pagina) =>
-            obtenerUsuariosRolesService.ObtenerRolesPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario, pagina);
+        /// <returns>El rol activo del usuario.</returns>
+        [HttpGet("ObtenerRolPorUsuario")]
+        public Task<IActionResult> ObtenerRolPorUsuarioAsync([FromServices] IObtenerUsuariosRolesService obtenerUsuariosRolesService,
+            [FromQuery(Name = "id-usuario")] int idUsuario) =>
+            obtenerUsuariosRolesService.ObtenerRolPorUsuarioAsync(HttpContext.TraceIdentifier, idUsuario);
 
         /// <summary>
         /// Actualiza la asignación de un rol a un usuario.
