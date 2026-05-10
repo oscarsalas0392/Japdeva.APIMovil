@@ -371,19 +371,18 @@
           "response": []
         },
         {
-          "name": "Obtener Departamentos Por Usuario",
+          "name": "Obtener Departamento Por Usuario",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/Usuarios/api/DepartamentoUsuario/ObtenerDepartamentosPorUsuario?id-usuario=1&pagina=1",
+              "raw": "{{baseUrl}}/Usuarios/api/DepartamentoUsuario/ObtenerDepartamentoPorUsuario?id-usuario=1",
               "host": ["{{baseUrl}}"],
-              "path": ["Usuarios", "api", "DepartamentoUsuario", "ObtenerDepartamentosPorUsuario"],
+              "path": ["Usuarios", "api", "DepartamentoUsuario", "ObtenerDepartamentoPorUsuario"],
               "query": [
-                { "key": "id-usuario", "value": "1" },
-                { "key": "pagina", "value": "1" }
+                { "key": "id-usuario", "value": "1" }
               ]
             }
           },

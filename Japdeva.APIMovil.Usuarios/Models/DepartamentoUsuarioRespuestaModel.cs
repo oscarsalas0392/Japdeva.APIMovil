@@ -14,6 +14,9 @@ namespace Japdeva.APIMovil.Usuarios.Models
         /// <summary>Obtiene o establece el identificador del departamento.</summary>
         public int IdDepartamento { get; set; }
 
+        /// <summary>Obtiene o establece la descripción del departamento asignado.</summary>
+        public string DescripcionDepartamento { get; set; } = string.Empty;
+
         /// <summary>Obtiene o establece el identificador del administrador que realizó la asignación.</summary>
         public int IdUsuarioAdministrador { get; set; }
 
