@@ -45,15 +45,19 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
 
         /// <summary>
         /// Obtiene los reclamos asociados a un departamento específico, paginados.
+        /// Si se indica idEstadoDetalleReclamo, filtra por el estado del detalle del reclamo.
         /// </summary>
         /// <param name="obtenerReclamoPorDepartamentoService">Servicio para obtener los reclamos por departamento.</param>
         /// <param name="idDepartamento">Identificador del departamento.</param>
         /// <param name="pagina">Número de la página a consultar.</param>
+        /// <param name="idEstadoDetalleReclamo">Identificador del estado de detalle para filtrar (opcional).</param>
         /// <returns>Resultado de la operación de obtención de reclamos por departamento.</returns>
         [HttpGet("ObtenerReclamoPorDepartamento")]
         public Task<IActionResult> ObtenerReclamoPorDepartamento([FromServices] IObtenerReclamoPorDepartamentoService obtenerReclamoPorDepartamentoService,
-            [FromQuery(Name = "id-departamento")] int idDepartamento, [FromQuery(Name = "pagina")] int pagina) =>
-            obtenerReclamoPorDepartamentoService.ObtenerReclamosPorDepartamentoAsync(HttpContext.TraceIdentifier, idDepartamento, pagina);
+            [FromQuery(Name = "id-departamento")] int idDepartamento,
+            [FromQuery(Name = "pagina")] int pagina,
+            [FromQuery(Name = "id-estado-detalle")] int? idEstadoDetalleReclamo = null) =>
+            obtenerReclamoPorDepartamentoService.ObtenerReclamosPorDepartamentoAsync(HttpContext.TraceIdentifier, idDepartamento, pagina, idEstadoDetalleReclamo);
 
 
         /// <summary>

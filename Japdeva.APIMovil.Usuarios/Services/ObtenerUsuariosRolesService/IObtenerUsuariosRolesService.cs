@@ -8,11 +8,11 @@ namespace Japdeva.APIMovil.Usuarios.Services.ObtenerUsuariosRolesService
     public interface IObtenerUsuariosRolesService
     {
         /// <summary>
-        /// Retorna los roles asignados al usuario indicado.
+        /// Retorna el rol activo asignado al usuario indicado.
         /// </summary>
         /// <param name="traceId">Identificador de trazabilidad.</param>
         /// <param name="idUsuario">Identificador del usuario.</param>
-        /// <param name="pagina">Número de página.</param>
-        Task<IActionResult> ObtenerRolesPorUsuarioAsync(string traceId, int idUsuario, int pagina);
+        /// <returns>El rol activo del usuario o NotFound si no tiene rol asignado.</returns>
+        Task<IActionResult> ObtenerRolPorUsuarioAsync(string traceId, int idUsuario);
     }
 }

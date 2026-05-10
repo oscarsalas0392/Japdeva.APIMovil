@@ -152,6 +152,22 @@
           "response": []
         },
         {
+          "name": "Obtener Usuario Por Identificacion",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/Usuarios/api/Usuario/ObtenerUsuarioPorIdentificacion?identificacion=402130753",
+              "host": ["{{baseUrl}}"],
+              "path": ["Usuarios", "api", "Usuario", "ObtenerUsuarioPorIdentificacion"],
+              "query": [{ "key": "identificacion", "value": "402130753" }]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Actualizar Contrasena",
           "request": {
             "method": "PUT",
@@ -301,19 +317,18 @@
           "response": []
         },
         {
-          "name": "Obtener Roles Por Usuario",
+          "name": "Obtener Rol Por Usuario",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/Usuarios/api/UsuarioRol/ObtenerRolesPorUsuario?id-usuario=1&pagina=1",
+              "raw": "{{baseUrl}}/Usuarios/api/UsuarioRol/ObtenerRolPorUsuario?id-usuario=1",
               "host": ["{{baseUrl}}"],
-              "path": ["Usuarios", "api", "UsuarioRol", "ObtenerRolesPorUsuario"],
+              "path": ["Usuarios", "api", "UsuarioRol", "ObtenerRolPorUsuario"],
               "query": [
-                { "key": "id-usuario", "value": "1" },
-                { "key": "pagina", "value": "1" }
+                { "key": "id-usuario", "value": "1" }
               ]
             }
           },
