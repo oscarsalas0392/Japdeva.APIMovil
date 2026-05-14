@@ -1,43 +1,50 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.ListaRespuestaReclamoService;
-
+using Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoListaService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService
 {
     /// <summary>
-    /// Servicio para obtener reclamos por departamento.
+    /// Servicio para obtener reclamos por departamento, enriquecidos con el estado detalle actual.
+    /// Destinado a usuarios internos.
     /// </summary>
-    public class ObtenerReclamoPorDepartamentoService: IObtenerReclamoPorDepartamentoService
+    public class ObtenerReclamoPorDepartamentoService : IObtenerReclamoPorDepartamentoService
     {
         private readonly ILogger<ObtenerReclamoPorDepartamentoService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IListaRespuestaReclamoService _listaRespuestaReclamoService;
+        private readonly IObtenerEstadoDetalleReclamoListaService _obtenerEstadoDetalleReclamoListaService;
 
         private const string MENSAJE_ERROR_ID_PAGINA = "La pagina es inválida, debe ser mayor a 0.";
         private const int ID_PAGINA_MINIMO = 1;
+
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerReclamoPorDepartamentoService"/>.
         /// </summary>
         /// <param name="logger">Instancia de logger para la clase.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolución de dependencias.</param>
+        /// <param name="listaRespuestaReclamoService">Servicio para construir la lista de respuesta.</param>
+        /// <param name="obtenerEstadoDetalleReclamoListaService">Servicio para resolver el estado detalle de cada reclamo.</param>
         public ObtenerReclamoPorDepartamentoService(
             ILogger<ObtenerReclamoPorDepartamentoService> logger,
             IServiceProvider serviceProvider,
-            IListaRespuestaReclamoService listaRespuestaReclamoService
-            )
+            IListaRespuestaReclamoService listaRespuestaReclamoService,
+            IObtenerEstadoDetalleReclamoListaService obtenerEstadoDetalleReclamoListaService)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider;
             this._listaRespuestaReclamoService = listaRespuestaReclamoService;
+            this._obtenerEstadoDetalleReclamoListaService = obtenerEstadoDetalleReclamoListaService;
         }
 
         /// <summary>
-        /// Obtiene los reclamos asociados a un departamento específico de forma paginada.
+        /// Obtiene los reclamos asociados a un departamento específico de forma paginada,
+        /// incluyendo el estado detalle actual de cada reclamo para uso de usuarios internos.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idDepartamento">Identificador del departamento para filtrar los reclamos.</param>
@@ -49,15 +56,19 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoServic
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
+                if (pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
+
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                if (pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
 
                 var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
                     reclamo => reclamo.IdDepartamentoActual == idDepartamento);
 
                 List<ReclamoRespuestaModel> listaReclamoRespuestas = await this._listaRespuestaReclamoService.ObtenerListaRespuestaReclamoAsync(traceId, reclamos.Lista);
-                var respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
+
+                listaReclamoRespuestas = await this._obtenerEstadoDetalleReclamoListaService.ObtenerEstadoDetalleReclamoAsync(traceId, listaReclamoRespuestas);
+
+                RespuestaListaModel<ReclamoRespuestaModel> respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
                 respuesta.TotalRegistros = reclamos.TotalRegistros;
                 respuesta.CantidadPaginas = reclamos.CantidadPaginas;
                 respuesta.PaginaActual = reclamos.PaginaActual;
@@ -70,7 +81,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoServic
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
-            finally 
+            finally
             {
                 this._logger.Fin(traceId, nombreMetodo);
             }

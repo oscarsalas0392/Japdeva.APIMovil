@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartamentoEstadoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService;
 
 
@@ -37,5 +39,33 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         public Task<IActionResult> ObtenerDetalleReclamo([FromServices] IObtenerDetalleReclamoService obtenerDetalleReclamoService,
             [FromQuery(Name = "id-reclamo")] long idDetalleReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerDetalleReclamoService.ObtenerDetalleReclamoAsync(HttpContext.TraceIdentifier, idDetalleReclamo, pagina);
+
+        /// <summary>
+        /// Obtiene un detalle de reclamo específico por su identificador único.
+        /// </summary>
+        /// <param name="obtenerDetalleReclamoPorIdDetalleService">Servicio para obtener el detalle por ID.</param>
+        /// <param name="idDetalleReclamo">Identificador único del detalle de reclamo a consultar.</param>
+        /// <returns>El detalle de reclamo correspondiente al identificador indicado.</returns>
+        [HttpGet("ObtenerDetalleReclamoPorIdDetalle")]
+        public Task<IActionResult> ObtenerDetalleReclamoPorIdDetalle(
+            [FromServices] IObtenerDetalleReclamoPorIdDetalleService obtenerDetalleReclamoPorIdDetalleService,
+            [FromQuery(Name = "id-detalle")] long idDetalleReclamo) =>
+            obtenerDetalleReclamoPorIdDetalleService.ObtenerDetalleReclamoPorIdDetalleAsync(HttpContext.TraceIdentifier, idDetalleReclamo);
+
+        /// <summary>
+        /// Obtiene los detalles de reclamo filtrados por departamento y estado detalle de forma paginada.
+        /// </summary>
+        /// <param name="obtenerDetalleReclamoPorDepartamentoEstadoService">Servicio para obtener los detalles filtrados.</param>
+        /// <param name="idDepartamento">Identificador del departamento a filtrar.</param>
+        /// <param name="idEstadoDetalleReclamo">Identificador del estado detalle de reclamo a filtrar.</param>
+        /// <param name="idReclamo">Identificador del reclamo a filtrar.</param>
+        /// <returns>El último detalle de reclamo que coincide con los filtros indicados.</returns>
+        [HttpGet("ObtenerDetalleReclamoPorIdDepartamentoYIdEstadoDetalle")]
+        public Task<IActionResult> ObtenerDetalleReclamoPorIdDepartamentoYIdEstadoDetalle(
+            [FromServices] IObtenerDetalleReclamoPorDepartamentoEstadoService obtenerDetalleReclamoPorDepartamentoEstadoService,
+            [FromQuery(Name = "id-departamento")] long idDepartamento,
+            [FromQuery(Name = "id-estado-detalle")] int idEstadoDetalleReclamo,
+            [FromQuery(Name = "id-reclamo")] long idReclamo) =>
+            obtenerDetalleReclamoPorDepartamentoEstadoService.ObtenerDetalleReclamoPorDepartamentoEstadoAsync(HttpContext.TraceIdentifier, idDepartamento, idEstadoDetalleReclamo, idReclamo);
     }
 }

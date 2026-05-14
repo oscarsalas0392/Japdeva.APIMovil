@@ -6,14 +6,29 @@ namespace Japdeva.APIMovil.Parametros.Models
     public enum TipoPlantillaCorreoModel
     {
         /// <summary>
-        /// Plantilla para notificar la creación de un nuevo reclamo.
+        /// Plantilla para notificar al usuario el envío de una contraseña temporal.
         /// </summary>
-        NuevoReclamo = 1,
-        NuevoReclamoDepartamento = 2,
-        FinalizacionProcesoReclamo=3,
-        RechazoReclamo=4,
-        CambioContrasena=5
+        CambioContrasena = 1,
 
+        /// <summary>
+        /// Plantilla para notificar al usuario externo el registro exitoso de su reclamo.
+        /// </summary>
+        NuevoReclamo = 2,
 
+        /// <summary>
+        /// Plantilla para notificar internamente al departamento sobre un nuevo reclamo ingresado.
+        /// </summary>
+        NuevoReclamoDepartamento = 3,
+
+        /// <summary>
+        /// Plantilla para notificar al usuario la resolución de su reclamo.
+        /// Aplica tanto para finalización como para rechazo, distinguidos por la variable {{ESTADO}}.
+        /// </summary>
+        FinalizacionProcesoReclamo = 4,
+
+        /// <summary>
+        /// Alias de <see cref="FinalizacionProcesoReclamo"/>. Usa la misma plantilla con {{ESTADO}} = Rechazado.
+        /// </summary>
+        RechazoReclamo = 4
     }
 }

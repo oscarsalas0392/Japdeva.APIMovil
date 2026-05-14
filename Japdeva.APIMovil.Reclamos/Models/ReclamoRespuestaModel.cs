@@ -77,9 +77,21 @@ namespace Japdeva.APIMovil.Reclamos.Models
         public string DescripcionDepartamento { get; set; } = string.Empty;
 
         /// <summary>
+        /// Identificador del estado detalle actual del reclamo. Solo se incluye en vistas de usuarios internos.
+        /// </summary>
+        [JsonProperty("idEstadoDetalleReclamo")]
+        public int? IdEstadoDetalleReclamo { get; set; }
+
+        /// <summary>
+        /// Descripción del estado detalle actual del reclamo. Solo se incluye en vistas de usuarios internos.
+        /// </summary>
+        [JsonProperty("descripcionEstadoDetalleReclamo")]
+        public string DescripcionEstadoDetalleReclamo { get; set; } = string.Empty;
+
+        /// <summary>
         /// Indica si el reclamo es histórico.
         /// </summary>
-         
+
         [JsonProperty("estaEnHistorico")]
         public bool EstaEnHistorico { get; set; }
     }

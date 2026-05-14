@@ -22,5 +22,29 @@ namespace Japdeva.APIMovil.Reclamos.Models
          
         [JsonProperty("descripcionEsadoDetalle")]
         public string DescripcionEstadoDetalleReclamo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Indica si este estado permite continuar el proceso al siguiente nivel.
+        /// </summary>
+        [JsonProperty("continuaProceso")]
+        public bool ContinuaProceso { get; set; }
+
+        /// <summary>
+        /// Indica si este estado rechaza el proceso.
+        /// </summary>
+        [JsonProperty("rechazaProceso")]
+        public bool RechazaProceso { get; set; }
+
+        /// <summary>
+        /// Indica si este estado implica devolución a un nivel anterior.
+        /// </summary>
+        [JsonProperty("devolucionProceso")]
+        public bool DevolucionProceso { get; set; }
+
+        /// <summary>
+        /// Indica si este estado finaliza el proceso completamente.
+        /// </summary>
+        [JsonProperty("finalizarProceso")]
+        public bool FinalizarProceso { get; set; }
     }
 }

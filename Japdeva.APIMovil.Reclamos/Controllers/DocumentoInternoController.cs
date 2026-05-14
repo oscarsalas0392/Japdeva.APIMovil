@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService;
 
 namespace Japdeva.APIMovil.Reclamos.Controllers
@@ -49,5 +50,20 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         public Task<IActionResult> ObtenerDocumentoInternoPorReclamo([FromServices] IObtenerDocumentoInternoService obtenerDocumentoInternoService,
             [FromQuery(Name = "id-reclamo-detalle")] long idReclamoDetalle, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerDocumentoInternoService.ObtenerDocumentosInternosAsync(HttpContext.TraceIdentifier, idReclamoDetalle, pagina);
+
+        /// <summary>
+        /// Obtiene los documentos internos de todos los detalles de un reclamo,
+        /// incluyendo la descripción del detalle y el nombre del departamento.
+        /// </summary>
+        /// <param name="obtenerDocumentoInternoPorIdReclamoService">Servicio para obtener los documentos por ID de reclamo.</param>
+        /// <param name="idReclamo">Identificador del reclamo a consultar.</param>
+        /// <param name="pagina">Número de página para la paginación de resultados.</param>
+        /// <returns>Lista paginada de documentos internos del reclamo indicado.</returns>
+        [HttpGet("ObtenerDocumentoInternoPorIdReclamo")]
+        public Task<IActionResult> ObtenerDocumentoInternoPorIdReclamo(
+            [FromServices] IObtenerDocumentoInternoPorIdReclamoService obtenerDocumentoInternoPorIdReclamoService,
+            [FromQuery(Name = "id-reclamo")] long idReclamo,
+            [FromQuery(Name = "pagina")] int pagina) =>
+            obtenerDocumentoInternoPorIdReclamoService.ObtenerDocumentoInternoPorIdReclamoAsync(HttpContext.TraceIdentifier, idReclamo, pagina);
     }
 }

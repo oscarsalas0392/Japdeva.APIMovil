@@ -17,3 +17,7 @@ WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 4);
 INSERT INTO "Tbl_Cola" ("id", "nombre", "activo", "fechaRegistro")
 SELECT 5, 'ObtenerCorreosPorDepartamento', TRUE, NOW()
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 5);
+
+INSERT INTO "Tbl_Cola" ("id", "nombre", "activo", "fechaRegistro")
+SELECT 6, 'ObtenerDepartamento', TRUE, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Cola" WHERE "id" = 6);

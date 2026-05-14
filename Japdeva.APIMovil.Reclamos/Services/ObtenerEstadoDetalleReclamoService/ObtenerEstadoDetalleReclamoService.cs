@@ -2,8 +2,8 @@
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Reclamos.Models;
+using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheService;
-using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 
 namespace Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService
 {
@@ -13,7 +13,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService
     public class ObtenerEstadoDetalleReclamoService : IObtenerEstadoDetalleReclamoService
     {
         private readonly ILogger<ObtenerEstadoDetalleReclamoService> _logger;
-        private readonly IEstadoReclamoCacheService _estadoReclamoCacheService;
+        private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
         private readonly IEstadoDetalleReclamoOrdenProcesoCacheService _estadoDetalleReclamoOrdenProcesoCacheService;
 
         private const string MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_EXISTE = "No se encontró el estado de detalle de reclamo en caché para el Id:{0}";
@@ -23,11 +23,11 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService
         /// </summary>
         public ObtenerEstadoDetalleReclamoService(
             ILogger<ObtenerEstadoDetalleReclamoService> logger,
-            IEstadoReclamoCacheService estadoReclamoCacheService,
+            IEstadoDetalleReclamoCacheService estadoDetalleReclamoCacheService,
             IEstadoDetalleReclamoOrdenProcesoCacheService estadoDetalleReclamoOrdenProcesoCacheService)
         {
             this._logger = logger;
-            this._estadoReclamoCacheService = estadoReclamoCacheService;
+            this._estadoDetalleReclamoCacheService = estadoDetalleReclamoCacheService;
             this._estadoDetalleReclamoOrdenProcesoCacheService = estadoDetalleReclamoOrdenProcesoCacheService;
         }
 
@@ -49,13 +49,18 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService
                 List<EstadoDetalleReclamoRespuestaModel> listaRespuesta = new List<EstadoDetalleReclamoRespuestaModel>();
                 foreach (var estadoDetallePorNivelReclamo in estadosDetalle.Lista)
                 {
-                    var estadoReclamo = this._estadoReclamoCacheService.ObtenerEstadoReclamo(traceId, estadoDetallePorNivelReclamo.IdEstadoDetalleReclamo);
+                    var estadoReclamo = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, estadoDetallePorNivelReclamo.IdEstadoDetalleReclamo);
                     if (estadoReclamo is null) throw new Exception(string.Format(MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_EXISTE, estadoDetallePorNivelReclamo.IdEstadoDetalleReclamo));
 
-                    EstadoDetalleReclamoRespuestaModel estadoDetalleReclamoRespuestaModel = new EstadoDetalleReclamoRespuestaModel();
-                    estadoDetalleReclamoRespuestaModel.IdEstadoDetalleReclamo = estadoReclamo.Id;
-                    estadoDetalleReclamoRespuestaModel.DescripcionEstadoDetalleReclamo = estadoReclamo.Descripcion;
-                    listaRespuesta.Add(estadoDetalleReclamoRespuestaModel);
+                    listaRespuesta.Add(new EstadoDetalleReclamoRespuestaModel
+                    {
+                        IdEstadoDetalleReclamo = estadoReclamo.Id,
+                        DescripcionEstadoDetalleReclamo = estadoReclamo.Descripcion,
+                        ContinuaProceso = estadoReclamo.ContinuaProceso,
+                        RechazaProceso = estadoReclamo.RechazaProceso,
+                        DevolucionProceso = estadoReclamo.DevolucionProceso,
+                        FinalizarProceso = estadoReclamo.FinalizarProceso
+                    });
                 }
 
                 RespuestaListaModel<EstadoDetalleReclamoRespuestaModel> respuestaListaModel = new RespuestaListaModel<EstadoDetalleReclamoRespuestaModel>();

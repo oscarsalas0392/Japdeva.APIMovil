@@ -3,6 +3,7 @@ using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Services.ColasGrpcClientService;
 using Japdeva.APIMovil.Parametros.Models;
+using Japdeva.APIMovil.Parametros.Services.ParametroCacheService;
 using Japdeva.APIMovil.Parametros.Services.PlantillaCorreoCacheService;
 
 namespace Japdeva.APIMovil.Parametros.BackGroundServices
@@ -16,6 +17,7 @@ namespace Japdeva.APIMovil.Parametros.BackGroundServices
         private readonly ILogger<ObtenerPlantillaBackGroundService> _logger;
         private readonly IColasGrpcClientService _colasGrpcClientService;
         private readonly IPlantillaCorreoCacheService _plantillaCorreoCacheService;
+        private readonly IParametroCacheService _parametroCacheService;
         private const int TIEMPO_ESPERA_RECONEXION = 30;
         private const int PRIORIDAD_ALTA = 1;
         private const string TRACE_ID_BACKGROUND = "BACKGROUND_OBTENER_PLANTILLA";
@@ -24,6 +26,8 @@ namespace Japdeva.APIMovil.Parametros.BackGroundServices
         private const string MENSAJE_COLA_RESPUESTA_VACIA = "No se pudo obtener el nombre de la cola de respuesta desde los metadatos.";
         private const string MENSAJE_PLANTILLA_NO_ENCONTRADA = "Plantilla de correo no encontrada en caché.";
         private const string MENSAJE_ACTUALIZAR_ESTADO = "Ocurrio un error al actualizar el estado del mensaje de la cola.";
+        private const string MARCADOR_CORREO_SOPORTE = "{{CORREO_SOPORTE}}";
+        private const string NOMBRE_PARAMETRO_CORREO_SOPORTE = "EmailContacto";
 
         /// <summary>
         /// Inicializa una nueva instancia del servicio de fondo para obtención de plantillas.
@@ -31,14 +35,17 @@ namespace Japdeva.APIMovil.Parametros.BackGroundServices
         /// <param name="logger">Logger para registro de eventos del servicio de fondo.</param>
         /// <param name="colasGrpcClientService">Cliente gRPC del microservicio de Colas.</param>
         /// <param name="plantillaCorreoCacheService">Servicio de caché de plantillas de correo.</param>
+        /// <param name="parametroCacheService">Servicio de caché de parámetros del sistema.</param>
         public ObtenerPlantillaBackGroundService(
             ILogger<ObtenerPlantillaBackGroundService> logger,
             IColasGrpcClientService colasGrpcClientService,
-            IPlantillaCorreoCacheService plantillaCorreoCacheService)
+            IPlantillaCorreoCacheService plantillaCorreoCacheService,
+            IParametroCacheService parametroCacheService)
         {
             this._logger = logger;
             this._colasGrpcClientService = colasGrpcClientService;
             this._plantillaCorreoCacheService = plantillaCorreoCacheService;
+            this._parametroCacheService = parametroCacheService;
         }
 
         /// <summary>
@@ -112,9 +119,13 @@ namespace Japdeva.APIMovil.Parametros.BackGroundServices
                 var metaDatos = JsonConvert.DeserializeObject<Dictionary<string, string>>(cola.MetaDatos);
                 string? colaRespuesta = string.Empty;
                 if (metaDatos is null || !metaDatos.TryGetValue(CLAVE_COLA_RESPUESTA, out colaRespuesta) || string.IsNullOrEmpty(colaRespuesta)) throw new InvalidOperationException(MENSAJE_COLA_RESPUESTA_VACIA);
-                
+
+                string correoSoporte = this._parametroCacheService
+                    .ObtenerParametroPorNombre(TRACE_ID_BACKGROUND, NOMBRE_PARAMETRO_CORREO_SOPORTE)?.Valor1
+                    ?? string.Empty;
+
                 PlantillaRespuestaModel plantillaRespuestaModel = new PlantillaRespuestaModel();
-                plantillaRespuestaModel.Plantilla = plantilla.Plantilla;
+                plantillaRespuestaModel.Plantilla = plantilla.Plantilla.Replace(MARCADOR_CORREO_SOPORTE, correoSoporte);
                 plantillaRespuestaModel.EsHtml = plantilla.EsHtml;
                 plantillaRespuestaModel.Asunto = plantilla.Asunto;
                 string json = JsonConvert.SerializeObject(plantillaRespuestaModel);

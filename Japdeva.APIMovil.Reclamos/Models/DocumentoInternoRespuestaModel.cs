@@ -30,5 +30,17 @@ namespace Japdeva.APIMovil.Reclamos.Models
         /// </summary>
         [JsonProperty("archivo")]
         public string Documento { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece la descripción del detalle de reclamo al que pertenece el documento.
+        /// </summary>
+        [JsonProperty("descripcionDetalleReclamo")]
+        public string DescripcionDetalleReclamo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece el nombre del departamento asociado al detalle de reclamo.
+        /// </summary>
+        [JsonProperty("nombreDepartamento")]
+        public string NombreDepartamento { get; set; } = string.Empty;
     }
 }

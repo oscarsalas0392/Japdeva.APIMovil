@@ -70,6 +70,7 @@ namespace Japdeva.APIMovil.Usuarios.Extensions
                 builder.Services.AddHostedService<UsuariosBackGroundService>();
                 builder.Services.AddHostedService<ObtenerUsuarioBackGroundService>();
                 builder.Services.AddHostedService<ObtenerCorreosPorDepartamentoBackGroundService>();
+                builder.Services.AddHostedService<ObtenerDepartamentoBackGroundService>();
 
                 return builder;
             }

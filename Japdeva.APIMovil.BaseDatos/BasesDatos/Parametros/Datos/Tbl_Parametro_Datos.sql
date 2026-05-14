@@ -13,7 +13,7 @@ SELECT 2, 'TelefonoContacto', '800-RECLAMOS', NULL,
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 2);
 
 INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
-SELECT 3, 'EmailContacto', 'ayuda@empresa.com', NULL,
+SELECT 3, 'EmailContacto', 'soporte@japdeva.go.cr', NULL,
     'Correo electrónico de contacto para atención al usuario',
     1, NOW(), TRUE
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 3);

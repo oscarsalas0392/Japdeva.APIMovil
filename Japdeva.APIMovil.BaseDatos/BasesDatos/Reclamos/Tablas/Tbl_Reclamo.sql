@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS"Tbl_Reclamo" (
     "EstaEnHistorico"              BOOLEAN DEFAULT FALSE,
 
 	CONSTRAINT pk_Reclamo_id PRIMARY KEY(id),
-	CONSTRAINT fk_Reclamo_idEstadoReclamo FOREIGN KEY ("idEstadoReclamo") REFERENCES "Tbl_EstadoReclamo"(id)
+	CONSTRAINT fk_Reclamo_idEstadoReclamo FOREIGN KEY ("idEstadoReclamo") REFERENCES "Tbl_EstadoReclamo"(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
