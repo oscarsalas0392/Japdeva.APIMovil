@@ -5,6 +5,7 @@ using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartamentoEstadoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamoService;
 
 
 namespace Japdeva.APIMovil.Reclamos.Controllers
@@ -67,5 +68,20 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
             [FromQuery(Name = "id-estado-detalle")] int idEstadoDetalleReclamo,
             [FromQuery(Name = "id-reclamo")] long idReclamo) =>
             obtenerDetalleReclamoPorDepartamentoEstadoService.ObtenerDetalleReclamoPorDepartamentoEstadoAsync(HttpContext.TraceIdentifier, idDepartamento, idEstadoDetalleReclamo, idReclamo);
+
+        /// <summary>
+        /// Obtiene el expediente digital de un reclamo: todos sus detalles con departamento,
+        /// descripción, fechas de inicio y fin, usuario que atendió y documento adjunto si existe.
+        /// </summary>
+        /// <param name="obtenerDocumentoInternoPorIdReclamoService">Servicio para obtener el expediente.</param>
+        /// <param name="idReclamo">Identificador del reclamo a consultar.</param>
+        /// <param name="pagina">Número de página para la paginación de resultados.</param>
+        /// <returns>Lista paginada del expediente digital del reclamo indicado.</returns>
+        [HttpGet("ObtenerExpedientePorReclamo")]
+        public Task<IActionResult> ObtenerExpedientePorReclamo(
+            [FromServices] IObtenerDocumentoInternoPorIdReclamoService obtenerDocumentoInternoPorIdReclamoService,
+            [FromQuery(Name = "id-reclamo")] long idReclamo,
+            [FromQuery(Name = "pagina")] int pagina) =>
+            obtenerDocumentoInternoPorIdReclamoService.ObtenerDocumentoInternoPorIdReclamoAsync(HttpContext.TraceIdentifier, idReclamo, pagina);
     }
 }

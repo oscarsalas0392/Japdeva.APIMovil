@@ -17,6 +17,6 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
         /// <param name="estadoReclamo">Estado del reclamo para filtrar.</param>
         /// <param name="pagina">Número de página para la paginación de resultados.</param>
         /// <returns>Una acción de resultado que contiene los reclamos encontrados.</returns>
-        Task<IActionResult> ObtenerReclamosPorFechaIngresoAsync(string traceId, DateTime fechaInicio, DateTime fechaFin, int estadoReclamo, int pagina);
+        Task<IActionResult> ObtenerReclamosPorFechaIngresoAsync(string traceId, DateTime fechaInicio, DateTime? fechaFin, int estadoReclamo, int pagina);
     }
 }

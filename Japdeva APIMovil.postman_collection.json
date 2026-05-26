@@ -1463,20 +1463,20 @@
           "response": []
         },
         {
-          "name": "Obtener Documento Interno Por Id Reclamo",
+          "name": "Obtener Expediente Por Reclamo",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/Reclamos/api/DocumentoInterno/ObtenerDocumentoInternoPorIdReclamo?id-reclamo=1&pagina=1",
+              "raw": "{{baseUrl}}/Reclamos/api/DetalleReclamo/ObtenerExpedientePorReclamo?id-reclamo=1&pagina=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "Reclamos",
                 "api",
-                "DocumentoInterno",
-                "ObtenerDocumentoInternoPorIdReclamo"
+                "DetalleReclamo",
+                "ObtenerExpedientePorReclamo"
               ],
               "query": [
                 {

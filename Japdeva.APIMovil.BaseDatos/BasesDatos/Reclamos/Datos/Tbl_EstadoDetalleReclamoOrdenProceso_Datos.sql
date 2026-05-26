@@ -46,6 +46,19 @@ INSERT INTO "Tbl_EstadoDetalleReclamoOrdenProceso" (id, "idNivelProceso", "idEst
 SELECT 12, 8, 3, 1, CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoDetalleReclamoOrdenProceso" WHERE "id" = 12);
 
+-- Contraloría de Servicios siempre puede Denegar: agregar Denegado (4) a niveles 3, 5 y 7
+INSERT INTO "Tbl_EstadoDetalleReclamoOrdenProceso" (id, "idNivelProceso", "idEstadoDetalleReclamo", "idUsuarioInterno", "fechaRegistro")
+SELECT 16, 3, 4, 1, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoDetalleReclamoOrdenProceso" WHERE "id" = 16);
+
+INSERT INTO "Tbl_EstadoDetalleReclamoOrdenProceso" (id, "idNivelProceso", "idEstadoDetalleReclamo", "idUsuarioInterno", "fechaRegistro")
+SELECT 17, 5, 4, 1, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoDetalleReclamoOrdenProceso" WHERE "id" = 17);
+
+INSERT INTO "Tbl_EstadoDetalleReclamoOrdenProceso" (id, "idNivelProceso", "idEstadoDetalleReclamo", "idUsuarioInterno", "fechaRegistro")
+SELECT 18, 7, 4, 1, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoDetalleReclamoOrdenProceso" WHERE "id" = 18);
+
 INSERT INTO "Tbl_EstadoDetalleReclamoOrdenProceso" (id, "idNivelProceso", "idEstadoDetalleReclamo", "idUsuarioInterno", "fechaRegistro")
 SELECT 13, 9, 4, 1, CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_EstadoDetalleReclamoOrdenProceso" WHERE "id" = 13);

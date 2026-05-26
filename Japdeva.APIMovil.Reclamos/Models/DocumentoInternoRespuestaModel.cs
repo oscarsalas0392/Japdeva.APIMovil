@@ -42,5 +42,23 @@ namespace Japdeva.APIMovil.Reclamos.Models
         /// </summary>
         [JsonProperty("nombreDepartamento")]
         public string NombreDepartamento { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece la fecha de inicio del detalle de reclamo.
+        /// </summary>
+        [JsonProperty("fechaInicio")]
+        public DateTime FechaInicio { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece la fecha de fin del detalle de reclamo.
+        /// </summary>
+        [JsonProperty("fechaFin")]
+        public DateTime? FechaFin { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el nombre del usuario interno que atendió el detalle.
+        /// </summary>
+        [JsonProperty("nombreUsuarioInterno")]
+        public string NombreUsuarioInterno { get; set; } = string.Empty;
     }
 }

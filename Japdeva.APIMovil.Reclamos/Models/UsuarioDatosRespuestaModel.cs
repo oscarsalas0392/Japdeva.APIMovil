@@ -5,8 +5,11 @@ namespace Japdeva.APIMovil.Reclamos.Models
     /// </summary>
     public class UsuarioDatosRespuestaModel
     {
-        /// <summary>Nombre completo del usuario.</summary>
+        /// <summary>Nombre del usuario.</summary>
         public string Nombre { get; set; } = string.Empty;
+
+        /// <summary>Apellidos del usuario.</summary>
+        public string Apellidos { get; set; } = string.Empty;
 
         /// <summary>Correo electrónico del usuario.</summary>
         public string Correo { get; set; } = string.Empty;

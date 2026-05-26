@@ -115,6 +115,7 @@ namespace Japdeva.APIMovil.Usuarios.BackgroundServices
 
                 UsuarioDatosRespuestaModel respuesta = new UsuarioDatosRespuestaModel();
                 respuesta.Nombre = usuario.Nombre;
+                respuesta.Apellidos = usuario.Apellidos;
                 respuesta.Correo = usuario.Correo;
 
                 string json = JsonSerializer.Serialize(respuesta);

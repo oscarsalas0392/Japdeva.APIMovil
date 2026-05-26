@@ -68,7 +68,7 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         /// <returns>Resultado de la operación de obtención de reclamos por fecha y estado.</returns>
         [HttpGet("ObtenerReclamoPorFechaEstado")]
         public Task<IActionResult> ObtenerReclamoPorFechaEstado([FromServices] IObtenerReclamosPorFechaIngresoService obtenerReclamosPorFechaIngresoService,
-            [FromQuery(Name = "fecha-inicio")] DateTime fechaInicio, [FromQuery(Name = "fecha-fin")] DateTime fechaFin, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
+            [FromQuery(Name = "fecha-inicio")] DateTime fechaInicio, [FromQuery(Name = "fecha-fin")] DateTime? fechaFin, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamosPorFechaIngresoService.ObtenerReclamosPorFechaIngresoAsync(HttpContext.TraceIdentifier, fechaInicio, fechaFin, idEstadoReclamo, pagina);
 
         /// <summary>

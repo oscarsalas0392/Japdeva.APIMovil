@@ -23,8 +23,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
         private const int PAGINA_MINIMA = 1;
         private const int TIMEOUT_SEGUNDOS = 10;
         private const string COLA_OBTENER_DEPARTAMENTO = "ObtenerDepartamento";
+        private const string COLA_OBTENER_USUARIO = "ObtenerUsuario";
         private const string COLA_RESPUESTA = "Respuesta";
         private const long ID_DEPARTAMENTO_DESCONOCIDO = 0;
+        private const long ID_USUARIO_DESCONOCIDO = 0;
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoPorIdReclamoService"/>.
@@ -62,7 +64,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
                 var detalles = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(
-                    traceId, pagina, x => x.IdReclamo == idReclamo && x.IdEstadoDetalleReclamo != (int)EstadoDetalleReclamoModel.EnProceso && x.IdEstadoDetalleReclamo != (int)EstadoDetalleReclamoModel.Pendiente);
+                    traceId, pagina, x => x.IdReclamo == idReclamo);
 
                 List<long> idsDetalles = detalles.Lista.Select(d => d.Id).ToList();
 
@@ -73,27 +75,52 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
                     .GroupBy(d => d.IdDetalleReclamo)
                     .ToDictionary(g => g.Key, g => g.OrderByDescending(d => d.FechaRegistro).First());
 
-                List<long> idsUnicos = detalles.Lista.Select(d => d.IdDepartamento).Distinct().ToList();
+                List<long> idsDepartamentosUnicos = detalles.Lista.Select(d => d.IdDepartamento).Distinct().ToList();
+                List<long> idsUsuariosUnicos = detalles.Lista.Where(d => d.IdUsuarioInterno is not null && d.IdUsuarioInterno != ID_USUARIO_DESCONOCIDO)
+                    .Select(d => d.IdUsuarioInterno!.Value).Distinct().ToList();
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(TIMEOUT_SEGUNDOS));
-                var tareasDepartamento = idsUnicos.Select(idDep =>
+
+                var tareasDepartamento = idsDepartamentosUnicos.Select(idDep =>
                     this._colaRpcService.EnviarYEsperarRespuestaAsync(traceId, COLA_OBTENER_DEPARTAMENTO, COLA_RESPUESTA, idDep.ToString(), cts.Token)
-                        .ContinueWith(t => (idDep, mensaje: t.Result), TaskContinuationOptions.ExecuteSynchronously)
+                        .ContinueWith(t => (id: idDep, mensaje: t.Result), TaskContinuationOptions.ExecuteSynchronously)
                 ).ToList();
-                await Task.WhenAll(tareasDepartamento);
+
+                var tareasUsuario = idsUsuariosUnicos.Select(idUsu =>
+                    this._colaRpcService.EnviarYEsperarRespuestaAsync(traceId, COLA_OBTENER_USUARIO, COLA_RESPUESTA, idUsu.ToString(), cts.Token)
+                        .ContinueWith(t => (id: idUsu, mensaje: t.Result), TaskContinuationOptions.ExecuteSynchronously)
+                ).ToList();
+
+                await Task.WhenAll(tareasDepartamento.Cast<Task>().Concat(tareasUsuario.Cast<Task>()));
 
                 Dictionary<long, string> nombrePorDepartamento = tareasDepartamento
                     .Select(t => t.Result)
                     .Where(r => r.mensaje is not null)
                     .ToDictionary(
-                        r => r.idDep,
+                        r => r.id,
                         r => JsonSerializer.Deserialize<DepartamentoRespuestaModel>(r.mensaje!.Contenido)?.Descripcion ?? string.Empty
+                    );
+
+                Dictionary<long, string> nombrePorUsuario = tareasUsuario
+                    .Select(t => t.Result)
+                    .Where(r => r.mensaje is not null)
+                    .ToDictionary(
+                        r => r.id,
+                        r =>
+                        {
+                            var datos = JsonSerializer.Deserialize<UsuarioDatosRespuestaModel>(r.mensaje!.Contenido);
+                            if (datos is null) return string.Empty;
+                            return $"{datos.Nombre} {datos.Apellidos}".Trim();
+                        }
                     );
 
                 List<DocumentoInternoRespuestaModel> lista = detalles.Lista.Select(detalle =>
                 {
                     documentoPorDetalle.TryGetValue(detalle.Id, out DocumentoInternoEntity? doc);
                     nombrePorDepartamento.TryGetValue(detalle.IdDepartamento, out string? nombreDep);
+                    string nombreUsuario = detalle.IdUsuarioInterno is not null
+                        && nombrePorUsuario.TryGetValue(detalle.IdUsuarioInterno.Value, out string? nombre)
+                        ? nombre : string.Empty;
                     return new DocumentoInternoRespuestaModel
                     {
                         Id = doc?.Id ?? ID_DEPARTAMENTO_DESCONOCIDO,
@@ -101,7 +128,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
                         NombreDocumento = doc?.NombreDocumento ?? string.Empty,
                         Documento = doc?.Documento ?? string.Empty,
                         DescripcionDetalleReclamo = detalle.Descripcion,
-                        NombreDepartamento = nombreDep ?? string.Empty
+                        NombreDepartamento = nombreDep ?? string.Empty,
+                        FechaInicio = detalle.FechaRegistro,
+                        FechaFin = detalle.FechaEdicion,
+                        NombreUsuarioInterno = nombreUsuario
                     };
                 }).ToList();
 

@@ -47,20 +47,30 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoServi
         /// <param name="estadoReclamo">Estado del reclamo para filtrar.</param>
         /// <param name="pagina">Número de página para la paginación de resultados.</param>
         /// <returns>Una acción que contiene la lista de reclamos filtrados.</returns>
-        public async Task<IActionResult> ObtenerReclamosPorFechaIngresoAsync(string traceId, DateTime fechaInicio, DateTime fechaFin, int estadoReclamo, int pagina) 
+        public async Task<IActionResult> ObtenerReclamosPorFechaIngresoAsync(string traceId, DateTime fechaInicio, DateTime? fechaFin, int estadoReclamo, int pagina) 
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-
+                RespuestaListaModel<ReclamoEntity>? reclamos = null;
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 if (pagina < ID_PAGINA_MINIMO) throw new ArgumentException(MENSAJE_ERROR_ID_PAGINA);
                 var respuesta = new RespuestaListaModel<ReclamoRespuestaModel>();
-                var reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
-                     x => x.FechaRegistro >= fechaInicio && x.FechaRegistro <= fechaFin && x.IdEstadoReclamo == estadoReclamo);
+
+                if (fechaFin is not null)
+                {
+
+                     reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
+                         x => x.FechaRegistro >= fechaInicio && x.FechaRegistro <= fechaFin && x.IdEstadoReclamo == estadoReclamo);
+                }
+                else 
+                {
+                     reclamos = await consultarListaRepository.ConsultarListaAsync<ReclamoEntity>(traceId, pagina,
+                     x => x.FechaRegistro >= fechaInicio  && x.IdEstadoReclamo == estadoReclamo);
+                }
 
 
                 List<long> listaIdDepartamento = reclamos.Lista

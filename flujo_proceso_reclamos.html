@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flujo de Reclamos – JAPDEVA</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    header {
+      background: #1e3a5f;
+      color: #fff;
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 1.3rem; font-weight: 700; }
+    header span { font-size: 0.8rem; opacity: 0.6; display: block; margin-top: 3px; }
+    .tag {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+    section { background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); padding: 28px; margin-bottom: 20px; }
+    section h2 { font-size: 0.9rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; }
+
+    /* ── Estados ── */
+    .estados { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .estado {
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #f8fafc;
+    }
+    .estado .num  { font-size: 0.65rem; font-weight: 700; color: #94a3b8; margin-bottom: 3px; }
+    .estado .nom  { font-size: 0.9rem; font-weight: 700; }
+    .estado .desc { font-size: 0.72rem; color: #64748b; margin-top: 4px; line-height: 1.4; }
+    .e1 .nom { color: #3b82f6; }
+    .e2 .nom { color: #f59e0b; }
+    .e3 .nom { color: #10b981; }
+    .e4 .nom { color: #ef4444; }
+    .e5 .nom { color: #f97316; }
+    .e6 .nom { color: #059669; }
+
+    /* ── Diagrama ── */
+    .mermaid { min-width: 800px; overflow-x: auto; }
+
+    /* ── Tabla ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    thead th {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      padding: 8px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #f1f5f9; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 11px 14px; vertical-align: middle; }
+
+    .nivel-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .nd1, .nd3, .nd5, .nd7, .nd9 { background: #2563eb; }
+    .nd2 { background: #16a34a; }
+    .nd4 { background: #ea580c; }
+    .nd6 { background: #7c3aed; }
+    .nd8 { background: #dc2626; }
+
+    .dept {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin: 2px;
+    }
+    .pv { background: #dcfce7; color: #166534; }
+    .pd { background: #fee2e2; color: #991b1b; }
+    .pe { background: #ffedd5; color: #9a3412; }
+    .pa { background: #ccfbf1; color: #134e4a; }
+    .pnew { box-shadow: 0 0 0 1.5px #ef4444; }
+
+    .flecha { color: #94a3b8; font-size: 0.78rem; }
+
+    footer { text-align: center; padding: 20px; font-size: 0.73rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Flujo de Proceso de Reclamos</h1>
+    <span>Tbl_NivelProceso · Tbl_OrdenNivelProceso · Tbl_EstadoDetalleReclamoOrdenProceso</span>
+  </div>
+  <div class="tag">JAPDEVA</div>
+</header>
+
+<main>
+
+  <!-- Estados -->
+  <section>
+    <h2>Estados del Detalle de Reclamo</h2>
+    <div class="estados">
+      <div class="estado e1">
+        <div class="num">ID 1</div>
+        <div class="nom">Pendiente</div>
+        <div class="desc">Estado inicial al crear el detalle</div>
+      </div>
+      <div class="estado e2">
+        <div class="num">ID 2</div>
+        <div class="nom">En Revisión</div>
+        <div class="desc">El departamento evalúa el caso</div>
+      </div>
+      <div class="estado e3">
+        <div class="num">ID 3 · continuaProceso</div>
+        <div class="nom">Validado</div>
+        <div class="desc">Aprobado, avanza al siguiente nivel</div>
+      </div>
+      <div class="estado e4">
+        <div class="num">ID 4 · rechazaProceso</div>
+        <div class="nom">Denegado</div>
+        <div class="desc">Rechazado, cierra el proceso</div>
+      </div>
+      <div class="estado e5">
+        <div class="num">ID 5 · devolucionProceso</div>
+        <div class="nom">Devuelto</div>
+        <div class="desc">Regresa al nivel anterior</div>
+      </div>
+      <div class="estado e6">
+        <div class="num">ID 6 · finalizarProceso</div>
+        <div class="nom">Autorizado</div>
+        <div class="desc">Aprobado, resolución favorable</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Diagrama -->
+  <section>
+    <h2>Diagrama de Flujo</h2>
+    <div class="mermaid">
+flowchart TD
+  START(["▶ Reclamo ingresado"])
+  N1["Nivel 1 · Contraloría de Servicios\nRevisión inicial de Reclamos"]
+  N2["Nivel 2 · Intendencia Portuaria\nSolicitud de criterio"]
+  N3["Nivel 3 · Contraloría de Servicios\nRevisión criterio Intendencia"]
+  N4["Nivel 4 · Financiero Contable\nEnvío de criterio"]
+  N5["Nivel 5 · Contraloría de Servicios\nRevisión criterio Financiero"]
+  N6["Nivel 6 · Asesoría Jurídica\nEnvío de criterio"]
+  N7["Nivel 7 · Contraloría de Servicios\nRevisión criterio Jurídica"]
+  N8["Nivel 8 · Gerencia Portuaria\nEnvío de criterio"]
+  N9["Nivel 9 · Contraloría de Servicios\nRevisión resolución firmada"]
+  DEN1(["✗ Denegado"])
+  DEN3(["✗ Denegado"])
+  DEN5(["✗ Denegado"])
+  DEN7(["✗ Denegado"])
+  DEN9(["✗ Denegado"])
+  AUT(["✓ Autorizado"])
+
+  START --> N1
+  N1 -->|Validado| N2
+  N1 -->|Denegado| DEN1
+  N2 -->|Validado| N3
+  N3 -->|"Validado · Camino A"| N4
+  N3 -.->|"Validado · Atajo B"| N6
+  N3 -->|Devuelto| N2
+  N3 -->|Denegado| DEN3
+  N4 -->|Validado| N5
+  N5 -->|Validado| N6
+  N5 -->|Devuelto| N4
+  N5 -->|Denegado| DEN5
+  N6 -->|Validado| N7
+  N7 -->|Validado| N8
+  N7 -->|Devuelto| N6
+  N7 -->|Denegado| DEN7
+  N8 -->|Validado| N9
+  N9 -->|Autorizado| AUT
+  N9 -->|Denegado| DEN9
+  N9 -->|Devuelto| N8
+
+  style START fill:#1e293b,color:#fff,stroke:#0f172a
+  style N1 fill:#2563eb,color:#fff,stroke:#1d4ed8
+  style N3 fill:#2563eb,color:#fff,stroke:#1d4ed8
+  style N5 fill:#2563eb,color:#fff,stroke:#1d4ed8
+  style N7 fill:#2563eb,color:#fff,stroke:#1d4ed8
+  style N9 fill:#2563eb,color:#fff,stroke:#1d4ed8
+  style N2 fill:#16a34a,color:#fff,stroke:#15803d
+  style N4 fill:#ea580c,color:#fff,stroke:#c2410c
+  style N6 fill:#7c3aed,color:#fff,stroke:#6d28d9
+  style N8 fill:#dc2626,color:#fff,stroke:#b91c1c
+  style DEN1 fill:#ef4444,color:#fff,stroke:#dc2626
+  style DEN3 fill:#ef4444,color:#fff,stroke:#dc2626
+  style DEN5 fill:#ef4444,color:#fff,stroke:#dc2626
+  style DEN7 fill:#ef4444,color:#fff,stroke:#dc2626
+  style DEN9 fill:#ef4444,color:#fff,stroke:#dc2626
+  style AUT fill:#059669,color:#fff,stroke:#047857
+    </div>
+  </section>
+
+  <!-- Tabla -->
+  <section>
+    <h2>Estados disponibles por Nivel</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nivel</th>
+          <th>Descripción</th>
+          <th>Departamento</th>
+          <th>Estados</th>
+          <th>Siguiente</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="nivel-num nd1">1</span></td>
+          <td>Revisión inicial de Reclamos</td>
+          <td class="dept">Contraloría de Servicios</td>
+          <td>
+            <span class="pill pv">Validado</span>
+            <span class="pill pd">Denegado</span>
+          </td>
+          <td class="flecha">→ N2 &nbsp;·&nbsp; ✗ Cierre</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd2">2</span></td>
+          <td>Solicitud de criterio · Intendencia Portuaria</td>
+          <td class="dept">Intendencia Portuaria</td>
+          <td><span class="pill pv">Validado</span></td>
+          <td class="flecha">→ N3</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd3">3</span></td>
+          <td>Revisión criterio · Intendencia Portuaria</td>
+          <td class="dept">Contraloría de Servicios</td>
+          <td>
+            <span class="pill pv">Validado</span>
+            <span class="pill pe">Devuelto</span>
+            <span class="pill pd pnew">Denegado ★</span>
+          </td>
+          <td class="flecha">→ N4 · → N6 (atajo) · ↩ N2 · ✗ Cierre</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd4">4</span></td>
+          <td>Envío de criterio · Financiero Contable</td>
+          <td class="dept">Unidad Financiero Contable</td>
+          <td><span class="pill pv">Validado</span></td>
+          <td class="flecha">→ N5</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd5">5</span></td>
+          <td>Revisión criterio · Financiero Contable</td>
+          <td class="dept">Contraloría de Servicios</td>
+          <td>
+            <span class="pill pv">Validado</span>
+            <span class="pill pe">Devuelto</span>
+            <span class="pill pd pnew">Denegado ★</span>
+          </td>
+          <td class="flecha">→ N6 · ↩ N4 · ✗ Cierre</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd6">6</span></td>
+          <td>Envío de criterio · Asesoría Jurídica</td>
+          <td class="dept">Unidad de Asesoría Jurídica</td>
+          <td><span class="pill pv">Validado</span></td>
+          <td class="flecha">→ N7</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd7">7</span></td>
+          <td>Revisión criterio · Asesoría Jurídica</td>
+          <td class="dept">Contraloría de Servicios</td>
+          <td>
+            <span class="pill pv">Validado</span>
+            <span class="pill pe">Devuelto</span>
+            <span class="pill pd pnew">Denegado ★</span>
+          </td>
+          <td class="flecha">→ N8 · ↩ N6 · ✗ Cierre</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd8">8</span></td>
+          <td>Envío de criterio · Gerencia Portuaria</td>
+          <td class="dept">Gerencia Portuaria</td>
+          <td><span class="pill pv">Validado</span></td>
+          <td class="flecha">→ N9</td>
+        </tr>
+        <tr>
+          <td><span class="nivel-num nd9">9</span></td>
+          <td>Revisión resolución firmada · Gerencia Portuaria</td>
+          <td class="dept">Contraloría de Servicios</td>
+          <td>
+            <span class="pill pa">Autorizado</span>
+            <span class="pill pd">Denegado</span>
+            <span class="pill pe">Devuelto</span>
+          </td>
+          <td class="flecha">✓ Favorable · ✗ Desfavorable · ↩ N8</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px;font-size:0.73rem;color:#ef4444;font-weight:600;">★ Agregado: Contraloría puede Denegar en todos sus niveles de revisión (3, 5 y 7).</p>
+  </section>
+
+</main>
+
+<footer>JAPDEVA · Sistema de Reclamos</footer>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'base', flowchart: { useMaxWidth: true, curve: 'basis' } });
+</script>
+</body>
+</html>
