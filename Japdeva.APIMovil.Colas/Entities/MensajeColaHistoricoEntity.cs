@@ -36,7 +36,6 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// </summary>
         [Required]
         [Column("contenidoMensaje")]
-        [MaxLength(4000)]
         public string ContenidoMensaje { get; set; } = string.Empty;
 
         /// <summary>
@@ -90,7 +89,6 @@ namespace Japdeva.APIMovil.Colas.Entities
         /// Obtiene o establece metadatos adicionales en formato JSON.
         /// </summary>
         [Column("metadatos")]
-        [MaxLength(4000)]
         public string Metadatos { get; set; } = string.Empty;
 
         /// <summary>

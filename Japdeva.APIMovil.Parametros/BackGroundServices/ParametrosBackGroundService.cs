@@ -3,6 +3,8 @@ using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.PantallaCacheService;
 using Japdeva.APIMovil.Parametros.Services.ParametroCacheService;
+using Japdeva.APIMovil.Parametros.Services.OpcionPantallaCacheService;
+using Japdeva.APIMovil.Parametros.Services.OpcionPantallaPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.PlantillaCorreoCacheService;
 
 namespace Japdeva.APIMovil.Parametros.BackgroundServices
@@ -39,20 +41,26 @@ namespace Japdeva.APIMovil.Parametros.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
+            this._logger.Inicio(TRACE_ID_BACKGROUND, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID_BACKGROUND, nombreMetodo);
-
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    await CargarCachesParametrosAsync();
+                    try
+                    {
+                        await CargarCachesParametrosAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID_BACKGROUND, nombreMetodo, ex);
+                    }
+
                     await Task.Delay(TIEMPO_ESPERA_ENTRE_EJECUCIONES, stoppingToken);
                 }
             }
             catch (Exception ex)
             {
                 this._logger.Error(TRACE_ID_BACKGROUND, nombreMetodo, ex);
-                throw;
             }
             finally
             {
@@ -77,19 +85,25 @@ namespace Japdeva.APIMovil.Parametros.BackgroundServices
                 var menuPerfilCache = scope.ServiceProvider.GetRequiredService<IMenuPerfilCacheService>();
                 var parametroCache = scope.ServiceProvider.GetRequiredService<IParametroCacheService>();
                 var plantillaCorreoCache = scope.ServiceProvider.GetRequiredService<IPlantillaCorreoCacheService>();
+                var opcionPantallaCache = scope.ServiceProvider.GetRequiredService<IOpcionPantallaCacheService>();
+                var opcionPantallaPerfilCache = scope.ServiceProvider.GetRequiredService<IOpcionPantallaPerfilCacheService>();
 
                 Task tareaPantallaCache = pantallaCache.LlenarCachePantallaAsync(TRACE_ID_BACKGROUND);
                 Task tareaMenuCache = menuCache.LlenarCacheMenuAsync(TRACE_ID_BACKGROUND);
                 Task tareaMenuPerfilCache = menuPerfilCache.LlenarCacheMenuPerfilAsync(TRACE_ID_BACKGROUND);
                 Task tareaParametroCache = parametroCache.LlenarCacheParametrosAsync(TRACE_ID_BACKGROUND);
                 Task tareaPlantillaCorreoCache = plantillaCorreoCache.LlenarCachePlantillaCorreosAsync(TRACE_ID_BACKGROUND);
+                Task tareaOpcionPantallaCache = opcionPantallaCache.LlenarCacheOpcionPantallaAsync(TRACE_ID_BACKGROUND);
+                Task tareaOpcionPantallaPerfilCache = opcionPantallaPerfilCache.LlenarCacheOpcionPantallaPerfilAsync(TRACE_ID_BACKGROUND);
 
                 await Task.WhenAll(
                     tareaPantallaCache,
                     tareaMenuCache,
                     tareaMenuPerfilCache,
                     tareaParametroCache,
-                    tareaPlantillaCorreoCache);
+                    tareaPlantillaCorreoCache,
+                    tareaOpcionPantallaCache,
+                    tareaOpcionPantallaPerfilCache);
 
             }
             catch (Exception ex)

@@ -15,8 +15,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
     {
         private readonly ILogger<AgregarDocumentoInternoService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "No se encontró el detalle de reclamo con Id {0}.";
+        private const string MENSAJE_ERROR_LISTA_NULA = "La lista de archivos no puede ser nula o vacía.";
+        private const string MENSAJE_ERROR_RECLAMO_EN_HISTORICO = "No se pueden agregar documentos porque el reclamo con Id {0} está en histórico.";
+        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const bool DOCUMENTO_INTERNO_ACTIVO = true;
 
 
@@ -45,9 +47,13 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var agregarRepository = scope.ServiceProvider.GetRequiredService<IAgregarRepository>();
-                var detalleReclamo = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x=> x.Id == agregarDocumentoInternoSolicitudModel.IdDetalleReclamo);
-                if(detalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, agregarDocumentoInternoSolicitudModel.IdDetalleReclamo));      
-                
+                var detalleReclamo = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x => x.Id == agregarDocumentoInternoSolicitudModel.IdDetalleReclamo);
+                if (detalleReclamo is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, agregarDocumentoInternoSolicitudModel.IdDetalleReclamo));
+
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == detalleReclamo.IdReclamo);
+                if (reclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, detalleReclamo.IdReclamo));
+                if (reclamo.EstaEnHistorico) throw new InvalidOperationException(string.Format(MENSAJE_ERROR_RECLAMO_EN_HISTORICO, reclamo.Id));
+
                 if (agregarDocumentoInternoSolicitudModel.ListaDocumentos is null || !agregarDocumentoInternoSolicitudModel.ListaDocumentos.Any()) throw new ArgumentException(MENSAJE_ERROR_LISTA_NULA);
 
                 List<DocumentoInternoEntity> listaDocumentoInterno = new List<DocumentoInternoEntity>();

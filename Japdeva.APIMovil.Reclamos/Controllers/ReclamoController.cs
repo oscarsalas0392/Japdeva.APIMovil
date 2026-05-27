@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorIdService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioOrdenadoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService;
@@ -70,6 +71,17 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
         public Task<IActionResult> ObtenerReclamoPorFechaEstado([FromServices] IObtenerReclamosPorFechaIngresoService obtenerReclamosPorFechaIngresoService,
             [FromQuery(Name = "fecha-inicio")] DateTime fechaInicio, [FromQuery(Name = "fecha-fin")] DateTime? fechaFin, [FromQuery(Name = "id-estado-reclamo")] int idEstadoReclamo, [FromQuery(Name = "pagina")] int pagina) =>
             obtenerReclamosPorFechaIngresoService.ObtenerReclamosPorFechaIngresoAsync(HttpContext.TraceIdentifier, fechaInicio, fechaFin, idEstadoReclamo, pagina);
+
+        /// <summary>
+        /// Obtiene un reclamo específico por su identificador único.
+        /// </summary>
+        /// <param name="obtenerReclamoPorIdService">Servicio para obtener el reclamo por Id.</param>
+        /// <param name="idReclamo">Identificador único del reclamo.</param>
+        /// <returns>Resultado de la operación de obtención del reclamo.</returns>
+        [HttpGet("ObtenerReclamoPorId")]
+        public Task<IActionResult> ObtenerReclamoPorId([FromServices] IObtenerReclamoPorIdService obtenerReclamoPorIdService,
+            [FromQuery(Name = "id-reclamo")] long idReclamo) =>
+            obtenerReclamoPorIdService.ObtenerReclamoPorIdAsync(HttpContext.TraceIdentifier, idReclamo);
 
         /// <summary>
         /// Obtiene todos los reclamos de un usuario ordenados del más reciente al más antiguo, paginados.

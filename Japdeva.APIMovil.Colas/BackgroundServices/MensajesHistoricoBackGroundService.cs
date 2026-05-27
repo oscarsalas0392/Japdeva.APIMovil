@@ -45,29 +45,35 @@ namespace Japdeva.APIMovil.Colas.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             string nombreMetodo = nameof(ExecuteAsync);
+            this._logger.Inicio(TRACE_ID, nombreMetodo);
             try
             {
-                this._logger.Inicio(TRACE_ID, nombreMetodo);
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    using var scope = this._serviceProvider.CreateScope();
-                    var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
-                    int cantidadMensajesProcesados = await consultarRepository.ContarAsync<MensajeColaEntity>(TRACE_ID,
-                                              mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
-
-                                              mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
-
-                    if (cantidadMensajesProcesados > CANTIDAD_MENSAJES_MINIMA)
+                    int cantidadMensajesProcesados = CANTIDAD_MENSAJES_MINIMA;
+                    try
                     {
-                        await this._guardarMensajesHistoricoService.MoverMensajesAHistoricoAsync(TRACE_ID);
+                        using var scope = this._serviceProvider.CreateScope();
+                        var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                        cantidadMensajesProcesados = await consultarRepository.ContarAsync<MensajeColaEntity>(TRACE_ID,
+                            mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
+                                       mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado ||
+                                       mensaje.EstadoId == (int)EstadoMensajeModel.Expirado);
+
+                        if (cantidadMensajesProcesados > CANTIDAD_MENSAJES_MINIMA)
+                            await this._guardarMensajesHistoricoService.MoverMensajesAHistoricoAsync(TRACE_ID);
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.Error(TRACE_ID, nombreMetodo, ex);
                     }
 
                     int delayMinutos = cantidadMensajesProcesados switch
                     {
-                            > UMBRAL_MUCHA_CARGA => DELAY_MUCHA_CARGA,    // Mucha carga: archivar cada minuto
-                            > UMBRAL_CARGA_NORMAL => DELAY_CARGA_NORMAL,    // Carga normal: cada 2 minutos  
-                            > UMBRAL_POCA_CARGA => DELAY_POCA_CARGA,     // Poca carga: cada 5 minutos
-                            _ => DELAY_SIN_CARGA         // Sin carga: cada 10 minutos
+                        > UMBRAL_MUCHA_CARGA => DELAY_MUCHA_CARGA,
+                        > UMBRAL_CARGA_NORMAL => DELAY_CARGA_NORMAL,
+                        > UMBRAL_POCA_CARGA => DELAY_POCA_CARGA,
+                        _ => DELAY_SIN_CARGA
                     };
                     await Task.Delay(TimeSpan.FromMinutes(delayMinutos), stoppingToken);
                 }

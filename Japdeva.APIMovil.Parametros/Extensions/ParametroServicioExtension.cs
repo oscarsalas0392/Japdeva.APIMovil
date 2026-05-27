@@ -3,6 +3,9 @@ using Japdeva.APIMovil.Parametros.BackGroundServices;
 using Japdeva.APIMovil.Parametros.Services.MenuCacheService;
 using Japdeva.APIMovil.Parametros.Services.MenuPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService;
+using Japdeva.APIMovil.Parametros.Services.ObtenerOpcionPantallaPorPerfilService;
+using Japdeva.APIMovil.Parametros.Services.OpcionPantallaCacheService;
+using Japdeva.APIMovil.Parametros.Services.OpcionPantallaPerfilCacheService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerParametroService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerParametrosService;
 using Japdeva.APIMovil.Parametros.Services.ObtenerPlantillaNuevoReclamoService;
@@ -34,12 +37,15 @@ namespace Japdeva.APIMovil.Parametros.Extensions
                 builder.Services.AddSingleton<IMenuPerfilCacheService, MenuPerfilCacheService>();
                 builder.Services.AddSingleton<IParametroCacheService, ParametroCacheService>();
                 builder.Services.AddSingleton<IPlantillaCorreoCacheService, PlantillaCorreoCacheService>();
+                builder.Services.AddSingleton<IOpcionPantallaCacheService, OpcionPantallaCacheService>();
+                builder.Services.AddSingleton<IOpcionPantallaPerfilCacheService, OpcionPantallaPerfilCacheService>();
 
                 // Registrar servicios de negocio
                 builder.Services.AddScoped<IObtenerParametroService, ObtenerParametroService>();
                 builder.Services.AddScoped<IObtenerParametrosService, ObtenerParametrosService>();
                 builder.Services.AddScoped<IObtenerMenuPorPerfilService, ObtenerMenuPorPerfilService>();
                 builder.Services.AddScoped<IObtenerPlantillaNuevoReclamoService, ObtenerPlantillaNuevoReclamoService>();
+                builder.Services.AddScoped<IObtenerOpcionPantallaPorPerfilService, ObtenerOpcionPantallaPorPerfilService>();
 
                 // Registrar servicio de fondo para actualización de cachés
                 builder.Services.AddHostedService<ParametrosBackGroundService>();

@@ -51,7 +51,8 @@ namespace Japdeva.APIMovil.Colas.Services.GuardarMensajesHistoricoService
                 {
                     var mensajes = await consultarListaRepository.ConsultarListaAsync<MensajeColaEntity>(
                         traceId, PAGINA_INICIAL, mensaje => mensaje.EstadoId == (int)EstadoMensajeModel.Procesado ||
-                                                            mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado);
+                                                            mensaje.EstadoId == (int)EstadoMensajeModel.Cancelado ||
+                                                            mensaje.EstadoId == (int)EstadoMensajeModel.Expirado);
 
                     if (mensajes is null || !mensajes.Lista.Any()) { continuar = false; break; }
 

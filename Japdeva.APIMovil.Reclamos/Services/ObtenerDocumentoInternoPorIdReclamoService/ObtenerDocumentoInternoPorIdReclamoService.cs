@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Common.Services.ColaRpcService;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
@@ -12,6 +13,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
     /// <summary>
     /// Servicio para obtener los documentos internos de un reclamo, enriquecidos con la descripción
     /// del detalle de reclamo y el nombre del departamento responsable.
+    /// Enruta la consulta a tablas activas o históricas según el valor de <c>EstaEnHistorico</c>.
     /// </summary>
     public class ObtenerDocumentoInternoPorIdReclamoService : IObtenerDocumentoInternoPorIdReclamoService
     {
@@ -20,6 +22,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
         private readonly IColaRpcService _colaRpcService;
 
         private const string MENSAJE_ERROR_PAGINA = "La pagina es inválida, debe ser mayor a 0.";
+        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const int PAGINA_MINIMA = 1;
         private const int TIMEOUT_SEGUNDOS = 10;
         private const string COLA_OBTENER_DEPARTAMENTO = "ObtenerDepartamento";
@@ -45,8 +48,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
         }
 
         /// <summary>
-        /// Obtiene los documentos internos de todos los detalles de un reclamo,
-        /// incluyendo la descripción del detalle y el nombre del departamento.
+        /// Obtiene los documentos internos de todos los detalles de un reclamo, incluyendo descripción
+        /// del detalle y nombre del departamento. Si el reclamo está en histórico, consulta las tablas
+        /// <c>Tbl_DetalleReclamoHistorico</c> y <c>Tbl_DocumentoInternoHistorico</c>.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo a consultar.</param>
@@ -61,23 +65,85 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
                 if (pagina < PAGINA_MINIMA) throw new ArgumentException(MENSAJE_ERROR_PAGINA);
 
                 using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
-                var detalles = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(
-                    traceId, pagina, x => x.IdReclamo == idReclamo);
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
+                if (reclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
 
-                List<long> idsDetalles = detalles.Lista.Select(d => d.Id).ToList();
+                int totalRegistros;
+                int cantidadPaginas;
+                int paginaActual;
+                List<long> idsDetalles;
+                List<long> idsDepartamentosUnicos;
+                List<long> idsUsuariosUnicos;
+                Dictionary<long, string> descripcionPorDetalle;
+                Dictionary<long, DateTime> fechaInicioPorDetalle;
+                Dictionary<long, DateTime?> fechaFinPorDetalle;
+                Dictionary<long, long> idDepartamentoPorDetalle;
+                Dictionary<long, long?> idUsuarioPorDetalle;
+                Dictionary<long, (long docId, string nombreDocumento, string documento)> documentoPorDetalle;
 
-                var documentos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(
-                    traceId, PAGINA_MINIMA, x => idsDetalles.Contains(x.IdDetalleReclamo));
+                if (reclamo.EstaEnHistorico)
+                {
+                    var detallesHistorico = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoHistoricoEntity>(
+                        traceId, pagina, x => x.IdReclamo == idReclamo);
 
-                Dictionary<long, DocumentoInternoEntity> documentoPorDetalle = documentos.Lista
-                    .GroupBy(d => d.IdDetalleReclamo)
-                    .ToDictionary(g => g.Key, g => g.OrderByDescending(d => d.FechaRegistro).First());
+                    totalRegistros = detallesHistorico.TotalRegistros;
+                    cantidadPaginas = detallesHistorico.CantidadPaginas;
+                    paginaActual = detallesHistorico.PaginaActual;
+                    idsDetalles = detallesHistorico.Lista.Select(d => d.Id).ToList();
+                    descripcionPorDetalle = detallesHistorico.Lista.ToDictionary(d => d.Id, d => d.Descripcion);
+                    fechaInicioPorDetalle = detallesHistorico.Lista.ToDictionary(d => d.Id, d => d.FechaRegistro);
+                    fechaFinPorDetalle = detallesHistorico.Lista.ToDictionary(d => d.Id, d => d.FechaEdicion);
+                    idDepartamentoPorDetalle = detallesHistorico.Lista.ToDictionary(d => d.Id, d => d.IdDepartamento);
+                    idUsuarioPorDetalle = detallesHistorico.Lista.ToDictionary(d => d.Id, d => d.IdUsuarioInterno);
+                    idsDepartamentosUnicos = detallesHistorico.Lista.Select(d => d.IdDepartamento).Distinct().ToList();
+                    idsUsuariosUnicos = detallesHistorico.Lista
+                        .Where(d => d.IdUsuarioInterno is not null && d.IdUsuarioInterno != ID_USUARIO_DESCONOCIDO)
+                        .Select(d => d.IdUsuarioInterno!.Value).Distinct().ToList();
 
-                List<long> idsDepartamentosUnicos = detalles.Lista.Select(d => d.IdDepartamento).Distinct().ToList();
-                List<long> idsUsuariosUnicos = detalles.Lista.Where(d => d.IdUsuarioInterno is not null && d.IdUsuarioInterno != ID_USUARIO_DESCONOCIDO)
-                    .Select(d => d.IdUsuarioInterno!.Value).Distinct().ToList();
+                    var docsHistorico = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(
+                        traceId, PAGINA_MINIMA, x => idsDetalles.Contains(x.IdDetalleReclamo));
+
+                    documentoPorDetalle = docsHistorico.Lista
+                        .GroupBy(d => d.IdDetalleReclamo)
+                        .ToDictionary(g => g.Key, g =>
+                        {
+                            var doc = g.OrderByDescending(d => d.FechaRegistro).First();
+                            return (doc.Id, doc.NombreDocumento, doc.Documento);
+                        });
+                }
+                else
+                {
+                    var detallesActivos = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(
+                        traceId, pagina, x => x.IdReclamo == idReclamo);
+
+                    totalRegistros = detallesActivos.TotalRegistros;
+                    cantidadPaginas = detallesActivos.CantidadPaginas;
+                    paginaActual = detallesActivos.PaginaActual;
+                    idsDetalles = detallesActivos.Lista.Select(d => d.Id).ToList();
+                    descripcionPorDetalle = detallesActivos.Lista.ToDictionary(d => d.Id, d => d.Descripcion);
+                    fechaInicioPorDetalle = detallesActivos.Lista.ToDictionary(d => d.Id, d => d.FechaRegistro);
+                    fechaFinPorDetalle = detallesActivos.Lista.ToDictionary(d => d.Id, d => d.FechaEdicion);
+                    idDepartamentoPorDetalle = detallesActivos.Lista.ToDictionary(d => d.Id, d => d.IdDepartamento);
+                    idUsuarioPorDetalle = detallesActivos.Lista.ToDictionary(d => d.Id, d => d.IdUsuarioInterno);
+                    idsDepartamentosUnicos = detallesActivos.Lista.Select(d => d.IdDepartamento).Distinct().ToList();
+                    idsUsuariosUnicos = detallesActivos.Lista
+                        .Where(d => d.IdUsuarioInterno is not null && d.IdUsuarioInterno != ID_USUARIO_DESCONOCIDO)
+                        .Select(d => d.IdUsuarioInterno!.Value).Distinct().ToList();
+
+                    var docsActivos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(
+                        traceId, PAGINA_MINIMA, x => idsDetalles.Contains(x.IdDetalleReclamo));
+
+                    documentoPorDetalle = docsActivos.Lista
+                        .GroupBy(d => d.IdDetalleReclamo)
+                        .ToDictionary(g => g.Key, g =>
+                        {
+                            var doc = g.OrderByDescending(d => d.FechaRegistro).First();
+                            return (doc.Id, doc.NombreDocumento, doc.Documento);
+                        });
+                }
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(TIMEOUT_SEGUNDOS));
 
@@ -114,31 +180,39 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoPorIdReclamo
                         }
                     );
 
-                List<DocumentoInternoRespuestaModel> lista = detalles.Lista.Select(detalle =>
+                List<DocumentoInternoRespuestaModel> lista = idsDetalles.Select(detalleId =>
                 {
-                    documentoPorDetalle.TryGetValue(detalle.Id, out DocumentoInternoEntity? doc);
-                    nombrePorDepartamento.TryGetValue(detalle.IdDepartamento, out string? nombreDep);
-                    string nombreUsuario = detalle.IdUsuarioInterno is not null
-                        && nombrePorUsuario.TryGetValue(detalle.IdUsuarioInterno.Value, out string? nombre)
+                    bool tieneDoc = documentoPorDetalle.TryGetValue(detalleId, out var doc);
+                    idDepartamentoPorDetalle.TryGetValue(detalleId, out long idDept);
+                    nombrePorDepartamento.TryGetValue(idDept, out string? nombreDep);
+
+                    idUsuarioPorDetalle.TryGetValue(detalleId, out long? idUsuario);
+                    string nombreUsuario = idUsuario is not null
+                        && nombrePorUsuario.TryGetValue(idUsuario.Value, out string? nombre)
                         ? nombre : string.Empty;
+
+                    descripcionPorDetalle.TryGetValue(detalleId, out string? descripcion);
+                    fechaInicioPorDetalle.TryGetValue(detalleId, out DateTime fechaInicio);
+                    fechaFinPorDetalle.TryGetValue(detalleId, out DateTime? fechaFin);
+
                     return new DocumentoInternoRespuestaModel
                     {
-                        Id = doc?.Id ?? ID_DEPARTAMENTO_DESCONOCIDO,
-                        IdDetalleReclamo = detalle.Id,
-                        NombreDocumento = doc?.NombreDocumento ?? string.Empty,
-                        Documento = doc?.Documento ?? string.Empty,
-                        DescripcionDetalleReclamo = detalle.Descripcion,
+                        Id = tieneDoc ? doc.docId : ID_DEPARTAMENTO_DESCONOCIDO,
+                        IdDetalleReclamo = detalleId,
+                        NombreDocumento = tieneDoc ? doc.nombreDocumento : string.Empty,
+                        Documento = tieneDoc ? doc.documento : string.Empty,
+                        DescripcionDetalleReclamo = descripcion ?? string.Empty,
                         NombreDepartamento = nombreDep ?? string.Empty,
-                        FechaInicio = detalle.FechaRegistro,
-                        FechaFin = detalle.FechaEdicion,
+                        FechaInicio = fechaInicio,
+                        FechaFin = fechaFin,
                         NombreUsuarioInterno = nombreUsuario
                     };
                 }).ToList();
 
                 RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                respuesta.TotalRegistros = detalles.TotalRegistros;
-                respuesta.CantidadPaginas = detalles.CantidadPaginas;
-                respuesta.PaginaActual = detalles.PaginaActual;
+                respuesta.TotalRegistros = totalRegistros;
+                respuesta.CantidadPaginas = cantidadPaginas;
+                respuesta.PaginaActual = paginaActual;
                 respuesta.Lista = lista;
 
                 return new OkObjectResult(respuesta);

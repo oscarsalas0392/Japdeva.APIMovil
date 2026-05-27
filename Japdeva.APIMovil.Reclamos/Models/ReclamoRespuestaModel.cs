@@ -94,5 +94,17 @@ namespace Japdeva.APIMovil.Reclamos.Models
 
         [JsonProperty("estaEnHistorico")]
         public bool EstaEnHistorico { get; set; }
+
+        /// <summary>
+        /// Identificador del usuario interno asignado al detalle activo del reclamo. Nulo si no hay usuario asignado.
+        /// </summary>
+        [JsonProperty("idUsuarioInterno")]
+        public long? IdUsuarioInterno { get; set; }
+
+        /// <summary>
+        /// Nombre completo del usuario interno asignado al detalle activo del reclamo.
+        /// </summary>
+        [JsonProperty("nombreUsuarioInterno")]
+        public string NombreUsuarioInterno { get; set; } = string.Empty;
     }
 }

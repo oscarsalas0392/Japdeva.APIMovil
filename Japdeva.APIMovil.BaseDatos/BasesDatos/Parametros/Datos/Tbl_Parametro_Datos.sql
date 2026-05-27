@@ -67,3 +67,129 @@ SELECT 10, 'FaqSeguimiento',
     'Pregunta frecuente sobre seguimiento de reclamos',
     1, NOW(), TRUE
 WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 10);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 11, 'MinimoCaracteresContrasena', '6', NULL,
+    'Cantidad mínima de caracteres requerida para la contraseña de usuario',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 11);
+
+-- ─── Ayuda usuario interno ───────────────────────────────────────────────────
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 12, 'AyudaInternaBienvenida',
+    'Sistema de Gestión de Reclamos JAPDEVA',
+    'Esta aplicación te permite gestionar los reclamos de los clientes asignados a tu departamento. Aquí encontrás una guía rápida para sacarle el máximo provecho.',
+    'Título y descripción de bienvenida en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 12);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 13, 'AyudaInternaComoFuncionaTitulo', '¿Cómo funciona?', NULL,
+    'Título de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 13);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 14, 'AyudaInternaComoFunciona1',
+    'Al iniciar sesión, la pantalla de inicio muestra los reclamos pendientes en tu departamento.', NULL,
+    'Paso 1 de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 14);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 15, 'AyudaInternaComoFunciona2',
+    'Cada reclamo indica su estado: Pendiente, En Proceso o Resuelto.', NULL,
+    'Paso 2 de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 15);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 16, 'AyudaInternaComoFunciona3',
+    'Podés tomar un reclamo pendiente asignándotelo con el botón ''Tomar caso''.', NULL,
+    'Paso 3 de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 16);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 17, 'AyudaInternaComoFunciona4',
+    'Una vez asignado, el reclamo pasa a ''En Proceso'' y queda bajo tu responsabilidad.', NULL,
+    'Paso 4 de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 17);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 18, 'AyudaInternaComoFunciona5',
+    'El cliente recibe notificaciones por correo electrónico con las actualizaciones del caso.', NULL,
+    'Paso 5 de la sección ¿Cómo funciona? en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 18);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 19, 'AyudaInternaRevisionTitulo', 'Revisión de casos', NULL,
+    'Título de la sección Revisión de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 19);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 20, 'AyudaInternaRevision1',
+    'Tocá sobre cualquier reclamo de la lista para ver su información completa.', NULL,
+    'Paso 1 de la sección Revisión de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 20);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 21, 'AyudaInternaRevision2',
+    'En el detalle podés consultar los datos del cliente, la descripción del problema y los documentos adjuntos.', NULL,
+    'Paso 2 de la sección Revisión de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 21);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 22, 'AyudaInternaRevision3',
+    'El historial de atenciones previas está disponible en la pestaña Atención.', NULL,
+    'Paso 3 de la sección Revisión de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 22);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 23, 'AyudaInternaAtencionTitulo', 'Atención de casos', NULL,
+    'Título de la sección Atención de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 23);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 24, 'AyudaInternaAtencion1',
+    'Asignáte el caso tocando ''Tomar caso'' en la pantalla de inicio.', NULL,
+    'Paso 1 de la sección Atención de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 24);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 25, 'AyudaInternaAtencion2',
+    'Luego seleccioná ''Atender'' para acceder al formulario de atención.', NULL,
+    'Paso 2 de la sección Atención de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 25);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 26, 'AyudaInternaAtencion3',
+    'Completá la descripción de la atención y adjuntá los documentos internos necesarios.', NULL,
+    'Paso 3 de la sección Atención de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 26);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 27, 'AyudaInternaAtencion4',
+    'Al guardar, el estado del reclamo se actualiza y el cliente es notificado por correo.', NULL,
+    'Paso 4 de la sección Atención de casos en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 27);
+
+INSERT INTO "Tbl_Parametro" ("id", "nombre", "valor1", "valor2", "descripcion", "idUsuarioInterno", "fechaRegistro", "activo")
+SELECT 28, 'AyudaInternaAyuda',
+    '¿Necesitás ayuda?',
+    'Si encontrás algún inconveniente con el sistema o tenés dudas sobre cómo proceder en un caso, contactá a tu superior directo o a los administradores del sistema para recibir asistencia.',
+    'Título y descripción de la sección de ayuda/contacto en la página de ayuda del usuario interno',
+    1, NOW(), TRUE
+WHERE NOT EXISTS (SELECT 1 FROM "Tbl_Parametro" WHERE "id" = 28);

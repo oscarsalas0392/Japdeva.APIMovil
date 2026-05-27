@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
@@ -9,6 +10,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartament
 {
     /// <summary>
     /// Servicio para obtener el último detalle de reclamo filtrado por departamento, estado detalle y reclamo.
+    /// Enruta la consulta a la tabla activa o histórica según el valor de <c>EstaEnHistorico</c>.
     /// </summary>
     public class ObtenerDetalleReclamoPorDepartamentoEstadoService : IObtenerDetalleReclamoPorDepartamentoEstadoService
     {
@@ -16,8 +18,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartament
         private readonly IServiceProvider _serviceProvider;
         private readonly IEstadoDetalleReclamoCacheService _estadoDetalleReclamoCacheService;
 
-        private const string MENSAJE_ERROR_ESTADO_NO_ENCONTRADO = "El estado detalle de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_DETALLE_NO_ENCONTRADO = "No se encontró un detalle de reclamo para los filtros indicados.";
+        private const string MENSAJE_ERROR_ESTADO_NO_ENCONTRADO = "El estado detalle de reclamo con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
         private const int PAGINA_INICIAL = 1;
 
         /// <summary>
@@ -38,7 +41,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartament
 
         /// <summary>
         /// Obtiene el último detalle de reclamo que pertenece al departamento, estado detalle y reclamo indicados.
-        /// Selecciona el registro con la fecha de registro más reciente.
+        /// Si el reclamo está en histórico consulta la tabla histórica de detalle reclamo,
+        /// de lo contrario consulta la tabla activa de detalle reclamo.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idDepartamento">Identificador del departamento a filtrar.</param>
@@ -56,27 +60,58 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartament
                 if (estadoDetalle is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ESTADO_NO_ENCONTRADO, idEstadoDetalleReclamo));
 
                 using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
-                var detalles = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, PAGINA_INICIAL,
-                    x => x.IdDepartamento == idDepartamento && x.IdEstadoDetalleReclamo == idEstadoDetalleReclamo && x.IdReclamo == idReclamo);
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
+                if (reclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
 
-                DetalleReclamoEntity? ultimo = detalles.Lista.OrderByDescending(x => x.FechaRegistro).FirstOrDefault();
-                if (ultimo is null) throw new KeyNotFoundException(MENSAJE_ERROR_DETALLE_NO_ENCONTRADO);
+                DetalleReclamoRespuestaModel respuesta;
 
-                DetalleReclamoRespuestaModel respuesta = new DetalleReclamoRespuestaModel
+                if (reclamo.EstaEnHistorico)
                 {
-                    Id = ultimo.Id,
-                    IdReclamo = ultimo.IdReclamo,
-                    IdUsuarioInterno = ultimo.IdUsuarioInterno,
-                    NombreUsuarioInterno = string.Empty,
-                    IdNivelProceso = ultimo.IdNivelProceso,
-                    IdDepartamento = ultimo.IdDepartamento,
-                    NombreDepartamento = string.Empty,
-                    IdEstadoDetalleReclamo = ultimo.IdEstadoDetalleReclamo,
-                    DescripcionEstadoDetalleReclamo = estadoDetalle.Descripcion,
-                    Descripcion = ultimo.Descripcion
-                };
+                    var detallesHistorico = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoHistoricoEntity>(traceId, PAGINA_INICIAL,
+                        x => x.IdDepartamento == idDepartamento && x.IdEstadoDetalleReclamo == idEstadoDetalleReclamo && x.IdReclamo == idReclamo);
+
+                    var ultimo = detallesHistorico.Lista.OrderByDescending(x => x.FechaRegistro).FirstOrDefault();
+                    if (ultimo is null) throw new KeyNotFoundException(MENSAJE_ERROR_DETALLE_NO_ENCONTRADO);
+
+                    respuesta = new DetalleReclamoRespuestaModel
+                    {
+                        Id = ultimo.Id,
+                        IdReclamo = ultimo.IdReclamo,
+                        IdUsuarioInterno = ultimo.IdUsuarioInterno,
+                        NombreUsuarioInterno = string.Empty,
+                        IdNivelProceso = ultimo.IdNivelProceso,
+                        IdDepartamento = ultimo.IdDepartamento,
+                        NombreDepartamento = string.Empty,
+                        IdEstadoDetalleReclamo = ultimo.IdEstadoDetalleReclamo,
+                        DescripcionEstadoDetalleReclamo = estadoDetalle.Descripcion,
+                        Descripcion = ultimo.Descripcion
+                    };
+                }
+                else
+                {
+                    var detallesActivos = await consultarListaRepository.ConsultarListaAsync<DetalleReclamoEntity>(traceId, PAGINA_INICIAL,
+                        x => x.IdDepartamento == idDepartamento && x.IdEstadoDetalleReclamo == idEstadoDetalleReclamo && x.IdReclamo == idReclamo);
+
+                    var ultimo = detallesActivos.Lista.OrderByDescending(x => x.FechaRegistro).FirstOrDefault();
+                    if (ultimo is null) throw new KeyNotFoundException(MENSAJE_ERROR_DETALLE_NO_ENCONTRADO);
+
+                    respuesta = new DetalleReclamoRespuestaModel
+                    {
+                        Id = ultimo.Id,
+                        IdReclamo = ultimo.IdReclamo,
+                        IdUsuarioInterno = ultimo.IdUsuarioInterno,
+                        NombreUsuarioInterno = string.Empty,
+                        IdNivelProceso = ultimo.IdNivelProceso,
+                        IdDepartamento = ultimo.IdDepartamento,
+                        NombreDepartamento = string.Empty,
+                        IdEstadoDetalleReclamo = ultimo.IdEstadoDetalleReclamo,
+                        DescripcionEstadoDetalleReclamo = estadoDetalle.Descripcion,
+                        Descripcion = ultimo.Descripcion
+                    };
+                }
 
                 return new OkObjectResult(respuesta);
             }

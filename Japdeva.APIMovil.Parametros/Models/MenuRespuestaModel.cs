@@ -15,10 +15,34 @@ namespace Japdeva.APIMovil.Parametros.Models
         public int Id { get; set; }
 
         /// <summary>
-        /// Obtiene o establece la descripción del menú.
+        /// Obtiene o establece el nombre del menú.
         /// </summary>
-        [JsonProperty("descripcion")]
-        public string Descripcion { get; set; } = string.Empty;
+        [JsonProperty("nombre")]
+        public string Nombre { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obtiene o establece la ruta de navegación del menú.
+        /// </summary>
+        [JsonProperty("ruta")]
+        public string? Ruta { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el nombre del ícono asociado al menú.
+        /// </summary>
+        [JsonProperty("icono")]
+        public string? Icono { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el orden de visualización del menú.
+        /// </summary>
+        [JsonProperty("orden")]
+        public int Orden { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el identificador del menú padre, si es un submenú.
+        /// </summary>
+        [JsonProperty("idPadre")]
+        public int? IdPadre { get; set; }
 
         /// <summary>
         /// Obtiene o establece si el menú debe mostrarse en la interfaz.

@@ -16,7 +16,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService
         private readonly ILogger<EliminarDocumentoInternoService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
+        private const string MENSAJE_DETALLE_RECLAMO_NO_ENCONTRADO = "El detalle de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_DOCUMENTO_INTERNO_NO_EXISTE = "El documento interno con el id {0} no existe";
+        private const string MENSAJE_RECLAMO_EN_HISTORICO = "No se puede eliminar el documento con Id {0} porque el reclamo está en histórico.";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="EliminarDocumentoInternoService"/>.
@@ -50,9 +52,16 @@ namespace Japdeva.APIMovil.Reclamos.Services.EliminarDocumentoInternoService
                 var eliminarRepository = scope.ServiceProvider.GetRequiredService<IEliminarRepository>();
 
                 var documentoInterno = await consultarRepository.ConsultarAsync<DocumentoInternoEntity>(traceId, x => x.Id == idDocumento);
-                if(documentoInterno is null)  
+                if (documentoInterno is null)
                     throw new ArgumentException(string.Format(MENSAJE_DOCUMENTO_INTERNO_NO_EXISTE, idDocumento));
-                
+
+                var detalleReclamo = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x => x.Id == documentoInterno.IdDetalleReclamo);
+                if (detalleReclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_DETALLE_RECLAMO_NO_ENCONTRADO, documentoInterno.IdDetalleReclamo));
+
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == detalleReclamo.IdReclamo);
+                if (reclamo is not null && reclamo.EstaEnHistorico)
+                    throw new InvalidOperationException(string.Format(MENSAJE_RECLAMO_EN_HISTORICO, idDocumento));
+
                 await eliminarRepository.EliminarAsync<DocumentoInternoEntity>(traceId, documentoInterno);
                 
                 return new OkResult();

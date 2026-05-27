@@ -9,6 +9,7 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleSe
 {
     /// <summary>
     /// Servicio para obtener un detalle de reclamo específico por su identificador único.
+    /// Busca primero en la tabla activa y, si no encuentra el registro, busca en la tabla histórica.
     /// </summary>
     public class ObtenerDetalleReclamoPorIdDetalleService : IObtenerDetalleReclamoPorIdDetalleService
     {
@@ -36,7 +37,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleSe
         }
 
         /// <summary>
-        /// Obtiene un detalle de reclamo específico por su identificador único.
+        /// Obtiene un detalle de reclamo por su identificador único. Busca primero en
+        /// <c>Tbl_DetalleReclamo</c> y si no lo encuentra, lo busca en <c>Tbl_DetalleReclamoHistorico</c>.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idDetalleReclamo">Identificador único del detalle de reclamo a consultar.</param>
@@ -51,27 +53,49 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleSe
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
 
-                var detalleEntity = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x => x.Id == idDetalleReclamo);
-                if (detalleEntity is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_DETALLE_NO_ENCONTRADO, idDetalleReclamo));
+                var detalleActivo = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x => x.Id == idDetalleReclamo);
 
-                var estadoDetalle = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, detalleEntity.IdEstadoDetalleReclamo);
-                if (estadoDetalle is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ESTADO_NO_ENCONTRADO, detalleEntity.IdEstadoDetalleReclamo));
-
-                DetalleReclamoRespuestaModel respuesta = new DetalleReclamoRespuestaModel
+                if (detalleActivo is not null)
                 {
-                    Id = detalleEntity.Id,
-                    IdReclamo = detalleEntity.IdReclamo,
-                    IdUsuarioInterno = detalleEntity.IdUsuarioInterno,
-                    NombreUsuarioInterno = string.Empty,
-                    IdNivelProceso = detalleEntity.IdNivelProceso,
-                    IdDepartamento = detalleEntity.IdDepartamento,
-                    NombreDepartamento = string.Empty,
-                    IdEstadoDetalleReclamo = detalleEntity.IdEstadoDetalleReclamo,
-                    DescripcionEstadoDetalleReclamo = estadoDetalle.Descripcion,
-                    Descripcion = detalleEntity.Descripcion
-                };
+                    var estadoDetalleActivo = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, detalleActivo.IdEstadoDetalleReclamo);
+                    if (estadoDetalleActivo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ESTADO_NO_ENCONTRADO, detalleActivo.IdEstadoDetalleReclamo));
 
-                return new OkObjectResult(respuesta);
+                    DetalleReclamoRespuestaModel respuestaActiva = new DetalleReclamoRespuestaModel
+                    {
+                        Id = detalleActivo.Id,
+                        IdReclamo = detalleActivo.IdReclamo,
+                        IdUsuarioInterno = detalleActivo.IdUsuarioInterno,
+                        NombreUsuarioInterno = string.Empty,
+                        IdNivelProceso = detalleActivo.IdNivelProceso,
+                        IdDepartamento = detalleActivo.IdDepartamento,
+                        NombreDepartamento = string.Empty,
+                        IdEstadoDetalleReclamo = detalleActivo.IdEstadoDetalleReclamo,
+                        DescripcionEstadoDetalleReclamo = estadoDetalleActivo.Descripcion,
+                        Descripcion = detalleActivo.Descripcion
+                    };
+                    return new OkObjectResult(respuestaActiva);
+                }
+
+                var detalleHistorico = await consultarRepository.ConsultarAsync<DetalleReclamoHistoricoEntity>(traceId, x => x.Id == idDetalleReclamo);
+                if (detalleHistorico is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_DETALLE_NO_ENCONTRADO, idDetalleReclamo));
+
+                var estadoDetalleHistorico = this._estadoDetalleReclamoCacheService.ObtenerEstadoDetalleReclamo(traceId, detalleHistorico.IdEstadoDetalleReclamo);
+                if (estadoDetalleHistorico is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_ESTADO_NO_ENCONTRADO, detalleHistorico.IdEstadoDetalleReclamo));
+
+                DetalleReclamoRespuestaModel respuestaHistorica = new DetalleReclamoRespuestaModel
+                {
+                    Id = detalleHistorico.Id,
+                    IdReclamo = detalleHistorico.IdReclamo,
+                    IdUsuarioInterno = detalleHistorico.IdUsuarioInterno,
+                    NombreUsuarioInterno = string.Empty,
+                    IdNivelProceso = detalleHistorico.IdNivelProceso,
+                    IdDepartamento = detalleHistorico.IdDepartamento,
+                    NombreDepartamento = string.Empty,
+                    IdEstadoDetalleReclamo = detalleHistorico.IdEstadoDetalleReclamo,
+                    DescripcionEstadoDetalleReclamo = estadoDetalleHistorico.Descripcion,
+                    Descripcion = detalleHistorico.Descripcion
+                };
+                return new OkObjectResult(respuestaHistorica);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoCacheService;
@@ -22,8 +23,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
         private readonly IServiceProvider _serviceProvider;
 
 
-        private const string MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO = "El nivel del proceso con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_PROCESO_NO_ENCONTRADO = "El estado detalle proceso con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO = "El nivel del proceso con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_RECLAMO_EN_HISTORICO = "No se pueden agregar detalles al reclamo con Id {0} porque está en histórico.";
+        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
 
         private const int VALOR_DEFECTO_ID_USUARIO_INTERNO = 0;
         private const string VALOR_DEFECTO_DESCRIPCION = "";
@@ -60,8 +63,12 @@ namespace Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService
             {
                 this._logger.Inicio(traceId, nombreMetodo);
                 using var serviceScope = this._serviceProvider.CreateScope();
-       
+                var consultarRepository = serviceScope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var agregarRepository = serviceScope.ServiceProvider.GetRequiredService<IAgregarRepository>();
+
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
+                if (reclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
+                if (reclamo.EstaEnHistorico) throw new InvalidOperationException(string.Format(MENSAJE_ERROR_RECLAMO_EN_HISTORICO, idReclamo));
 
                 var nivelProceso = this._nivelProcesoCacheService.ObtenerNivelProcesoPorId(traceId, idNivelSiguienteProceso);
                 if (nivelProceso is null || nivelProceso.IdProceso != (int)ProcesoModel.Reclamo) throw new Exception(string.Format(MENSAJE_ERROR_NIVEL_PROCESO_NO_ENCONTRADO, idNivelSiguienteProceso));

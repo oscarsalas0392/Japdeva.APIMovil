@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "Tbl_MensajeColaHistorico" (
     "id"                 BIGSERIAL     PRIMARY KEY,
     "idMensajeCola"      BIGINT        NOT NULL,
     "colaId"             BIGINT        NOT NULL,
-    "contenidoMensaje"   VARCHAR(4000) NOT NULL,
+    "contenidoMensaje"   TEXT          NOT NULL,
     "estadoId"           INTEGER       NOT NULL DEFAULT 1,
     "prioridadId"        INTEGER       NOT NULL DEFAULT 2,
     "contadorReintentos" INTEGER       NOT NULL DEFAULT 0,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "Tbl_MensajeColaHistorico" (
     "fechaEdicion"       TIMESTAMP     NULL,
     "mensajeError"       TEXT          NOT NULL DEFAULT '',
     "traceId"            VARCHAR(200)  NOT NULL DEFAULT '',
-    "metadatos"          VARCHAR(4000) NOT NULL DEFAULT '',
+    "metadatos"          TEXT          NOT NULL DEFAULT '',
     "fechaArchivado"     TIMESTAMP     NOT NULL,
     CONSTRAINT "fk_historico_cola"   FOREIGN KEY ("colaId")
         REFERENCES "Tbl_Cola" ("id"),

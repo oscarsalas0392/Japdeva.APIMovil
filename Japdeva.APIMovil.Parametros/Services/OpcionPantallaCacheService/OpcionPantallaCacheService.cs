@@ -1,43 +1,43 @@
-﻿using Japdeva.APIMovil.Common.Extensions;
+using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Parametros.Entities;
 
-namespace Japdeva.APIMovil.Parametros.Services.MenuCacheService
+namespace Japdeva.APIMovil.Parametros.Services.OpcionPantallaCacheService
 {
     /// <summary>
-    /// Servicio para gestionar la caché de menús en memoria, obteniendo los datos desde el repositorio
+    /// Servicio para gestionar la caché de opciones de pantalla en memoria, obteniendo los datos desde el repositorio
     /// y permitiendo su acceso eficiente.
     /// </summary>
-    public class MenuCacheService : IMenuCacheService
+    public class OpcionPantallaCacheService : IOpcionPantallaCacheService
     {
-        private readonly ILogger<MenuCacheService> _logger;
+        private readonly ILogger<OpcionPantallaCacheService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly List<MenuEntity> _menuCache = new List<MenuEntity>();
+        private readonly List<OpcionPantallaEntity> _opcionPantallaCache = new List<OpcionPantallaEntity>();
 
         private const int PAGINA_INICIAL = 1;
 
         /// <summary>
-        /// Inicializa una nueva instancia de la clase <see cref="MenuCacheService"/>.
+        /// Inicializa una nueva instancia de la clase <see cref="OpcionPantallaCacheService"/>.
         /// </summary>
-        /// <param name="logger">El registrador de eventos para la clase <see cref="MenuCacheService"/>.</param>
+        /// <param name="logger">El registrador de eventos para la clase <see cref="OpcionPantallaCacheService"/>.</param>
         /// <param name="serviceProvider">El proveedor de servicios para la resolución de dependencias.</param>
-        public MenuCacheService(ILogger<MenuCacheService> logger, IServiceProvider serviceProvider)
+        public OpcionPantallaCacheService(ILogger<OpcionPantallaCacheService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
-        /// Llena la caché de menús obteniendo los datos desde el repositorio y almacenándolos en memoria.
+        /// Llena la caché de opciones de pantalla obteniendo los datos desde el repositorio y almacenándolos en memoria.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el registro de logs.</param>
-        public async Task LlenarCacheMenuAsync(string traceId)
+        public async Task LlenarCacheOpcionPantallaAsync(string traceId)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                List<MenuEntity> listaMenuCache = new List<MenuEntity>();
+                List<OpcionPantallaEntity> listaOpcionPantallaCache = new List<OpcionPantallaEntity>();
                 var scope = this._serviceProvider.CreateScope();
                 var consultarListaEntity = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
                 int paginaActual = PAGINA_INICIAL;
@@ -45,17 +45,17 @@ namespace Japdeva.APIMovil.Parametros.Services.MenuCacheService
 
                 do
                 {
-                    var respuestaLista = await consultarListaEntity.ConsultarListaAsync<MenuEntity>(traceId, paginaActual);
+                    var respuestaLista = await consultarListaEntity.ConsultarListaAsync<OpcionPantallaEntity>(traceId, paginaActual);
                     totalPaginas = respuestaLista.CantidadPaginas;
                     paginaActual++;
-                    listaMenuCache.AddRange(respuestaLista.Lista);
+                    listaOpcionPantallaCache.AddRange(respuestaLista.Lista);
                 }
                 while (paginaActual <= totalPaginas);
 
-                lock (this._menuCache)
+                lock (this._opcionPantallaCache)
                 {
-                    this._menuCache.Clear();
-                    this._menuCache.AddRange(listaMenuCache);
+                    this._opcionPantallaCache.Clear();
+                    this._opcionPantallaCache.AddRange(listaOpcionPantallaCache);
                 }
             }
             catch (Exception ex)
@@ -70,20 +70,18 @@ namespace Japdeva.APIMovil.Parametros.Services.MenuCacheService
         }
 
         /// <summary>
-        /// Obtiene una lista de menús desde la caché que coinciden con los identificadores proporcionados y que están activos.
+        /// Obtiene las opciones de pantalla activas que coinciden con los identificadores indicados.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el registro de logs.</param>
-        /// <param name="listaIds">Lista de identificadores de menú a buscar.</param>
-        /// <returns>Lista de objetos <see cref="MenuEntity"/> que cumplen con los criterios.</returns>
-        public List<MenuEntity> ObtenerMenuPorId(string traceId, List<int> listaIds)
+        /// <param name="listaIds">Lista de identificadores a buscar.</param>
+        /// <returns>Lista de entidades que cumplen con los criterios.</returns>
+        public List<OpcionPantallaEntity> ObtenerOpcionPantallaPorId(string traceId, List<int> listaIds)
         {
             string nombreMetodo = this.ObtenerNombreMetodo();
-
             try
             {
                 this._logger.Inicio(traceId, nombreMetodo);
-                return this._menuCache.Where(m => listaIds.Contains(m.Id) && m.Activo && m.Mostrar).ToList();
-                
+                return this._opcionPantallaCache.Where(o => listaIds.Contains(o.Id) && o.Activo).ToList();
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Reclamos.Models;
+using Japdeva.APIMovil.Reclamos.Services.AsignarDetalleReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorDepartamentoEstadoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerDetalleReclamoPorIdDetalleService;
@@ -18,6 +19,18 @@ namespace Japdeva.APIMovil.Reclamos.Controllers
     [Route("api/[controller]")]
     public class DetalleReclamoController : Controller
     {
+        /// <summary>
+        /// Asigna un detalle de reclamo a un usuario interno y lo pasa a estado En Proceso.
+        /// Solo se permite si el detalle está en estado Pendiente.
+        /// </summary>
+        /// <param name="asignarDetalleReclamoService">Servicio para asignar el detalle del reclamo.</param>
+        /// <param name="solicitud">Modelo con el ID del detalle y el ID del usuario interno.</param>
+        /// <returns>Resultado de la operación de asignación.</returns>
+        [HttpPut("AsignarDetalleReclamo")]
+        public Task<IActionResult> AsignarDetalleReclamo([FromServices] IAsignarDetalleReclamoService asignarDetalleReclamoService,
+            [FromBody] AsignarDetalleReclamoSolicitudModel solicitud) =>
+            asignarDetalleReclamoService.AsignarDetalleReclamoAsync(HttpContext.TraceIdentifier, solicitud);
+
         /// <summary>
         /// Edita el detalle de un reclamo existente.
         /// </summary>

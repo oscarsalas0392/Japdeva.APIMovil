@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
+using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
 using Japdeva.APIMovil.Reclamos.Entities;
 using Japdeva.APIMovil.Reclamos.Models;
 
@@ -10,19 +11,20 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
 {
     /// <summary>
     /// Servicio para obtener documentos de usuario asociados a reclamos específicos.
-    /// Proporciona funcionalidades para consultar y recuperar documentos externos
-    /// agregados por usuarios durante el proceso de reclamos.
+    /// Enruta la consulta a la tabla activa o histórica según el valor de <c>EstaEnHistorico</c>.
     /// </summary>
     public class ObtenerDocumentoUsuarioService : IObtenerDocumentoUsuarioService
     {
         private readonly ILogger<ObtenerDocumentoUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
+        private const string MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO = "El reclamo con Id {0} no fue encontrado.";
+
         /// <summary>
         /// Inicializa una nueva instancia del servicio de obtención de documentos de usuario.
         /// </summary>
         /// <param name="logger">Logger para registro de eventos y errores.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultas paginadas de listas.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolución de dependencias.</param>
         public ObtenerDocumentoUsuarioService(ILogger<ObtenerDocumentoUsuarioService> logger, IServiceProvider serviceProvider)
         {
             this._logger = logger;
@@ -30,8 +32,8 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
         }
 
         /// <summary>
-        /// Obtiene los documentos de usuario asociados a un reclamo específico de forma paginada.
-        /// Recupera todos los documentos externos proporcionados por usuarios para un reclamo determinado.
+        /// Obtiene los documentos de usuario de un reclamo. Si el reclamo está en histórico,
+        /// consulta <c>Tbl_DocumentoUsuarioHistorico</c>; de lo contrario, consulta <c>Tbl_DocumentoUsuario</c>.
         /// </summary>
         /// <param name="traceId">Identificador único para rastreo de la operación.</param>
         /// <param name="idReclamo">Identificador del reclamo del cual obtener los documentos.</param>
@@ -45,18 +47,21 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
                 this._logger.Inicio(traceId, nombreMetodo);
 
                 using var scope = this._serviceProvider.CreateScope();
+                var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
 
-                var documentosUsuarios = await consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
+                var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == idReclamo);
+                if (reclamo is null) throw new KeyNotFoundException(string.Format(MENSAJE_ERROR_RECLAMO_NO_ENCONTRADO, idReclamo));
 
                 var respuesta = new RespuestaListaModel<DocumentoUsuarioRespuestaModel>();
-                respuesta.TotalRegistros = documentosUsuarios.TotalRegistros;
-                respuesta.CantidadPaginas = documentosUsuarios.CantidadPaginas;
-                respuesta.PaginaActual = documentosUsuarios.PaginaActual;
 
-                if (documentosUsuarios is not null && documentosUsuarios.Lista.Any())
+                if (reclamo.EstaEnHistorico)
                 {
-                    respuesta.Lista = documentosUsuarios.Lista.Select(x => new DocumentoUsuarioRespuestaModel()
+                    var documentosHistorico = await consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioHistoricoEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
+                    respuesta.TotalRegistros = documentosHistorico.TotalRegistros;
+                    respuesta.CantidadPaginas = documentosHistorico.CantidadPaginas;
+                    respuesta.PaginaActual = documentosHistorico.PaginaActual;
+                    respuesta.Lista = documentosHistorico.Lista.Select(x => new DocumentoUsuarioRespuestaModel
                     {
                         Id = x.Id,
                         IdReclamo = x.IdReclamo,
@@ -66,7 +71,17 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
                 }
                 else
                 {
-                    respuesta.Lista = new List<DocumentoUsuarioRespuestaModel>();
+                    var documentosActivos = await consultarListaRepository.ConsultarListaAsync<DocumentoUsuarioEntity>(traceId, pagina, x => x.IdReclamo == idReclamo);
+                    respuesta.TotalRegistros = documentosActivos.TotalRegistros;
+                    respuesta.CantidadPaginas = documentosActivos.CantidadPaginas;
+                    respuesta.PaginaActual = documentosActivos.PaginaActual;
+                    respuesta.Lista = documentosActivos.Lista.Select(x => new DocumentoUsuarioRespuestaModel
+                    {
+                        Id = x.Id,
+                        IdReclamo = x.IdReclamo,
+                        NombreDocumento = x.NombreDocumento,
+                        Documento = x.Documento
+                    }).ToList();
                 }
 
                 return new OkObjectResult(respuesta);
@@ -76,10 +91,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoUsuarioService
                 this._logger.Error(traceId, nombreMetodo, ex);
                 throw;
             }
-            finally 
+            finally
             {
                 this._logger.Fin(traceId, nombreMetodo);
-            }     
+            }
         }
     }
 }

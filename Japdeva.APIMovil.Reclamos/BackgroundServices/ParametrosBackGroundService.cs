@@ -4,6 +4,7 @@ using Japdeva.APIMovil.Reclamos.Services.EstadoDetalleReclamoOrdenProcesoCacheSe
 using Japdeva.APIMovil.Reclamos.Services.EstadoReclamoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.NivelProcesoCacheService;
 using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.UsuarioInternoNombreCacheService;
 
 
 namespace Japdeva.APIMovil.Reclamos.BackgroundServices
@@ -78,19 +79,22 @@ namespace Japdeva.APIMovil.Reclamos.BackgroundServices
                 var nivelProcesoCache = scope.ServiceProvider.GetRequiredService<INivelProcesoCacheService>();
                 var estadoDetalleOrdenCache = scope.ServiceProvider.GetRequiredService<IEstadoDetalleReclamoOrdenProcesoCacheService>();
                 var ordenNivelProcesoCache = scope.ServiceProvider.GetRequiredService<IOrdenNivelProcesoCacheService>();
+                var usuarioInternoNombreCache = scope.ServiceProvider.GetRequiredService<IUsuarioInternoNombreCacheService>();
 
                 Task tareaEstadoReclamoCache = estadoReclamoCache.LlenarCacheEstadoReclamoAsync(TRACE_ID_BACKGROUND);
                 Task tareaEstadoDetalleReclamoCache = estadoDetalleReclamoCache.LlenarCacheEstadoDetalleReclamoAsync(TRACE_ID_BACKGROUND);
                 Task tareaNivelProcesoCache = nivelProcesoCache.LlenarCacheNivelProcesoAsync(TRACE_ID_BACKGROUND);
                 Task tareaEstadoDetalleOrdenCache = estadoDetalleOrdenCache.LlenarCacheEstadoDetalleReclamoOrdenProcesoAsync(TRACE_ID_BACKGROUND);
                 Task tareaOrdenNivelProcesoCache = ordenNivelProcesoCache.LlenarCacheOrdenNivelProcesoAsync(TRACE_ID_BACKGROUND);
+                Task tareaUsuarioInternoNombreCache = usuarioInternoNombreCache.LlenarCacheUsuarioInternoNombreAsync(TRACE_ID_BACKGROUND);
 
                 await Task.WhenAll(
                     tareaEstadoReclamoCache,
                     tareaEstadoDetalleReclamoCache,
                     tareaNivelProcesoCache,
                     tareaEstadoDetalleOrdenCache,
-                    tareaOrdenNivelProcesoCache);
+                    tareaOrdenNivelProcesoCache,
+                    tareaUsuarioInternoNombreCache);
 
             }
             catch (Exception ex)

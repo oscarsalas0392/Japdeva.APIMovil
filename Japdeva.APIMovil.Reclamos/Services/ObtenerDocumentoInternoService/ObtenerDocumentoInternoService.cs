@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Japdeva.APIMovil.Common.Extensions;
 using Japdeva.APIMovil.Common.Models;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
@@ -10,28 +10,29 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
 {
     /// <summary>
     /// Servicio para obtener documentos internos asociados a un detalle de reclamo.
+    /// Busca primero en la tabla activa y, si no hay resultados, busca en la tabla histórica.
     /// </summary>
-    public class ObtenerDocumentoInternoService: IObtenerDocumentoInternoService
+    public class ObtenerDocumentoInternoService : IObtenerDocumentoInternoService
     {
         private readonly ILogger<ObtenerDocumentoInternoService> _logger;
         private readonly IServiceProvider _serviceProvider;
-
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="ObtenerDocumentoInternoService"/>.
         /// </summary>
         /// <param name="logger">Instancia del registrador para el servicio.</param>
-        /// <param name="consultarListaRepository">Repositorio para consultar listas de documentos internos.</param>
+        /// <param name="serviceProvider">Proveedor de servicios para resolución de dependencias.</param>
         public ObtenerDocumentoInternoService(
             ILogger<ObtenerDocumentoInternoService> logger,
-            IServiceProvider serviceProvider)          
+            IServiceProvider serviceProvider)
         {
             this._logger = logger;
             this._serviceProvider = serviceProvider;
         }
 
         /// <summary>
-        /// Obtiene de forma asíncrona los documentos internos asociados a un detalle de reclamo específico.
+        /// Obtiene los documentos internos de un detalle de reclamo. Consulta primero
+        /// <c>Tbl_DocumentoInterno</c> y, si no hay resultados, consulta <c>Tbl_DocumentoInternoHistorico</c>.
         /// </summary>
         /// <param name="traceId">Identificador de traza para el seguimiento de la operación.</param>
         /// <param name="idDetalleReclamo">Identificador del detalle de reclamo para el cual se consultan los documentos internos.</param>
@@ -46,24 +47,39 @@ namespace Japdeva.APIMovil.Reclamos.Services.ObtenerDocumentoInternoService
 
                 using var scope = this._serviceProvider.CreateScope();
                 var consultarListaRepository = scope.ServiceProvider.GetRequiredService<IConsultarListaRepository>();
-                RespuestaListaModel<DocumentoInternoRespuestaModel> respuesta = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
-                var documentosInternos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x=>x.IdDetalleReclamo == idDetalleReclamo);
 
-                if (documentosInternos is not null && documentosInternos.Lista.Any())
+                var documentosActivos = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
+
+                if (documentosActivos.Lista.Any())
                 {
-                    respuesta.CantidadPaginas = documentosInternos.CantidadPaginas;
-                    respuesta.PaginaActual = documentosInternos.PaginaActual;
-                    respuesta.TotalRegistros = documentosInternos.TotalRegistros;
-                    respuesta.Lista = documentosInternos.Lista.Select(doc => new DocumentoInternoRespuestaModel
+                    RespuestaListaModel<DocumentoInternoRespuestaModel> respuestaActiva = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
+                    respuestaActiva.CantidadPaginas = documentosActivos.CantidadPaginas;
+                    respuestaActiva.PaginaActual = documentosActivos.PaginaActual;
+                    respuestaActiva.TotalRegistros = documentosActivos.TotalRegistros;
+                    respuestaActiva.Lista = documentosActivos.Lista.Select(doc => new DocumentoInternoRespuestaModel
                     {
                         Id = doc.Id,
                         IdDetalleReclamo = doc.IdDetalleReclamo,
                         NombreDocumento = doc.NombreDocumento,
                         Documento = doc.Documento
                     }).ToList();
+                    return new OkObjectResult(respuestaActiva);
                 }
 
-                return new OkObjectResult(respuesta);
+                var documentosHistorico = await consultarListaRepository.ConsultarListaAsync<DocumentoInternoHistoricoEntity>(traceId, pagina, x => x.IdDetalleReclamo == idDetalleReclamo);
+
+                RespuestaListaModel<DocumentoInternoRespuestaModel> respuestaHistorica = new RespuestaListaModel<DocumentoInternoRespuestaModel>();
+                respuestaHistorica.CantidadPaginas = documentosHistorico.CantidadPaginas;
+                respuestaHistorica.PaginaActual = documentosHistorico.PaginaActual;
+                respuestaHistorica.TotalRegistros = documentosHistorico.TotalRegistros;
+                respuestaHistorica.Lista = documentosHistorico.Lista.Select(doc => new DocumentoInternoRespuestaModel
+                {
+                    Id = doc.Id,
+                    IdDetalleReclamo = doc.IdDetalleReclamo,
+                    NombreDocumento = doc.NombreDocumento,
+                    Documento = doc.Documento
+                }).ToList();
+                return new OkObjectResult(respuestaHistorica);
             }
             catch (Exception ex)
             {

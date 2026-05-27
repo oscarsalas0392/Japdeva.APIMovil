@@ -38,7 +38,12 @@ namespace Japdeva.APIMovil.Colas.Data
         /// <summary>
         /// Conjunto de entidades de prioridades en la base de datos.
         /// </summary>
-        public DbSet<PrioridadEntity> Prioridades { get; set; } 
+        public DbSet<PrioridadEntity> Prioridades { get; set; }
+
+        /// <summary>
+        /// Conjunto de entidades de mensajes históricos en la base de datos.
+        /// </summary>
+        public DbSet<MensajeColaHistoricoEntity> MensajesColaHistorico { get; set; }
 
     }
 }

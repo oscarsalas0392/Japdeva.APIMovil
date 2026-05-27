@@ -41,5 +41,15 @@ namespace Japdeva.APIMovil.Parametros.Data
         /// Obtiene o establece la colección de plantillas de correos en la base de datos.
         /// </summary>
         public DbSet<PlantillaCorreoEntity> PlantillaCorreos { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece la colección de opciones de pantalla en la base de datos.
+        /// </summary>
+        public DbSet<OpcionPantallaEntity> OpcionesPantalla { get; set; } = null!;
+
+        /// <summary>
+        /// Obtiene o establece la colección de opciones de pantalla por perfil en la base de datos.
+        /// </summary>
+        public DbSet<OpcionPantallaPerfilEntity> OpcionesPantallaPerfil { get; set; } = null!;
     }
 }

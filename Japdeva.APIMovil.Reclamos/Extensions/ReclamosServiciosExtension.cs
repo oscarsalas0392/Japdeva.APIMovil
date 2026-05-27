@@ -5,6 +5,7 @@ using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoInternoService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarDocumentoUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.AgregarReclamoService;
+using Japdeva.APIMovil.Reclamos.Services.AsignarDetalleReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoDetalleService;
 using Japdeva.APIMovil.Reclamos.Services.EditarApelacionReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.EditarDepartamentoApelacionReclamoService;
@@ -41,10 +42,12 @@ using Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoListaService
 using Japdeva.APIMovil.Reclamos.Services.ObtenerEstadoDetalleReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerOrdenNivelProcesoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorDepartamentoService;
+using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamoPorIdService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorFechaIngresoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioOrdenadoService;
 using Japdeva.APIMovil.Reclamos.Services.ObtenerReclamosPorUsuarioService;
 using Japdeva.APIMovil.Reclamos.Services.OrdenNivelProcesoCacheService;
+using Japdeva.APIMovil.Reclamos.Services.UsuarioInternoNombreCacheService;
 using Japdeva.APIMovil.Reclamos.Services.ValidarEnvioReclamoHistoricoService;
 using Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleApelacionReclamoService;
 using Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService;
@@ -73,6 +76,7 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
             try
             {
 
+                builder.Services.AddSingleton<IAsignarDetalleReclamoService, AsignarDetalleReclamoService>();
                 builder.Services.AddSingleton<IAgregarApelacionReclamoDetalleService, AgregarApelacionReclamoDetalleService>();
                 builder.Services.AddSingleton<IAgregarApelacionReclamoService, AgregarApelacionReclamoService>();
                 builder.Services.AddSingleton<IEditarApelacionReclamoService, EditarApelacionReclamoService>();
@@ -104,6 +108,7 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
                 builder.Services.AddSingleton<IObtenerEstadoDetalleReclamoListaService, ObtenerEstadoDetalleReclamoListaService>();
                 builder.Services.AddSingleton<IObtenerOrdenNivelProcesoService, ObtenerOrdenNivelProcesoService>();
                 builder.Services.AddSingleton<IObtenerReclamoPorDepartamentoService, ObtenerReclamoPorDepartamentoService>();
+                builder.Services.AddSingleton<IObtenerReclamoPorIdService, ObtenerReclamoPorIdService>();
                 builder.Services.AddSingleton<IObtenerReclamosPorFechaIngresoService, ObtenerReclamosPorFechaIngresoService>();
                 builder.Services.AddSingleton<IObtenerReclamosPorUsuarioService, ObtenerReclamosPorUsuarioService>();
                 builder.Services.AddSingleton<IObtenerReclamosPorUsuarioOrdenadoService, ObtenerReclamosPorUsuarioOrdenadoService>();
@@ -112,7 +117,8 @@ namespace Japdeva.APIMovil.Reclamos.Extensions
                 builder.Services.AddSingleton<IEstadoDetalleReclamoOrdenProcesoCacheService, EstadoDetalleReclamoOrdenProcesoCacheService>();
                 builder.Services.AddSingleton<IEstadoReclamoCacheService, EstadoReclamoCacheService>();
                 builder.Services.AddSingleton<INivelProcesoCacheService, NivelProcesoCacheService>();
-                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();           
+                builder.Services.AddSingleton<IOrdenNivelProcesoCacheService, OrdenNivelProcesoCacheService>();
+                builder.Services.AddSingleton<IUsuarioInternoNombreCacheService, UsuarioInternoNombreCacheService>();
               
                 builder.Services.AddSingleton<IValidarEstadoDetalleReclamoService, ValidarEstadoDetalleReclamoService>();
                 builder.Services.AddSingleton<IEditarDepartamentoReclamoService, EditarDepartamentoReclamoService>();

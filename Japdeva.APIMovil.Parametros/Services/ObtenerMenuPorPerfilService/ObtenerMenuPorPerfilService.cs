@@ -65,7 +65,11 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService
                         MenuRespuestaModel menuRespuesta = new MenuRespuestaModel
                         {
                             Id = menu.Id,
-                            Descripcion = menu.Descripcion,
+                            Nombre = menu.Descripcion,
+                            Ruta = menu.Ruta,
+                            Icono = menu.Icono,
+                            Orden = menu.Orden,
+                            IdPadre = menu.IdPadre,
                             Mostrar = menu.Mostrar,
                             IdUsuarioInterno = menu.IdUsuarioInterno
                         };
@@ -74,7 +78,7 @@ namespace Japdeva.APIMovil.Parametros.Services.ObtenerMenuPorPerfilService
                     }
                 }
 
-                return new OkObjectResult(menusRespuesta); 
+                return new OkObjectResult(menusRespuesta.OrderBy(m => m.Orden).ToList()); 
             }
             catch (Exception ex)
             {

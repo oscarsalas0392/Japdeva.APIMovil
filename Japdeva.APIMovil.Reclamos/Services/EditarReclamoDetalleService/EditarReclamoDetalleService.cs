@@ -26,9 +26,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
         private readonly IManejarTransicionEstadoReclamoService _manejarTransicionEstadoReclamoService;
 
         private const string MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO = "El detalle de reclamo con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO = "No se encuentra el estado asociado a la orden del detalle de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_ESTADO_DETALLE_RECLAMO_NO_ENCONTRADO = "El estado detalle de reclamo con Id {0} no fue encontrado.";
         private const string MENSAJE_ERROR_NIVEL_PROCESO_RECLAMO_NO_ENCONTRADO = "La nivel del proceso de reclamo con Id {0} no fue encontrado.";
-        private const string MENSAJE_ERROR_ESTADO_DETALLE_ORDEN_RECLAMO_NO_ENCONTRADO = "No se encuentra el estado asociado a la orden del detalle de reclamo con Id {0} no fue encontrado.";
+        private const string MENSAJE_ERROR_RECLAMO_EN_HISTORICO = "No se puede editar el detalle del reclamo con Id {0} porque el reclamo está en histórico.";
 
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="EditarReclamoDetalleService"/>.
@@ -75,6 +76,10 @@ namespace Japdeva.APIMovil.Reclamos.Services.EditarReclamoDetalleService
 
                 var reclamoDetalle = await consultarRepository.ConsultarAsync<DetalleReclamoEntity>(traceId, x => x.Id == editarDetalleReclamoSolicitudModel.IdDetalleReclamo);
                 if (reclamoDetalle is null) throw new ArgumentException(string.Format(MENSAJE_ERROR_DETALLE_RECLAMO_NO_ENCONTRADO, editarDetalleReclamoSolicitudModel.IdDetalleReclamo));
+
+                var reclamoBase = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, x => x.Id == reclamoDetalle.IdReclamo);
+                if (reclamoBase is not null && reclamoBase.EstaEnHistorico)
+                    throw new InvalidOperationException(string.Format(MENSAJE_ERROR_RECLAMO_EN_HISTORICO, reclamoDetalle.IdReclamo));
 
                 int? idNivelSiguienteProceso = this.ResolverNivelSiguiente(traceId, editarDetalleReclamoSolicitudModel.IdNivelSiguienteProceso);
 

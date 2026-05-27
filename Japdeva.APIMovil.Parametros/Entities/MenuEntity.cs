@@ -26,6 +26,32 @@ namespace Japdeva.APIMovil.Parametros.Entities
         public string Descripcion { get; set; } = string.Empty;
 
         /// <summary>
+        /// Obtiene o establece la ruta de navegación del menú.
+        /// </summary>
+        [Column("ruta")]
+        [MaxLength(200)]
+        public string? Ruta { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el nombre del ícono asociado al menú.
+        /// </summary>
+        [Column("icono")]
+        [MaxLength(100)]
+        public string? Icono { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el orden de visualización del menú.
+        /// </summary>
+        [Column("orden")]
+        public int Orden { get; set; }
+
+        /// <summary>
+        /// Obtiene o establece el identificador del menú padre, si es un submenú.
+        /// </summary>
+        [Column("idPadre")]
+        public int? IdPadre { get; set; }
+
+        /// <summary>
         /// Obtiene o establece si el menú debe mostrarse en la interfaz.
         /// </summary>
         [Column("mostrar")]
