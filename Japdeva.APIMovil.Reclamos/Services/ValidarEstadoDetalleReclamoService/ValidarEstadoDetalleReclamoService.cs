@@ -101,7 +101,9 @@ namespace Japdeva.APIMovil.Reclamos.Services.ValidarEstadoDetalleReclamoService
                 long idDepartamento = nivelProceso.IdDepartamento;
                 _ = Task.Run(async () =>
                 {
-                    var reclamo = await consultarRepository.ConsultarAsync<ReclamoEntity>(traceId, r => r.Id == idReclamo);
+                    using var innerScope = this._serviceProvider.CreateScope();
+                    var innerRepository = innerScope.ServiceProvider.GetRequiredService<IConsultarRepository>();
+                    var reclamo = await innerRepository.ConsultarAsync<ReclamoEntity>(traceId, r => r.Id == idReclamo);
                     if (reclamo is not null)
                         await this._notificarDepartamentoService.NotificarNuevoReclamoAsync(traceId, idDepartamento, idReclamo, reclamo.IdUsuarioExterno);
                 });

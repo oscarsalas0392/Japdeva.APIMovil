@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentación — Japdeva API Móvil</title>
+  <style>
+    :root {
+      --primary:   #1a56db;
+      --primary-dk:#1e429f;
+      --accent:    #0e9f6e;
+      --warn:      #e3a008;
+      --bg:        #f8fafc;
+      --surface:   #ffffff;
+      --border:    #e2e8f0;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --code-bg:   #f1f5f9;
+      --sidebar-w: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      display: flex;
+    }
+
+    /* ── Sidebar ── */
+    nav {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--primary-dk);
+      color: #e2e8f0;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .nav-brand {
+      padding: 24px 20px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #93c5fd;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .nav-brand span { display: block; font-size: 17px; color: #fff; letter-spacing: 0; margin-top: 2px; }
+
+    nav ul { list-style: none; padding: 10px 0; }
+
+    nav ul li a {
+      display: block;
+      padding: 8px 20px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: background .15s, color .15s;
+      border-left: 3px solid transparent;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      border-left-color: #60a5fa;
+    }
+
+    nav ul li a .num {
+      display: inline-block;
+      width: 22px;
+      color: #60a5fa;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px;
+      max-width: 960px;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--primary-dk);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 36px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-dk);
+      margin: 48px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+      scroll-margin-top: 20px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 10px;
+      scroll-margin-top: 20px;
+    }
+
+    p { margin-bottom: 14px; }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Code ── */
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 14px 0 20px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin: 14px 0 20px; border-radius: 8px; border: 1px solid var(--border); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+    thead { background: var(--primary); color: #fff; }
+    thead th { padding: 10px 14px; text-align: left; font-weight: 600; white-space: nowrap; }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eff6ff; }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tbody td code { background: #e0e7ff; border-color: #a5b4fc; }
+
+    /* Required badge */
+    .req { color: #dc2626; font-weight: 700; font-size: 12px; }
+    .opt { color: var(--muted); font-size: 12px; }
+
+    /* ── Cards / callouts ── */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+
+    .callout.info    { background: #eff6ff; border-color: var(--primary); color: #1e40af; }
+    .callout.warn    { background: #fffbeb; border-color: var(--warn);    color: #92400e; }
+    .callout.success { background: #ecfdf5; border-color: var(--accent);  color: #065f46; }
+    .callout.danger  { background: #fef2f2; border-color: #ef4444;        color: #991b1b; }
+
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    /* ── Architecture Diagram ── */
+    .arch-diagram {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 16px;
+      padding: 32px 24px;
+      margin: 20px 0 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .arch-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .arch-row-services {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 620px;
+    }
+
+    .arch-node {
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 130px;
+      border: 1.5px solid transparent;
+      transition: transform .2s;
+    }
+
+    .arch-node:hover { transform: translateY(-2px); }
+
+    .arch-icon { font-size: 22px; margin-bottom: 4px; }
+
+    .arch-label {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #f1f5f9;
+    }
+
+    .arch-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .arch-port {
+      display: inline-block;
+      background: rgba(0,0,0,.3);
+      color: #86efac;
+      font-family: monospace;
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 99px;
+      margin-top: 5px;
+    }
+
+    .arch-features {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .arch-features span {
+      font-size: 11px;
+      color: #cbd5e1;
+      background: rgba(255,255,255,.05);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .arch-dbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .db-chip {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: rgba(99,102,241,.25);
+      color: #a5b4fc;
+      border: 1px solid rgba(99,102,241,.3);
+    }
+
+    /* Node color themes */
+    .node-client  { background: rgba(59,130,246,.15);  border-color: rgba(59,130,246,.4);  max-width: 220px; }
+    .node-gateway { background: rgba(139,92,246,.15);  border-color: rgba(139,92,246,.4);  max-width: 280px; }
+    .node-service { background: rgba(16,185,129,.1);   border-color: rgba(16,185,129,.35); min-width: 0; }
+    .node-colas   { background: rgba(245,158,11,.12);  border-color: rgba(245,158,11,.4);  max-width: 200px; }
+    .node-db      { background: rgba(99,102,241,.12);  border-color: rgba(99,102,241,.4);  max-width: 340px; }
+
+    /* Arrows */
+    .arch-arrow-v {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 2px 0;
+    }
+
+    .arch-arrow-line {
+      width: 2px;
+      height: 14px;
+      background: linear-gradient(to bottom, #475569, #64748b);
+    }
+
+    .arch-arrow-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(96,165,250,.15);
+      color: #93c5fd;
+      border: 1px solid rgba(96,165,250,.3);
+      white-space: nowrap;
+    }
+
+    .arch-badge-grpc { background: rgba(232,121,249,.15); color: #e879f9; border-color: rgba(232,121,249,.3); }
+    .arch-badge-db   { background: rgba(99,102,241,.15);  color: #a5b4fc; border-color: rgba(99,102,241,.3); }
+
+    /* ── Steps ── */
+    ol.steps { padding-left: 0; list-style: none; counter-reset: step; }
+    ol.steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    ol.steps li::before {
+      content: counter(step);
+      min-width: 28px; height: 28px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ── Service badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .badge.gateway  { background: #dbeafe; color: #1e40af; }
+    .badge.grpc     { background: #fce7f3; color: #9d174d; }
+    .badge.bg       { background: #d1fae5; color: #065f46; }
+    .badge.db       { background: #fef9c3; color: #713f12; }
+
+    /* ── Lifecycle ── */
+    .lifecycle {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 14px 0 20px;
+    }
+    .lifecycle .step {
+      padding: 6px 14px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .lifecycle .arr { padding: 0 4px; color: var(--muted); font-size: 18px; }
+    .lifecycle .step.warn { background: var(--warn); }
+    .lifecycle .step.ok   { background: var(--accent); }
+    .lifecycle .step.err  { background: #ef4444; }
+    .lifecycle .step.gray { background: #94a3b8; }
+
+    /* ── TOC list ── */
+    .toc { columns: 2; gap: 24px; margin: 20px 0 32px; }
+    .toc li { margin-bottom: 6px; font-size: 14px; break-inside: avoid; }
+
+    /* ── Dividers ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      nav { width: 100%; min-height: auto; position: static; }
+      main { padding: 24px 20px; }
+      .toc { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav>
+  <div class="nav-brand">
+    Japdeva
+    <span>API Móvil</span>
+  </div>
+  <ul>
+    <li><a href="#arquitectura"><span class="num">1</span>Arquitectura general</a></li>
+    <li><a href="#proyectos"><span class="num">2</span>Proyectos</a></li>
+    <li><a href="#flujo"><span class="num">3</span>Flujo de una solicitud</a></li>
+    <li><a href="#config"><span class="num">4</span>Configuración</a></li>
+    <li><a href="#config-gateway">&nbsp;&nbsp;&nbsp;Gateway</a></li>
+    <li><a href="#config-usuarios">&nbsp;&nbsp;&nbsp;Usuarios</a></li>
+    <li><a href="#config-reclamos">&nbsp;&nbsp;&nbsp;Reclamos</a></li>
+    <li><a href="#config-parametros">&nbsp;&nbsp;&nbsp;Parametros</a></li>
+    <li><a href="#config-colas">&nbsp;&nbsp;&nbsp;Colas</a></li>
+    <li><a href="#config-correos">&nbsp;&nbsp;&nbsp;EnvioCorreos</a></li>
+    <li><a href="#base-datos"><span class="num">5</span>Base de datos</a></li>
+    <li><a href="#grpc"><span class="num">6</span>Comunicación gRPC</a></li>
+    <li><a href="#seguridad"><span class="num">7</span>Seguridad</a></li>
+    <li><a href="#correo"><span class="num">8</span>Correo electrónico</a></li>
+    <li><a href="#cache"><span class="num">9</span>Caché y background</a></li>
+    <li><a href="#basedatos-tool"><span class="num">10</span>Herramienta BaseDatos</a></li>
+    <li><a href="#orden-inicio"><span class="num">11</span>Orden de inicio</a></li>
+    <li><a href="#nuevo-servicio"><span class="num">12</span>Nuevo microservicio</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main>
+
+  <h1>Documentación</h1>
+  <p class="subtitle">Japdeva API Móvil &mdash; Guía de arquitectura y configuración</p>
+
+  <!-- ═══ 1. ARQUITECTURA ═══ -->
+  <h2 id="arquitectura">1. Arquitectura general</h2>
+
+  <p>La solución utiliza una arquitectura de <strong>microservicios</strong> con un API Gateway centralizado. Cada microservicio es independiente, tiene su propia base de datos PostgreSQL y se comunica con el servicio de colas vía <strong>gRPC</strong>.</p>
+
+  <div class="arch-diagram">
+
+    <!-- App Móvil -->
+    <div class="arch-row">
+      <div class="arch-node node-client">
+        <div class="arch-icon">📱</div>
+        <div class="arch-label">App Móvil</div>
+        <div class="arch-sub">Cliente</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow-v">
+      <div class="arch-arrow-line"></div>
+      <div class="arch-arrow-badge">HTTPS</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+
+    <!-- Gateway -->
+    <div class="arch-row">
+      <div class="arch-node node-gateway">
+        <div class="arch-icon">🔀</div>
+        <div class="arch-label">Gateway</div>
+        <div class="arch-port">:7069</div>
+        <div class="arch-features">
+          <span>Valida JWT cliente</span>
+          <span>Genera JWT interno</span>
+          <span>Rate limiting</span>
+          <span>Encriptación · Ocelot</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-arrow-v">
+      <div class="arch-arrow-line"></div>
+      <div class="arch-arrow-badge">JWT interno por servicio</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+
+    <!-- 4 Microservicios -->
+    <div class="arch-row arch-row-services">
+      <div class="arch-node node-service">
+        <div class="arch-icon">👤</div>
+        <div class="arch-label">Usuarios</div>
+        <div class="arch-port">:7075</div>
+      </div>
+      <div class="arch-node node-service">
+        <div class="arch-icon">⚙️</div>
+        <div class="arch-label">Parametros</div>
+        <div class="arch-port">:7183</div>
+      </div>
+      <div class="arch-node node-service">
+        <div class="arch-icon">📄</div>
+        <div class="arch-label">Reclamos</div>
+        <div class="arch-port">:7219</div>
+      </div>
+      <div class="arch-node node-service">
+        <div class="arch-icon">✉️</div>
+        <div class="arch-label">EnvioCorreos</div>
+        <div class="arch-port">:64135</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow-v">
+      <div class="arch-arrow-line"></div>
+      <div class="arch-arrow-badge arch-badge-grpc">gRPC</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+
+    <!-- Colas -->
+    <div class="arch-row">
+      <div class="arch-node node-colas">
+        <div class="arch-icon">📬</div>
+        <div class="arch-label">Colas</div>
+        <div class="arch-port">:7001</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow-v">
+      <div class="arch-arrow-line"></div>
+      <div class="arch-arrow-badge arch-badge-db">PostgreSQL</div>
+      <div class="arch-arrow-line"></div>
+    </div>
+
+    <!-- PostgreSQL -->
+    <div class="arch-row">
+      <div class="arch-node node-db">
+        <div class="arch-icon">🗄️</div>
+        <div class="arch-label">PostgreSQL</div>
+        <div class="arch-port">:5432</div>
+        <div class="arch-dbs">
+          <span class="db-chip">Colas</span>
+          <span class="db-chip">Usuarios</span>
+          <span class="db-chip">Parametros</span>
+          <span class="db-chip">Reclamos</span>
+          <span class="db-chip">EnvioCorreos</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ 2. PROYECTOS ═══ -->
+  <h2 id="proyectos">2. Proyectos de la solución</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Proyecto</th>
+          <th>Puerto HTTPS</th>
+          <th>Puerto HTTP</th>
+          <th>Base de datos</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Japdeva.APIMovil.Gateway</code></td><td>7069</td><td>5179</td><td>—</td><td><span class="badge gateway">Gateway</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.Usuarios</code></td><td>7075</td><td>5216</td><td>Usuarios</td><td><span class="badge db">API</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.Reclamos</code></td><td>7219</td><td>5215</td><td>Reclamos</td><td><span class="badge db">API</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.Parametros</code></td><td>7183</td><td>5023</td><td>Parametros</td><td><span class="badge db">API</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.Colas</code></td><td>7001</td><td>5001</td><td>Colas</td><td><span class="badge grpc">gRPC</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.EnvioCorreos</code></td><td>64135</td><td>64136</td><td>EnvioCorreos</td><td><span class="badge db">API</span></td></tr>
+        <tr><td><code>Japdeva.APIMovil.Common</code></td><td>—</td><td>—</td><td>—</td><td>Librería</td></tr>
+        <tr><td><code>Japdeva.APIMovil.Estandar</code></td><td>—</td><td>—</td><td>—</td><td>Librería</td></tr>
+        <tr><td><code>Japdeva.APIMovil.BaseDatos</code></td><td>—</td><td>—</td><td>—</td><td>Consola</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ 3. FLUJO ═══ -->
+  <h2 id="flujo">3. Flujo de una solicitud</h2>
+
+  <h3>Solicitud pública (sin sesión)</h3>
+  <pre><code>App  →  Gateway  POST /Usuarios/api/Autenticar
+          ↳ LimitarSolicitudesMiddleware   (rate limit)
+          ↳ ValidarTokenMiddleware         (ruta pública → sin validación)
+          ↳ CrearTokenMiddleware           (genera JWT interno para Usuarios)
+          ↳ EnviarTraceIdMiddleware        (inyecta X-Trace-Id)
+          ↳ Ocelot enruta a :7075
+
+Usuarios  →  valida JWT interno
+          →  autentica credenciales
+          →  responde RespuestaModel&lt;T&gt;
+
+Gateway   →  GestionarTokenRespuestaMiddleware (ajusta token en respuesta)
+          →  App recibe la respuesta</code></pre>
+
+  <h3>Solicitud autenticada (ej. crear reclamo)</h3>
+  <pre><code>App  →  Gateway  POST /Reclamos/api/Reclamo/AgregarReclamo
+          ↳ LimitarSolicitudesMiddleware
+          ↳ ValidarTokenMiddleware    (valida JWT del cliente)
+          ↳ CrearTokenMiddleware      (genera JWT para Reclamos)
+          ↳ Ocelot enruta a :7219
+
+Reclamos  →  valida JWT interno
+          →  procesa reclamo
+          →  publica mensaje gRPC a Colas (notificación por correo)
+          →  responde
+
+Colas     →  almacena mensaje pendiente
+EnvioCorreos (background) → consume gRPC → envía correo SMTP</code></pre>
+
+  <!-- ═══ 4. CONFIGURACIÓN ═══ -->
+  <h2 id="config">4. Configuración por servicio</h2>
+
+  <p>Todas las variables se definen en <code>Properties/launchSettings.json</code> de cada proyecto para desarrollo local. En producción se inyectan como variables de entorno del sistema operativo o del orquestador.</p>
+
+  <!-- Gateway -->
+  <h3 id="config-gateway"><span class="badge gateway">Gateway</span> — Japdeva.APIMovil.Gateway</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>RUTAS_CON_TOKEN</code></td><td>Servicios que reciben JWT interno (coma-separados)</td><td><code>Usuarios,Parametros,Reclamos,EnvioCorreos</code></td></tr>
+        <tr><td><code>ISSUER_{SERVICIO}</code></td><td>Issuer del JWT generado para ese servicio</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE_{SERVICIO}</code></td><td>Audience del JWT para ese servicio</td><td><code>apiUsuarios</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA_{SERVICIO}</code></td><td>Clave secreta del JWT (≥32 caracteres)</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>ROL_{SERVICIO}</code></td><td>Rol inyectado en el JWT interno</td><td><code>Usuarios</code></td></tr>
+        <tr><td><code>ISSUER</code></td><td>Issuer del JWT que el Gateway emite al cliente</td><td><code>https://localhost:7069</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td>Audience del JWT cliente</td><td><code>apiCliente</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td>Clave para firmar el JWT cliente</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>ROL_CLIENTE</code></td><td>Rol base del cliente</td><td><code>Usuario</code></td></tr>
+        <tr><td><code>CLAVE_ENCRIPTACION_RESPUESTA</code></td><td>Clave AES para encriptar respuestas</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>RUTA_AUTENTICAR</code></td><td>Segmento de ruta de autenticación (sin token)</td><td><code>Autenticar</code></td></tr>
+        <tr><td><code>RUTAS_SIN_TOKEN</code></td><td>Rutas públicas sin JWT de cliente</td><td><code>Autenticar,AgregarUsuario,...</code></td></tr>
+        <tr><td><code>RUTAS_LIMITADAS</code></td><td>Rutas con rate limiting estricto</td><td><code>Autenticar,AgregarUsuario,...</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Rutas Ocelot (<code>appsettings.Development.json</code>)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prefijo entrante</th><th>Destino (desarrollo)</th></tr></thead>
+      <tbody>
+        <tr><td><code>/Usuarios/{everything}</code></td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>/Parametros/{everything}</code></td><td><code>https://localhost:7183</code></td></tr>
+        <tr><td><code>/Reclamos/{everything}</code></td><td><code>https://localhost:7219</code></td></tr>
+        <tr><td><code>/EnvioCorreos/{everything}</code></td><td><code>https://localhost:64135</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn"><strong>Producción</strong> Cambiar los destinos en <code>appsettings.Production.json</code> a las URLs reales (IP, nombre de host o nombre DNS de cada microservicio).</div>
+
+  <!-- Usuarios -->
+  <h3 id="config-usuarios"><span class="badge db">API</span> — Japdeva.APIMovil.Usuarios</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>ISSUER</code></td><td>Debe coincidir con <code>ISSUER_USUARIOS</code> del Gateway</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td>Debe coincidir con <code>AUDIENCE_USUARIOS</code> del Gateway</td><td><code>apiUsuarios</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td>Debe coincidir con <code>CLAVE_SECRETA_USUARIOS</code> del Gateway</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>CONNECTION_STRING</code></td><td>Cadena de conexión PostgreSQL</td><td><code>Host=localhost;Port=5432;Database=Usuarios;Username=postgres;Password=1234</code></td></tr>
+        <tr><td><code>COLAS_URL</code></td><td>URL del servicio Colas (gRPC)</td><td><code>https://localhost:7001</code></td></tr>
+        <tr><td><code>GRPC_CLAVE_INTERNA</code></td><td>Clave de autenticación interna gRPC</td><td><code>claveInterna123</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Reclamos -->
+  <h3 id="config-reclamos"><span class="badge db">API</span> — Japdeva.APIMovil.Reclamos</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>ISSUER</code></td><td>Debe coincidir con <code>ISSUER_RECLAMOS</code> del Gateway</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td>Debe coincidir con <code>AUDIENCE_RECLAMOS</code> del Gateway</td><td><code>apiReclamos</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td>Debe coincidir con <code>CLAVE_SECRETA_RECLAMOS</code> del Gateway</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>CONNECTION_STRING</code></td><td>Cadena de conexión PostgreSQL</td><td><code>Host=localhost;Port=5432;Database=Reclamos;Username=postgres;Password=1234</code></td></tr>
+        <tr><td><code>COLAS_URL</code></td><td>URL del servicio Colas (gRPC)</td><td><code>https://localhost:7001</code></td></tr>
+        <tr><td><code>GRPC_CLAVE_INTERNA</code></td><td>Clave de autenticación interna gRPC</td><td><code>claveInterna123</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Parametros -->
+  <h3 id="config-parametros"><span class="badge db">API</span> — Japdeva.APIMovil.Parametros</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>ISSUER</code></td><td>Debe coincidir con <code>ISSUER_PARAMETROS</code> del Gateway</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td>Debe coincidir con <code>AUDIENCE_PARAMETROS</code> del Gateway</td><td><code>apiParametros</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td>Debe coincidir con <code>CLAVE_SECRETA_PARAMETROS</code> del Gateway</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>CONNECTION_STRING</code></td><td>Cadena de conexión PostgreSQL</td><td><code>Host=localhost;Port=5432;Database=Parametros;Username=postgres;Password=1234</code></td></tr>
+        <tr><td><code>COLAS_URL</code></td><td>URL del servicio Colas (gRPC)</td><td><code>https://localhost:7001</code></td></tr>
+        <tr><td><code>GRPC_CLAVE_INTERNA</code></td><td>Clave de autenticación interna gRPC</td><td><code>claveInterna123</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Colas -->
+  <h3 id="config-colas"><span class="badge grpc">gRPC</span> — Japdeva.APIMovil.Colas</h3>
+
+  <div class="callout info"><strong>Nota</strong> Colas no recibe llamadas desde el Gateway. Solo es consumido internamente por los demás microservicios a través de gRPC.</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>ASPNETCORE_URLS</code></td><td>URLs explícitas (requerido para gRPC HTTP/2)</td><td><code>https://localhost:7001;http://localhost:5001</code></td></tr>
+        <tr><td><code>ISSUER</code></td><td>Issuer JWT</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td>Audience JWT</td><td><code>apiUsuarios</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td>Clave secreta JWT</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>CONNECTION_STRING</code></td><td>Cadena de conexión PostgreSQL</td><td><code>Host=localhost;Port=5432;Database=Colas;Username=postgres;Password=1234</code></td></tr>
+        <tr><td><code>NUMERO_MAXIMO_REINTENTOS</code></td><td>Reintentos máximos por mensaje fallido</td><td><code>3</code></td></tr>
+        <tr><td><code>MANEJO_ERRORES</code></td><td>Activa middleware global de errores (<code>1</code> = activo)</td><td><code>0</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EnvioCorreos -->
+  <h3 id="config-correos"><span class="badge db">API</span> — Japdeva.APIMovil.EnvioCorreos</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>¿Requerida?</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>ISSUER</code></td><td><span class="req">Sí</span></td><td>Debe coincidir con <code>ISSUER_ENVIOCORREOS</code> del Gateway</td><td><code>https://localhost:7075</code></td></tr>
+        <tr><td><code>AUDIENCE</code></td><td><span class="req">Sí</span></td><td>Debe coincidir con <code>AUDIENCE_ENVIOCORREOS</code> del Gateway</td><td><code>apiEnvioCorreos</code></td></tr>
+        <tr><td><code>CLAVE_SECRETA</code></td><td><span class="req">Sí</span></td><td>Debe coincidir con <code>CLAVE_SECRETA_ENVIOCORREOS</code> del Gateway</td><td><code>EstaEsUnaClave...45!!</code></td></tr>
+        <tr><td><code>CONNECTION_STRING</code></td><td><span class="req">Sí</span></td><td>Cadena de conexión PostgreSQL</td><td><code>Host=localhost;Port=5432;Database=EnvioCorreos;...</code></td></tr>
+        <tr><td><code>COLAS_URL</code></td><td><span class="req">Sí</span></td><td>URL del servicio Colas (gRPC)</td><td><code>https://localhost:7001</code></td></tr>
+        <tr><td><code>GRPC_CLAVE_INTERNA</code></td><td><span class="req">Sí</span></td><td>Clave de autenticación interna gRPC</td><td><code>claveInterna123</code></td></tr>
+        <tr><td><code>SMTP_HOST</code></td><td><span class="req">Sí</span></td><td>Servidor SMTP</td><td><code>smtp.gmail.com</code></td></tr>
+        <tr><td><code>SMTP_PUERTO</code></td><td><span class="opt">No</span></td><td>Puerto SMTP (default 587)</td><td><code>465</code></td></tr>
+        <tr><td><code>SMTP_USUARIO</code></td><td><span class="req">Sí</span></td><td>Usuario de la cuenta SMTP</td><td><code>japdeva@gmail.com</code></td></tr>
+        <tr><td><code>SMTP_CONTRASENA</code></td><td><span class="req">Sí</span></td><td>App Password de la cuenta SMTP</td><td><code>xxxx xxxx xxxx xxxx</code></td></tr>
+        <tr><td><code>SMTP_REMITENTE</code></td><td><span class="req">Sí</span></td><td>Dirección de correo remitente</td><td><code>japdeva@gmail.com</code></td></tr>
+        <tr><td><code>SMTP_REMITENTE_NOMBRE</code></td><td><span class="opt">No</span></td><td>Nombre del remitente (default "Japdeva")</td><td><code>Japdeva</code></td></tr>
+        <tr><td><code>SMTP_USAR_SSL</code></td><td><span class="opt">No</span></td><td><code>true</code> para puerto 465, <code>false</code> para 587</td><td><code>true</code></td></tr>
+        <tr><td><code>SMTP_TIMEOUT_SEGUNDOS</code></td><td><span class="opt">No</span></td><td>Tiempo de espera conexión SMTP (default 30)</td><td><code>30</code></td></tr>
+        <tr><td><code>CORREO_MAX_INTENTOS</code></td><td><span class="opt">No</span></td><td>Reintentos por correo fallido (default 3)</td><td><code>3</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ 5. BASE DE DATOS ═══ -->
+  <h2 id="base-datos">5. Base de datos</h2>
+
+  <div class="callout info"><strong>PostgreSQL requerido</strong> Versión 14 o superior, corriendo en el puerto 5432. Las bases de datos <strong>no se crean manualmente</strong> — se generan con la herramienta <em>BaseDatos</em> (sección 10).</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Base de datos</th><th>Microservicio propietario</th></tr></thead>
+      <tbody>
+        <tr><td><code>Colas</code></td><td>Japdeva.APIMovil.Colas</td></tr>
+        <tr><td><code>Usuarios</code></td><td>Japdeva.APIMovil.Usuarios</td></tr>
+        <tr><td><code>Parametros</code></td><td>Japdeva.APIMovil.Parametros</td></tr>
+        <tr><td><code>Reclamos</code></td><td>Japdeva.APIMovil.Reclamos</td></tr>
+        <tr><td><code>EnvioCorreos</code></td><td>Japdeva.APIMovil.EnvioCorreos</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Patrón de cadena de conexión</h3>
+  <pre><code>Host=&lt;servidor&gt;;Port=&lt;puerto&gt;;Database=&lt;nombre_bd&gt;;Username=&lt;usuario&gt;;Password=&lt;contraseña&gt;</code></pre>
+
+  <!-- ═══ 6. gRPC ═══ -->
+  <h2 id="grpc">6. Comunicación entre servicios (gRPC)</h2>
+
+  <p>El servicio <strong>Colas</strong> expone una API gRPC que el resto de microservicios consume para publicar mensajes asíncronos (notificaciones de correo, etc.).</p>
+
+  <h3>Métodos disponibles</h3>
+  <pre><code>service ColaService {
+  rpc PublicarMensaje(PublicarMensajeRequest)             returns (MensajeResponse);
+  rpc ObtenerMensajesPendientes(ObtenerMensajesRequest)   returns (stream MensajeResponse);
+  rpc ObtenerMensajePorIdRpc(ObtenerPorIdRpcRequest)      returns (MensajeResponse);
+  rpc ActualizarMensajeEnProceso(ActualizarMensajeRequest) returns (ActualizarMensajeResponse);
+  rpc ActualizarMensajeExitoso(ActualizarMensajeRequest)   returns (ActualizarMensajeResponse);
+  rpc ActualizarMensajeFallido(ActualizarMensajeRequest)   returns (ActualizarMensajeResponse);
+}</code></pre>
+
+  <h3>Ciclo de vida de un mensaje</h3>
+  <div class="lifecycle">
+    <div class="step">Publicar</div><div class="arr">→</div>
+    <div class="step">Pendiente</div><div class="arr">→</div>
+    <div class="step warn">En Proceso</div><div class="arr">→</div>
+    <div class="step ok">Exitoso</div>
+  </div>
+  <div class="lifecycle">
+    <div class="step gray" style="opacity:0;pointer-events:none">Publicar</div><div class="arr" style="opacity:0">→</div>
+    <div class="step gray" style="opacity:0;pointer-events:none">Pendiente</div><div class="arr">→</div>
+    <div class="step warn">En Proceso</div><div class="arr">→</div>
+    <div class="step err">Fallido <small>(reintento hasta N veces)</small></div>
+  </div>
+  <div class="lifecycle">
+    <div class="step gray" style="opacity:0;pointer-events:none">Publicar</div><div class="arr" style="opacity:0">→</div>
+    <div class="step gray" style="opacity:0;pointer-events:none">Pendiente</div><div class="arr">→</div>
+    <div class="step warn">En Proceso</div><div class="arr">→</div>
+    <div class="step gray">Expirado <small>(limpieza automática)</small></div>
+  </div>
+
+  <h3>Registro del cliente en cada microservicio</h3>
+  <pre><code>// En Program.cs de cada microservicio consumidor:
+builder.AgregarClienteColasGrpc();
+// Requiere: COLAS_URL y GRPC_CLAVE_INTERNA en las variables de entorno</code></pre>
+
+  <h3>Seguridad gRPC</h3>
+  <p>El servicio Colas valida cada llamada mediante <code>TokenGrpcInterceptor</code>, que verifica la cabecera <code>GRPC_CLAVE_INTERNA</code>. Esta clave debe ser <strong>idéntica</strong> en el servidor Colas y en todos los microservicios clientes.</p>
+
+  <!-- ═══ 7. SEGURIDAD ═══ -->
+  <h2 id="seguridad">7. Seguridad y autenticación</h2>
+
+  <h3>Cadena de tokens</h3>
+  <pre><code>Cliente  →  Gateway         (valida JWT del cliente)
+         ↓
+Gateway  →  Microservicio   (genera JWT interno por servicio)
+         ↓
+Microservicio               (valida JWT interno: ISSUER / AUDIENCE / CLAVE_SECRETA propios)</code></pre>
+
+  <div class="callout danger">
+    <strong>Regla crítica de coincidencia</strong>
+    <code>ISSUER_USUARIOS</code> del Gateway debe ser <strong>idéntico</strong> al <code>ISSUER</code> de Usuarios.<br/>
+    Lo mismo aplica para AUDIENCE y CLAVE_SECRETA de cada servicio.<br/>
+    Si no coinciden, el microservicio rechazará todas las solicitudes con 401.
+  </div>
+
+  <h3>Rutas públicas (sin JWT de cliente)</h3>
+  <pre><code>Autenticar
+AgregarUsuario
+OlvidarContrasena
+ObtenerTodosLosTiposCedula</code></pre>
+
+  <h3>Orden obligatorio de middleware en microservicios</h3>
+  <pre><code>app.UseAuthentication();   // SIEMPRE antes de UseAuthorization
+app.UseAuthorization();
+app.MapControllers();</code></pre>
+
+  <h3>Todos los controladores requieren autorización</h3>
+  <pre><code>[Authorize]
+[ApiController]
+[Route("Servicio/api/[controller]")]
+public class MiController : ControllerBase { ... }</code></pre>
+
+  <!-- ═══ 8. CORREO ═══ -->
+  <h2 id="correo">8. Correo electrónico</h2>
+
+  <p>El servicio <code>EnvioCorreos</code> maneja todo el envío de correos de forma <strong>asíncrona</strong> mediante colas:</p>
+
+  <ol class="steps">
+    <li>Otro microservicio publica un mensaje a <strong>Colas</strong> vía gRPC.</li>
+    <li><code>EnviarCorreoPorColaBackGroundService</code> (en EnvioCorreos) consume los mensajes pendientes.</li>
+    <li><code>SmtpService</code> envía el correo usando <strong>MailKit</strong>.</li>
+    <li>El resultado (éxito/fallo) se guarda en la tabla <code>CorreosHistorico</code>.</li>
+    <li>Si falla, reintenta hasta <code>CORREO_MAX_INTENTOS</code> veces.</li>
+  </ol>
+
+  <h3>Configurar Gmail (App Password)</h3>
+  <ol class="steps">
+    <li>Habilitar <strong>Verificación en dos pasos</strong> en la cuenta de Google.</li>
+    <li>Ir a: Cuenta de Google → Seguridad → Contraseñas de aplicación.</li>
+    <li>Crear una nueva contraseña para la aplicación (genera 16 caracteres).</li>
+    <li>Usar esa contraseña en <code>SMTP_CONTRASENA</code> — <strong>no</strong> la contraseña normal.</li>
+    <li>Configurar <code>SMTP_HOST=smtp.gmail.com</code>, <code>SMTP_PUERTO=465</code>, <code>SMTP_USAR_SSL=true</code>.</li>
+  </ol>
+
+  <!-- ═══ 9. CACHÉ ═══ -->
+  <h2 id="cache">9. Caché y servicios en segundo plano</h2>
+
+  <p>Los microservicios usan un patrón de caché en memoria que se actualiza periódicamente sin afectar las solicitudes activas:</p>
+
+  <pre><code>┌─────────────────────────────────────┐
+│  BackGroundService                  │  ← se ejecuta cada ~5 min
+│  └─ LlenarCacheXxxAsync(traceId)    │  ← carga datos de BD en memoria
+└─────────────┬───────────────────────┘
+              │
+     ┌────────▼────────┐
+     │  CacheService   │  ← Singleton, almacena List&lt;T&gt; con lock en escritura
+     └────────┬────────┘
+              │
+     ┌────────▼────────┐
+     │ BusinessService │  ← lee caché (sin IR a BD en cada request)
+     └─────────────────┘</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Servicio</th><th>Cachés disponibles</th></tr></thead>
+      <tbody>
+        <tr><td>Parametros</td><td><code>MenuCache</code> · <code>MenuPerfilCache</code> · <code>ParametroCache</code> · <code>PlantillaCorreoCache</code> · <code>OpcionPantallaCache</code> · <code>OpcionPantallaPerfilCache</code></td></tr>
+        <tr><td>Usuarios</td><td><code>RolCache</code> · <code>TipoCedulaCache</code> · <code>DepartamentoCache</code></td></tr>
+        <tr><td>Reclamos</td><td><code>EstadoCache</code> · <code>NivelProcesoCache</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ 10. BASEDATOS ═══ -->
+  <h2 id="basedatos-tool">10. Herramienta BaseDatos</h2>
+
+  <p>Aplicación de consola que inicializa y migra todas las bases de datos del sistema.</p>
+
+  <h3>Configuración (<code>appsettings.json</code>)</h3>
+  <pre><code>{
+  "ConfiguracionConexion": {
+    "Servidor": "localhost",
+    "Puerto": 5432,
+    "UsuarioPostgres": "postgres",
+    "RecrearTodasBasesDatos": false,
+    "OrdenCarpetas": ["BaseDatos", "Tablas", "Indices", "Datos"],
+    "BaseDatos": [
+      { "Nombre": "Colas",        "RecrearBaseDatos": false, "Ejecutar": true },
+      { "Nombre": "Usuarios",     "RecrearBaseDatos": false, "Ejecutar": true },
+      { "Nombre": "Parametros",   "RecrearBaseDatos": false, "Ejecutar": true },
+      { "Nombre": "Reclamos",     "RecrearBaseDatos": false, "Ejecutar": true },
+      { "Nombre": "EnvioCorreos", "RecrearBaseDatos": false, "Ejecutar": true }
+    ]
+  }
+}</code></pre>
+
+  <h3>Ejecución</h3>
+  <pre><code># Desde la raíz de la solución:
+dotnet run --project Japdeva.APIMovil.BaseDatos
+
+# La herramienta solicita interactivamente:
+#   → Contraseña de PostgreSQL
+#   → Confirmación antes de recrear bases de datos</code></pre>
+
+  <h3>Estructura de scripts SQL</h3>
+  <pre><code>BasesDatos/
+└── {NombreBD}/
+    ├── BaseDatos/   → CREATE DATABASE
+    ├── Tablas/      → CREATE TABLE IF NOT EXISTS
+    ├── Indices/     → CREATE INDEX IF NOT EXISTS
+    └── Datos/       → INSERT ... WHERE NOT EXISTS  (idempotentes)</code></pre>
+
+  <div class="callout success">
+    <strong>Scripts idempotentes</strong>
+    Todos los scripts de <code>Datos/</code> usan el patrón <code>WHERE NOT EXISTS (SELECT 1 FROM "Tabla" WHERE "id" = X)</code> para que ejecutarlos múltiples veces no duplique registros.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Situación</th><th>Acción</th></tr></thead>
+      <tbody>
+        <tr><td>Primera instalación</td><td>Ejecutar con todas las BDs en <code>"Ejecutar": true</code></td></tr>
+        <tr><td>Agregar tabla nueva</td><td>Agregar script en <code>Tablas/</code>, ejecutar solo esa BD</td></tr>
+        <tr><td>Agregar datos semilla</td><td>Agregar script en <code>Datos/</code>, ejecutar</td></tr>
+        <tr><td>Recrear BD completa</td><td>Poner <code>"RecrearBaseDatos": true</code> para esa BD (elimina y recrea todo)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ 11. ORDEN INICIO ═══ -->
+  <h2 id="orden-inicio">11. Orden de inicio en desarrollo</h2>
+
+  <ol class="steps">
+    <li><strong>PostgreSQL</strong> — debe estar corriendo y aceptar conexiones en el puerto 5432.</li>
+    <li><strong>BaseDatos</strong> — solo la primera vez o cuando hay cambios de esquema.</li>
+    <li><strong>Colas</strong> — debe estar disponible <em>antes</em> que los demás (los otros servicios conectan a gRPC al iniciar).</li>
+    <li><strong>Usuarios · Reclamos · Parametros · EnvioCorreos</strong> — en cualquier orden entre sí.</li>
+    <li><strong>Gateway</strong> — último; enruta a todos los anteriores.</li>
+  </ol>
+
+  <div class="callout info"><strong>Visual Studio / VS Code</strong> Usar el perfil <strong>"Launch All Microservices"</strong> en <code>.vscode/launch.json</code> para iniciar múltiples servicios con un solo comando.</div>
+
+  <!-- ═══ 12. NUEVO SERVICIO ═══ -->
+  <h2 id="nuevo-servicio">12. Agregar un nuevo microservicio</h2>
+
+  <ol class="steps">
+    <li>
+      <div>
+        <strong>Crear el proyecto</strong>
+        <pre><code>dotnet new webapi -n Japdeva.APIMovil.NuevoServicio
+dotnet sln add Japdeva.APIMovil.NuevoServicio</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Referenciar Common en el .csproj</strong>
+        <pre><code>&lt;ProjectReference Include="..\Japdeva.APIMovil.Common\Japdeva.APIMovil.Common.csproj" /&gt;</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Configurar Program.cs</strong>
+        <pre><code>WebApplication.CreateBuilder(args)
+    .AgregarPostgreSQL&lt;NuevoServicioDbContext&gt;()
+    .AgregarServiciosMicroservicios()
+    .AgregarClienteColasGrpc()          // si necesita enviar mensajes a Colas
+    .AgregarServiciosNuevoServicio()    // extensión propia del servicio
+    .Build()
+    .ConfigurarServiciosMicroservicios();</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Variables de entorno en launchSettings.json</strong>
+        <pre><code>{
+  "ISSUER":            "https://localhost:7075",
+  "AUDIENCE":          "apiNuevoServicio",
+  "CLAVE_SECRETA":     "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+  "CONNECTION_STRING": "Host=localhost;Port=5432;Database=NuevoServicio;Username=postgres;Password=1234",
+  "COLAS_URL":         "https://localhost:7001",
+  "GRPC_CLAVE_INTERNA":"claveInterna123"
+}</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Registrar en el Gateway — launchSettings.json</strong>
+        <pre><code>"RUTAS_CON_TOKEN":             "Usuarios,Parametros,Reclamos,EnvioCorreos,NuevoServicio",
+"ISSUER_NUEVOSERVICIO":        "https://localhost:7075",
+"AUDIENCE_NUEVOSERVICIO":      "apiNuevoServicio",
+"CLAVE_SECRETA_NUEVOSERVICIO": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+"ROL_NUEVOSERVICIO":           "NuevoServicio"</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Registrar en el Gateway — appsettings.Development.json (Ocelot)</strong>
+        <pre><code>{
+  "UpstreamPathTemplate": "/NuevoServicio/{everything}",
+  "DownstreamPathTemplate": "/{everything}",
+  "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7XXX }]
+}</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Crear la base de datos</strong><br/>
+        Agregar carpeta <code>BasesDatos/NuevoServicio/</code> con los scripts SQL.
+        Registrar en <code>appsettings.json</code> de BaseDatos y ejecutar la herramienta.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Decorar todos los controladores con [Authorize]</strong>
+        <pre><code>[Authorize]
+[ApiController]
+[Route("NuevoServicio/api/[controller]")]
+public class MiController : ControllerBase { ... }</code></pre>
+      </div>
+    </li>
+  </ol>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links     = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
