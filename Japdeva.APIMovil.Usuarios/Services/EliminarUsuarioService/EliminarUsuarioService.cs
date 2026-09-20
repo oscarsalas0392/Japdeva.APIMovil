@@ -47,7 +47,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioService
                 if (usuarioExistente is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_ENCONTRADO);
                 usuarioExistente.Activo = ACTIVO;
                 await actualizarRepository.ActualizarAsync<UsuarioEntity>(traceId, usuarioExistente);
-                return new OkObjectResult(null);
+                return new OkResult();
             }
             catch (Exception ex)
             {

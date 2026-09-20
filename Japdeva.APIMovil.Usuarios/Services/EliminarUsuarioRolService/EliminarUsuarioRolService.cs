@@ -47,7 +47,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarUsuarioRolService
                 if (asignacion is null) throw new KeyNotFoundException(MENSAJE_NO_ENCONTRADO);
                 asignacion.Activo = ACTIVO;
                 await actualizarRepository.ActualizarAsync<UsuarioRolEntity>(traceId, asignacion);
-                return new OkObjectResult(null);
+                return new OkResult();
             }
             catch (Exception ex)
             {
