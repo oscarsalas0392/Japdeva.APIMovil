@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -f \"Japdeva.APIMovil.Reclamos/Models/MensajeRespuestaModel.cs\" ])",
+      "Bash(grep -v \"obj\\\\|Colas\\\\\\\\\\\\|Common\\\\\\\\\\\\|Parametros\\\\\\\\\")",
+      "Bash(dotnet add:*)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\oscar\\\\source\\\\repos\\\\Japdeva.APIMovil\\\\Japdeva.APIMovil.Reclamos\\\\BackgroundServices\\\\UsuarioInternoNombreBackGroundService.cs\" -Force)",
+      "Read(//c/Users/oscar/.claude/projects/c--Users-oscar-source-repos-Japdeva-APIMovil/memory/**)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\oscar\\\\source\\\\repos\\\\Japdeva.APIMovil\\\\Japdeva.APIMovil.Reclamos\" -Recurse -Filter \"*ObtenerReclamoPorId*\" -ErrorAction SilentlyContinue)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\oscar\\.claude\\projects\\c--Users-oscar-source-repos-Japdeva-APIMovil\\memory"
+    ]
+  }
+}

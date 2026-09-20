@@ -58,5 +58,42 @@ namespace Japdeva.APIMovil.Common.Repositories.ConsultarRepository
                 this._logger.Fin(traceId, nombreMetodo);    
             }
         }
+
+        /// <summary>
+        /// Cuenta el número de entidades que coinciden con el filtro especificado.
+        /// </summary>
+        /// <param name="traceId">El identificador de seguimiento.</param>
+        /// <param name="filtro">El filtro para contar las entidades.</param>
+        /// <returns>Número de entidades que coinciden con el filtro.</returns>
+        public async Task<int> ContarAsync<T>(string traceId, System.Linq.Expressions.Expression<Func<T, bool>> filtro) where T : class
+        {
+            string nombreMetodo = this.ObtenerNombreMetodo();
+            try
+            {                     
+                if (string.IsNullOrWhiteSpace(traceId))
+                {
+                    throw new ArgumentException(MENSAJE_ERROR_TRACE_ID_VACIO, nameof(traceId));
+                }
+
+                this._logger.Inicio(traceId, nombreMetodo); 
+
+                if (filtro is null)
+                {
+                    throw new ArgumentNullException(MENSAJE_ERROR_FILTRO_NULO);
+                }                 
+                
+                // Ejecutar COUNT optimizado directamente en la base de datos
+                return await this._context.Set<T>().CountAsync(filtro);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error(traceId, nombreMetodo, ex);
+                throw;
+            }
+            finally
+            {
+                this._logger.Fin(traceId, nombreMetodo);    
+            }
+        }
     }
 }

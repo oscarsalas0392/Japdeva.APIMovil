@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,9 +13,9 @@ namespace Japdeva.APIMovil.Estandar
     public class DetectarMetodosNoUtilizados : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "JAPDEVA004";
-        private const string Titulo = "Método no utilizado";
-        private const string FormatoMensaje = "El método '{0}' está declarado pero nunca se utiliza";
-        private const string Descripcion = "Los métodos que se declaran pero nunca se utilizan deben ser removidos para mantener el código limpio y reducir la complejidad.";
+        private const string Titulo = "Mï¿½todo no utilizado";
+        private const string FormatoMensaje = "El mï¿½todo '{0}' estï¿½ declarado pero nunca se utiliza";
+        private const string Descripcion = "Los mï¿½todos que se declaran pero nunca se utilizan deben ser removidos para mantener el cï¿½digo limpio y reducir la complejidad.";
         private const string Categoria = "Style";
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
@@ -30,13 +31,231 @@ namespace Japdeva.APIMovil.Estandar
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Regla);
 
+        // Cache para conteo de referencias por archivo
+        private static readonly ConcurrentDictionary<string, Dictionary<string, int>> _cacheConteoReferencias = 
+            new ConcurrentDictionary<string, Dictionary<string, int>>();
+
         public override void Initialize(AnalysisContext contexto)
         {
             contexto.EnableConcurrentExecution();
             contexto.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            contexto.RegisterSyntaxNodeAction(AnalizarClase, SyntaxKind.ClassDeclaration);
-            contexto.RegisterSyntaxNodeAction(AnalizarStruct, SyntaxKind.StructDeclaration);
-            contexto.RegisterSyntaxNodeAction(AnalizarRecord, SyntaxKind.RecordDeclaration);
+            
+            // OPTIMIZACIÃ“N: AnÃ¡lisis a nivel de documento completo
+            contexto.RegisterSyntaxTreeAction(AnalizarArbolSintactico);
+        }
+
+        private static void AnalizarArbolSintactico(SyntaxTreeAnalysisContext contexto)
+        {
+            var raiz = contexto.Tree.GetRoot();
+            var cacheKey = contexto.Tree.FilePath + "_" + raiz.GetHashCode();
+            
+            // OPTIMIZACIÃ“N: Cache de conteo de referencias
+            if (!_cacheConteoReferencias.TryGetValue(cacheKey, out var conteoReferencias))
+            {
+                conteoReferencias = new Dictionary<string, int>();
+                
+                // Contar todas las referencias de identificadores (mÃ©todos)
+                var identificadores = raiz.DescendantNodes()
+                    .OfType<IdentifierNameSyntax>()
+                    .Select(id => id.Identifier.ValueText)
+                    .Where(name => !string.IsNullOrEmpty(name));
+                
+                // TambiÃ©n contar invocaciones de mÃ©todos
+                var invocaciones = raiz.DescendantNodes()
+                    .OfType<InvocationExpressionSyntax>()
+                    .Select(inv => ExtraerNombreMetodo(inv))
+                    .Where(name => !string.IsNullOrEmpty(name));
+                
+                // TambiÃ©n contar accesos a miembros
+                var accesosMiembros = raiz.DescendantNodes()
+                    .OfType<MemberAccessExpressionSyntax>()
+                    .Select(ma => ma.Name.Identifier.ValueText)
+                    .Where(name => !string.IsNullOrEmpty(name));
+                
+                // Combinar todas las referencias
+                var todasLasReferencias = identificadores.Concat(invocaciones).Concat(accesosMiembros);
+                
+                foreach (var referencia in todasLasReferencias)
+                {
+                    if (conteoReferencias.ContainsKey(referencia))
+                        conteoReferencias[referencia]++;
+                    else
+                        conteoReferencias[referencia] = 1;
+                }
+                
+                _cacheConteoReferencias.TryAdd(cacheKey, conteoReferencias);
+            }
+
+            // Analizar tipos para mÃ©todos no utilizados
+            var tipos = raiz.DescendantNodes().Where(n => 
+                n.IsKind(SyntaxKind.ClassDeclaration) || 
+                n.IsKind(SyntaxKind.StructDeclaration) || 
+                n.IsKind(SyntaxKind.RecordDeclaration));
+
+            foreach (var tipo in tipos)
+            {
+                AnalizarTipoOptimizado(contexto, tipo, conteoReferencias);
+            }
+        }
+
+        private static string ExtraerNombreMetodo(InvocationExpressionSyntax invocacion)
+        {
+            if (invocacion.Expression is IdentifierNameSyntax identificador)
+            {
+                return identificador.Identifier.ValueText;
+            }
+            else if (invocacion.Expression is MemberAccessExpressionSyntax accesoMiembro)
+            {
+                return accesoMiembro.Name.Identifier.ValueText;
+            }
+            return string.Empty;
+        }
+
+        private static void AnalizarTipoOptimizado(SyntaxTreeAnalysisContext contexto, SyntaxNode tipo, Dictionary<string, int> conteoReferencias)
+        {
+            var miembros = GetMiembros(tipo);
+            if (miembros == null) return;
+
+            // Verificar si el tipo implementa una interfaz
+            var tieneInterfaz = TipoImplementaInterfaz(tipo);
+
+            // OPTIMIZACIÃ“N: Procesar solo mÃ©todos
+            var metodos = miembros.Value.OfType<MethodDeclarationSyntax>()
+                .Where(m => !EsMetodoEspecialRapido(m));
+
+            foreach (var metodo in metodos)
+            {
+                var nombreMetodo = metodo.Identifier.ValueText;
+                
+                // Obtener el conteo de referencias para este mÃ©todo
+                var numeroReferencias = conteoReferencias.ContainsKey(nombreMetodo) 
+                    ? conteoReferencias[nombreMetodo] 
+                    : 0;
+
+                // Aplicar lÃ³gica basada en si tiene interfaz o no
+                bool esNoUtilizado = false;
+                
+                if (tieneInterfaz)
+                {
+                    // Si tiene interfaz, las referencias deben ser mayor a 1
+                    // (1 serÃ­a solo la declaraciÃ³n)
+                    esNoUtilizado = numeroReferencias <= 1;
+                }
+                else
+                {
+                    // Si no tiene interfaz, las referencias deben ser mayor a 0
+                    esNoUtilizado = numeroReferencias <= 0;
+                }
+
+                if (esNoUtilizado)
+                {
+                    var diagnostico = Diagnostic.Create(
+                        Regla,
+                        metodo.Identifier.GetLocation(),
+                        nombreMetodo);
+
+                    contexto.ReportDiagnostic(diagnostico);
+                }
+            }
+        }
+
+        private static SyntaxList<MemberDeclarationSyntax>? GetMiembros(SyntaxNode tipo)
+        {
+            // Usar if-else en lugar de switch expression para C# 7.3
+            if (tipo is ClassDeclarationSyntax clase)
+                return clase.Members;
+            if (tipo is StructDeclarationSyntax estructura)
+                return estructura.Members;
+            if (tipo is RecordDeclarationSyntax record)
+                return record.Members;
+            return null;
+        }
+
+        private static bool TipoImplementaInterfaz(SyntaxNode tipo)
+        {
+            // Verificar si el tipo implementa alguna interfaz
+            BaseListSyntax baseList = null;
+            
+            if (tipo is ClassDeclarationSyntax clase)
+                baseList = clase.BaseList;
+            else if (tipo is StructDeclarationSyntax estructura)
+                baseList = estructura.BaseList;
+            else if (tipo is RecordDeclarationSyntax record)
+                baseList = record.BaseList;
+            
+            if (baseList == null || !baseList.Types.Any())
+                return false;
+
+            // Verificar si alguno de los tipos base es una interfaz
+            // Las interfaces generalmente empiezan con 'I' seguido de mayÃºscula
+            // o contienen la palabra "Interface" en el nombre
+            foreach (var baseType in baseList.Types)
+            {
+                var nombreTipo = baseType.Type.ToString();
+                
+                // Verificar patrones comunes de interfaces
+                if (nombreTipo.StartsWith("I") && nombreTipo.Length > 1 && 
+                    char.IsUpper(nombreTipo[1]))
+                {
+                    return true;
+                }
+                
+                if (nombreTipo.Contains("Interface"))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        private static bool EsMetodoEspecialRapido(MethodDeclarationSyntax metodo)
+        {
+            // OPTIMIZACIÃ“N: Verificaciones rÃ¡pidas sin anÃ¡lisis semÃ¡ntico
+            var modifiers = metodo.Modifiers;
+            
+            // MÃ©todos pÃºblicos, protegidos o internos
+            if (modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword) || 
+                                  m.IsKind(SyntaxKind.ProtectedKeyword) ||
+                                  m.IsKind(SyntaxKind.InternalKeyword)))
+            {
+                return true;
+            }
+
+            // MÃ©todos virtuales, abstractos u override
+            if (modifiers.Any(m =>
+                m.IsKind(SyntaxKind.VirtualKeyword) ||
+                m.IsKind(SyntaxKind.AbstractKeyword) ||
+                m.IsKind(SyntaxKind.OverrideKeyword)))
+            {
+                return true;
+            }
+
+            // MÃ©todos con atributos (probablemente especiales)
+            if (metodo.AttributeLists.Count > 0)
+            {
+                return true;
+            }
+
+            // MÃ©todos que empiezan con _ (convenciÃ³n para mÃ©todos privados especiales)
+            if (metodo.Identifier.ValueText.StartsWith("_"))
+            {
+                return true;
+            }
+
+            // Main method
+            if (metodo.Identifier.ValueText.Equals("Main", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // MÃ©todos de prueba
+            if (metodo.Identifier.ValueText.IndexOf("Test", System.StringComparison.OrdinalIgnoreCase) != -1)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static void AnalizarClase(SyntaxNodeAnalysisContext contexto)
@@ -63,13 +282,13 @@ namespace Japdeva.APIMovil.Estandar
             var metodosDeclarados = new Dictionary<string, MethodDeclarationSyntax>();
             var metodosUtilizados = new HashSet<string>();
 
-            // Recopilar todos los métodos declarados en este tipo
+            // Recopilar todos los mï¿½todos declarados en este tipo
             RecopilarMetodosDeclarados(tipoDeclaracion, metodosDeclarados);
 
-            // Recopilar todas las utilizaciones de métodos en este tipo y sus miembros
+            // Recopilar todas las utilizaciones de mï¿½todos en este tipo y sus miembros
             RecopilarUtilizacionesMetodos(tipoDeclaracion, metodosUtilizados, modeloSemantico);
 
-            // Reportar métodos no utilizados
+            // Reportar mï¿½todos no utilizados
             foreach (var metodo in metodosDeclarados)
             {
                 var nombreMetodo = metodo.Key;
@@ -136,7 +355,7 @@ namespace Japdeva.APIMovil.Estandar
                     metodosUtilizados.Add(simbolo.Name);
                 }
 
-                // También analizar la expresión de invocación
+                // Tambiï¿½n analizar la expresiï¿½n de invocaciï¿½n
                 if (invocacion.Expression is MemberAccessExpressionSyntax accesoMiembro)
                 {
                     metodosUtilizados.Add(accesoMiembro.Name.Identifier.ValueText);
@@ -189,33 +408,33 @@ namespace Japdeva.APIMovil.Estandar
             }
             catch
             {
-                // En caso de error, asumir que se está utilizando
+                // En caso de error, asumir que se estï¿½ utilizando
                 metodosUtilizados.Add(identificador.Identifier.ValueText);
             }
         }
 
         private static bool EsMetodoEspecial(MethodDeclarationSyntax metodo, SemanticModel modeloSemantico)
         {
-            // Excluir métodos públicos (pueden ser utilizados externamente)
+            // Excluir mï¿½todos pï¿½blicos (pueden ser utilizados externamente)
             if (metodo.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword)))
                 return true;
 
-            // Excluir métodos protegidos
+            // Excluir mï¿½todos protegidos
             if (metodo.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword)))
                 return true;
 
-            // Excluir métodos virtuales, abstractos u override
+            // Excluir mï¿½todos virtuales, abstractos u override
             if (metodo.Modifiers.Any(m =>
                 m.IsKind(SyntaxKind.VirtualKeyword) ||
                 m.IsKind(SyntaxKind.AbstractKeyword) ||
                 m.IsKind(SyntaxKind.OverrideKeyword)))
                 return true;
 
-            // Excluir métodos con atributos especiales
+            // Excluir mï¿½todos con atributos especiales
             if (TieneAtributosEspeciales(metodo))
                 return true;
 
-            // Verificar implementación de interfaces de manera compatible con .NET 9
+            // Verificar implementaciï¿½n de interfaces de manera compatible con .NET 9
             try
             {
                 var simboloMetodo = modeloSemantico.GetDeclaredSymbol(metodo) as IMethodSymbol;
@@ -228,7 +447,7 @@ namespace Japdeva.APIMovil.Estandar
                 return true;
             }
 
-            // Excluir métodos de prueba (que contengan "Test" en el nombre)
+            // Excluir mï¿½todos de prueba (que contengan "Test" en el nombre)
             if (metodo.Identifier.ValueText.IndexOf("Test", System.StringComparison.OrdinalIgnoreCase) != -1)
                 return true;
 
@@ -256,7 +475,7 @@ namespace Japdeva.APIMovil.Estandar
 
                     foreach (var metodoInterfaz in miembrosInterfaz)
                     {
-                        // Verificar si el método actual implementa el método de la interfaz
+                        // Verificar si el mï¿½todo actual implementa el mï¿½todo de la interfaz
                         var implementacion = tipoContenedor.FindImplementationForInterfaceMember(metodoInterfaz);
                         if (implementacion != null && SymbolEqualityComparer.Default.Equals(implementacion, simboloMetodo))
                         {
@@ -302,7 +521,7 @@ namespace Japdeva.APIMovil.Estandar
         }
     }
 
-    // Extensión para verificar si un método implementa una interfaz
+    // Extensiï¿½n para verificar si un mï¿½todo implementa una interfaz
     internal static class MethodSymbolExtensions
     {
         public static bool ImplementsInterface(IMethodSymbol simboloMetodo)
@@ -322,7 +541,7 @@ namespace Japdeva.APIMovil.Estandar
 
                     foreach (var metodoInterfaz in miembrosInterfaz)
                     {
-                        // Verificar si el método actual implementa el método de la interfaz
+                        // Verificar si el mï¿½todo actual implementa el mï¿½todo de la interfaz
                         var implementacion = tipoContenedor.FindImplementationForInterfaceMember(metodoInterfaz);
                         if (implementacion != null && SymbolEqualityComparer.Default.Equals(implementacion, simboloMetodo))
                         {

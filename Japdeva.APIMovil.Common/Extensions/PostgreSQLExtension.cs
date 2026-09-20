@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -14,9 +14,7 @@ namespace Japdeva.APIMovil.Common.Extensions
     {
         private const string POSTGRESQL_CONNECTION_STRING_ENV = "CONNECTION_STRING";
         private const string MENSAJE_ERROR_CONNECTION_STRING = "CONNECTION_STRING no configurado";
-        private const int MAX_RETRY_COUNT = 3;
-        private const int MAX_RETRY_DELAY_SECONDS = 30;
-        private const int COMMAND_TIMEOUT_SECONDS = 30;
+        private const int COMMAND_TIMEOUT_SECONDS = 60;
 
         /// <summary>
         /// Agrega la configuración de PostgreSQL al contenedor de servicios.
@@ -37,21 +35,19 @@ namespace Japdeva.APIMovil.Common.Extensions
 
                 builder.Services.AddDbContext<TDbContext>(options =>
                 {
+
                     options.UseNpgsql(connectionString, npgsqlOptions =>
                     {
-                        npgsqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: MAX_RETRY_COUNT,
-                            maxRetryDelay: TimeSpan.FromSeconds(MAX_RETRY_DELAY_SECONDS),
-                            errorCodesToAdd: null);
                         npgsqlOptions.CommandTimeout(COMMAND_TIMEOUT_SECONDS);
                     });
-                    
+
+                    options.EnableServiceProviderCaching();  
                     if (builder.Environment.IsDevelopment())
                     {
                         options.EnableSensitiveDataLogging();
                         options.EnableDetailedErrors();
                     }
-                });
+                }); 
 
                 // Registrar también como DbContext base para los repositorios
                 builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<TDbContext>());

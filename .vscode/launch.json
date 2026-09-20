@@ -26,6 +26,31 @@
             }
         },
         {
+            "name": "Launch Colas API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Japdeva.APIMovil.Colas/bin/Debug/net9.0/Japdeva.APIMovil.Colas.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Japdeva.APIMovil.Colas",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_URLS": "https://localhost:7077;http://localhost:5077", 
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ISSUER": "https://localhost:7075",
+                "AUDIENCE": "apiUsuarios",
+                "CLAVE_SECRETA": "EstaEsUnaClaveSuperSeguraDe32CharsPrueba12345!!",
+                "CONNECTION_STRING": "Host=localhost;Port=5432;Database=Cola;Username=postgres;Password=1234"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
             "name": "Launch Gateway API",
             "type": "coreclr",
             "request": "launch",
@@ -50,6 +75,7 @@
             "name": "Launch All Microservices",
             "configurations": [
                 "Launch Usuarios API",
+                "Launch Colas API",
                 "Launch Gateway API"
             ],
             "stopAll": true

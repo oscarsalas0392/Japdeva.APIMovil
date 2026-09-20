@@ -22,6 +22,8 @@ public class DesencriptarService : IDesencriptarService
     private const string MENSAJE_ERROR_AUTENTICACION = "Error de autenticación en desencriptación";
     private const string MENSAJE_ERROR_DESENCRIPTACION = "Error en proceso de desencriptación";
     private const int INDICE_INICIAL = 0;
+    private const int INDICE_DATOS_ENCRIPTADOS = 1;
+    private const int INDICE_TAG = 2;
     private const int COMPONENTES_ESPERADOS = 3;
 
     /// <summary>
@@ -59,10 +61,10 @@ public class DesencriptarService : IDesencriptarService
             string[] componentes = textoEncriptado.Split(SEPARADOR_DATOS);
             if (componentes.Length != COMPONENTES_ESPERADOS)
                 throw new ArgumentException(MENSAJE_ERROR_FORMATO_INVALIDO);
-
             byte[] nonce = Convert.FromBase64String(componentes[INDICE_INICIAL]);
-            byte[] datosEncriptados = Convert.FromBase64String(componentes[INDICE_INICIAL + 1]);
-            byte[] tag = Convert.FromBase64String(componentes[INDICE_INICIAL + 2]);
+            byte[] datosEncriptados = Convert.FromBase64String(componentes[INDICE_DATOS_ENCRIPTADOS]);
+            byte[] tag = Convert.FromBase64String(componentes[INDICE_TAG]);
+            
 
             byte[] claveBytes = this._encriptarHelper.DerivarClave(traceId, clave);
             
@@ -71,8 +73,7 @@ public class DesencriptarService : IDesencriptarService
             
             try
             {
-                aesGcm.Decrypt(nonce, datosEncriptados, tag, datosDesencriptados);
-                
+                aesGcm.Decrypt(nonce, datosEncriptados, tag, datosDesencriptados);           
                 return Encoding.UTF8.GetString(datosDesencriptados);
             }
             catch (AuthenticationTagMismatchException)

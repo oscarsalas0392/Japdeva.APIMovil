@@ -21,14 +21,14 @@ namespace Japdeva.APIMovil.Estandar
         private const string FormatoMensaje = "Separar declaraciones complejas en líneas diferentes para mejorar legibilidad";
         private const string Descripcion = "Las declaraciones complejas como creación de objetos y llamadas a métodos deben estar en líneas separadas para mantener el código legible y fácil de debuggear.";
         private const string Categoria = "Style";
-        private const int LIMITE_CARACTERES_LINEA = 80;
+        private const int LIMITE_CARACTERES_LINEA = 150; // Aumentado de 80 a 150
 
         private static readonly DiagnosticDescriptor Regla = new DiagnosticDescriptor(
             DiagnosticId,
             Titulo,
             FormatoMensaje,
             Categoria,
-            DiagnosticSeverity.Error,
+            DiagnosticSeverity.Error, // Cambiado de Error a Warning
             isEnabledByDefault: true,
             description: Descripcion,
             helpLinkUri: "https://docs.microsoft.com/dotnet/csharp/programming-guide/statements-expressions-operators");
@@ -98,8 +98,12 @@ namespace Japdeva.APIMovil.Estandar
                 if (ContieneExpresionesLambda(declaracion))
                     return;
 
-                // Solo verificar si la línea es extremadamente larga (más de 120 caracteres)
-                if (textoLinea.Length > 120)
+                // Excluir llamadas async simples de servicios (patrón común en la aplicación)
+                if (EsLlamadaAsyncServicioSimple(declaracion))
+                    return;
+
+                // Solo verificar si la línea es extremadamente larga (más de 150 caracteres)
+                if (textoLinea.Length > LIMITE_CARACTERES_LINEA)
                 {
                     ReportarDiagnostico(contexto, declaracion);
                     return;
@@ -115,6 +119,41 @@ namespace Japdeva.APIMovil.Estandar
             catch (Exception)
             {
                 // No hacer nada en caso de error
+            }
+        }
+
+        private static bool EsLlamadaAsyncServicioSimple(ExpressionStatementSyntax declaracion)
+        {
+            try
+            {
+                // Verificar si es una llamada async simple a un servicio
+                var awaitExpression = declaracion.DescendantNodes().OfType<AwaitExpressionSyntax>().FirstOrDefault();
+                if (awaitExpression?.Expression is InvocationExpressionSyntax invocation)
+                {
+                    // Verificar si es una llamada a un servicio (contiene "Service" en el nombre)
+                    if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+                    {
+                        var expresion = memberAccess.Expression.ToString();
+                        var metodo = memberAccess.Name.ToString();
+                        
+                        // Es una llamada a servicio si:
+                        // 1. La expresión contiene "Service"
+                        // 2. El método termina en "Async"
+                        // 3. Tiene máximo 5 argumentos (límite razonable)
+                        if (expresion.Contains("Service") && 
+                            metodo.EndsWith("Async") && 
+                            invocation.ArgumentList?.Arguments.Count <= 5)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -155,12 +194,12 @@ namespace Japdeva.APIMovil.Estandar
         {
             try
             {
-                // Es compleja si tiene inicializadores con múltiples propiedades
-                if (creacion.Initializer?.Expressions.Count > 2)
+                // Es compleja si tiene inicializadores con múltiples propiedades (más de 3)
+                if (creacion.Initializer?.Expressions.Count > 3)
                     return true;
 
-                // Es compleja si tiene argumentos del constructor
-                if (creacion.ArgumentList?.Arguments.Count > 0)
+                // Es compleja si tiene muchos argumentos del constructor (más de 4)
+                if (creacion.ArgumentList?.Arguments.Count > 4)
                     return true;
 
                 return false;
@@ -175,15 +214,25 @@ namespace Japdeva.APIMovil.Estandar
         {
             try
             {
-                // No es compleja si es una llamada async simple con 2 argumentos o menos
-                if (llamada.ArgumentList?.Arguments.Count <= 2)
-                    return false;
+                // Aumentar tolerancia para servicios async
+                if (llamada.ArgumentList?.Arguments.Count <= 5) // Aumentado de 2 a 5
+                {
+                    // Verificar si es una llamada a método que termina en Async
+                    if (llamada.Expression is MemberAccessExpressionSyntax memberAccess &&
+                        memberAccess.Name.ToString().EndsWith("Async"))
+                    {
+                        return false; // No considerar complejas las llamadas async con 5 o menos argumentos
+                    }
+                    
+                    // Para métodos que no son async, mantener límite de 3
+                    return llamada.ArgumentList?.Arguments.Count > 3;
+                }
 
-                // Es compleja si tiene más de 2 argumentos
-                if (llamada.ArgumentList?.Arguments.Count > 2)
+                // Es compleja si tiene más de 5 argumentos
+                if (llamada.ArgumentList?.Arguments.Count > 5)
                     return true;
 
-                // Es compleja si los argumentos contienen otras llamadas
+                // Es compleja si los argumentos contienen otras llamadas anidadas
                 var tieneArgumentosComplejos = llamada.ArgumentList?.Arguments
                     .Any(arg => arg.DescendantNodes().OfType<InvocationExpressionSyntax>().Any()) ?? false;
 

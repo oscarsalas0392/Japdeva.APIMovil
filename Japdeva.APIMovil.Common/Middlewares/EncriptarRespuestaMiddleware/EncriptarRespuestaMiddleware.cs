@@ -16,6 +16,7 @@ namespace Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware
         private const string CLAVE_ENCRIPTACION_VARIABLE = "CLAVE_ENCRIPTACION_RESPUESTA";
         private const string ERROR_CLAVE_NO_CONFIGURADA = "La clave de encriptación no está configurada.";
         private const long POSICION_INICIAL_STREAM = 0;
+        private const long POSICION_SEEK_STREAM = 0;
         /// <summary>
         /// Inicializa una nueva instancia de la clase <see cref="EncriptarRespuestaMiddleware"/>.
         /// </summary>
@@ -44,7 +45,7 @@ namespace Japdeva.APIMovil.Common.Middlewares.EncriptarRespuestaMiddleware
                 context.Response.Body = streamTemporal;
                 await this._next(context);
                 streamTemporal.Seek(POSICION_INICIAL_STREAM, SeekOrigin.Begin);
-                streamTemporal.Seek(0, SeekOrigin.Begin);
+                streamTemporal.Seek(POSICION_SEEK_STREAM, SeekOrigin.Begin);
                 string contenidoRespuesta = await new StreamReader(streamTemporal).ReadToEndAsync();
                 if (!string.IsNullOrWhiteSpace(contenidoRespuesta))
                 {

@@ -16,6 +16,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private readonly string _issuer = Environment.GetEnvironmentVariable(ISSUER_ENV_VARIABLE) ?? string.Empty;
         private readonly string _audience = Environment.GetEnvironmentVariable(AUDIENCE_ENV_VARIABLE) ?? string.Empty;
         private readonly string _claveSecreta = Environment.GetEnvironmentVariable(CLAVE_SECRETA_ENV_VARIABLE) ?? string.Empty;
+        private readonly string _rutasSinToken = Environment.GetEnvironmentVariable(RUTAS_SIN_TOKEN_ENV) ?? string.Empty;
         private readonly RequestDelegate _next;
         private readonly ILogger<ValidarTokenMiddleware> _logger;
         private readonly IValidarTokenService _validarTokenService;
@@ -27,6 +28,11 @@ namespace Japdeva.APIMovil.Common.Middlewares
         private const string ISSUER_ENV_VARIABLE = "ISSUER";
         private const string AUDIENCE_ENV_VARIABLE = "AUDIENCE";
         private const string CLAVE_SECRETA_ENV_VARIABLE = "CLAVE_SECRETA";
+        private const string RUTAS_SIN_TOKEN_ENV = "RUTAS_SIN_TOKEN";
+        private const char SEPARADOR_RUTAS = ',';
+        private const char SEPARADOR_RUTA = '/';
+        private const string ITEM_CLIENTE_TOKEN = "ClienteToken";
+        private const bool ERROR = false;
 
         /// <summary>
         /// Inicializa una nueva instancia del middleware de validación de token.
@@ -52,8 +58,17 @@ namespace Japdeva.APIMovil.Common.Middlewares
             {
                 RespuestaModel respuestaModel = new RespuestaModel();
                 respuestaModel.Identificador = context.TraceIdentifier;
-                respuestaModel.Exito = false;
+                respuestaModel.Exito = ERROR;
                 this._logger.Inicio(TRACE_ID, nombreMetodo);
+
+                string[] segmentos = context.Request.Path.ToString().Split(SEPARADOR_RUTA);
+                bool esRutaExcluida = !string.IsNullOrEmpty(this._rutasSinToken)
+                    && this._rutasSinToken.Split(SEPARADOR_RUTAS).Any(r => segmentos.Any(s => s.Equals(r.Trim(), StringComparison.OrdinalIgnoreCase)));
+                if (esRutaExcluida)
+                {
+                    await this._next(context);
+                    return;
+                }
 
                 string? token = context.Request.Headers[HEADER_AUTHORIZATION].FirstOrDefault()?.Split(" ").Last();
                 if (string.IsNullOrEmpty(token))
@@ -82,6 +97,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                     return;
                 }
 
+                context.Items[ITEM_CLIENTE_TOKEN] = token;
                 await this._next(context);
             }
             catch (Exception ex)

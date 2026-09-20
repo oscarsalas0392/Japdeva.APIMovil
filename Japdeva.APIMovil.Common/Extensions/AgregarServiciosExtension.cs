@@ -5,10 +5,11 @@ using Japdeva.APIMovil.Common.Repositories.ActualizarRepository;
 using Japdeva.APIMovil.Common.Repositories.AgregarRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarListaRepository;
 using Japdeva.APIMovil.Common.Repositories.ConsultarRepository;
+using Japdeva.APIMovil.Common.Repositories.EliminarRepository;
+using Japdeva.APIMovil.Common.Repositories.GeneralRepository;
 using Japdeva.APIMovil.Common.Services;
 using Japdeva.APIMovil.Common.Services.DesencriptarService;
 using Japdeva.APIMovil.Common.Services.EncriptarHelperService;
-using Japdeva.APIMovil.Common.Services.EncriptarService;
 
 namespace Japdeva.APIMovil.Common.Extensions
 {
@@ -17,6 +18,7 @@ namespace Japdeva.APIMovil.Common.Extensions
     /// </summary>
     public static class AgregarServiciosExtension
     {
+        private const string POLITICA_CORS_GATEWAY = "PoliticaCorsGateway";
 
         /// <summary>
         /// Agrega los servicios necesarios para los microservicios a la aplicación.
@@ -35,7 +37,10 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddScoped<IAgregarRepository, AgregarRepository>();
                 builder.Services.AddScoped<IConsultarListaRepository, ConsultarListaRepository>();
                 builder.Services.AddScoped<IConsultarRepository, ConsultarRepository>();
+                builder.Services.AddScoped<IEliminarRepository, EliminarRepository>();
+                builder.Services.AddScoped<IGeneralRepository, GeneralRepository>();
                 builder.AddJwtAuthentication();
+
                 return builder;
             }
             catch (Exception)
@@ -59,10 +64,20 @@ namespace Japdeva.APIMovil.Common.Extensions
                 builder.Services.AddOpenApi();
                 builder.Services.AddSingleton<IGenerarTokenService, GenerarTokenService>();
                 builder.Services.AddSingleton<IValidarTokenService, ValidarTokenService>();
-                builder.Services.AddSingleton<IEncriptarService, EncriptarService>();
+
                 builder.Services.AddSingleton<IDesencriptarService, DesencriptarService>();
                 builder.Services.AddSingleton<IEncriptarHelperService, EncriptarHelperService>();
+                builder.Services.AddHttpClient();
                 builder.Services.AddOcelot(builder.Configuration);
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy(POLITICA_CORS_GATEWAY, policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+                });
                 return builder;
             }
             catch (Exception)

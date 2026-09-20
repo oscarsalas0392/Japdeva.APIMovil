@@ -43,8 +43,7 @@ public class EncriptarHelperService : IEncriptarHelperService
             // Salt fijo para consistencia (en producción debería ser dinámico y almacenado)
             byte[] salt = Encoding.UTF8.GetBytes(SALT_ENCRIPTACION);
             
-            using Rfc2898DeriveBytes pbkdf2 = new(clave, salt, ITERACIONES_PBKDF2, HashAlgorithmName.SHA256);
-            return pbkdf2.GetBytes(TAMANO_CLAVE_AES);
+            return Rfc2898DeriveBytes.Pbkdf2(clave, salt, ITERACIONES_PBKDF2, HashAlgorithmName.SHA256, TAMANO_CLAVE_AES);
         }
         catch (Exception ex)
         {

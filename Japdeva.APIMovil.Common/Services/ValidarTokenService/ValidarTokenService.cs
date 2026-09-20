@@ -15,6 +15,11 @@ namespace Japdeva.APIMovil.Common.Services
     {
         private readonly ILogger<ValidarTokenService> _logger;
 
+        private const bool VALIDAR_ISSUER = true;
+        private const bool VALIDAR_AUDIENCE = true;
+        private const bool VALIDAR_LIFETIME = true;
+        private const bool VALIDAR_ISSUER_SIGNING_KEY = true;
+
         /// <summary>
         /// Inicializa una nueva instancia del servicio de validación de tokens.
         /// </summary>
@@ -51,10 +56,10 @@ namespace Japdeva.APIMovil.Common.Services
                 JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
                 SymmetricSecurityKey claveSeguridad = ObtenerClaveSeguridad(traceId, claveSecreta);
                 TokenValidationParameters parametrosValidacion = new TokenValidationParameters();
-                parametrosValidacion.ValidateIssuer = true;
-                parametrosValidacion.ValidateAudience = true;
-                parametrosValidacion.ValidateLifetime = true;
-                parametrosValidacion.ValidateIssuerSigningKey = true;
+                parametrosValidacion.ValidateIssuer = VALIDAR_ISSUER;
+                parametrosValidacion.ValidateAudience = VALIDAR_AUDIENCE;
+                parametrosValidacion.ValidateLifetime = VALIDAR_LIFETIME;
+                parametrosValidacion.ValidateIssuerSigningKey = VALIDAR_ISSUER_SIGNING_KEY;
                 parametrosValidacion.ValidIssuer = issuer;
                 parametrosValidacion.ValidAudience = audience;
                 parametrosValidacion.IssuerSigningKey = claveSeguridad;

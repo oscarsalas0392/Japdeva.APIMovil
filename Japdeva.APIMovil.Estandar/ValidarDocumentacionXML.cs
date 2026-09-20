@@ -69,7 +69,7 @@ namespace Japdeva.APIMovil.Estandar
             TituloPropiedad,
             FormatoMensajePropiedad,
             Categoria,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: Descripcion,
             helpLinkUri: "https://docs.microsoft.com/dotnet/csharp/codedoc",
