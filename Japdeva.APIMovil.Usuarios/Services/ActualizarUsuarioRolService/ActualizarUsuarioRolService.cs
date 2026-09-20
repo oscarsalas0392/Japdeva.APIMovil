@@ -57,13 +57,11 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioRolService
                 var consultarRepository = scope.ServiceProvider.GetRequiredService<IConsultarRepository>();
                 var actualizarRepository = scope.ServiceProvider.GetRequiredService<IActualizarRepository>();
 
-                Task<UsuarioEntity?> tareaUsuario = consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario => usuario.Id == solicitud.IdUsuario && usuario.Activo);
-                Task<UsuarioRolEntity?> tareaUsuarioRol = consultarRepository.ConsultarAsync<UsuarioRolEntity>(traceId, usuarioRol => usuarioRol.Id == solicitud.Id);
+                UsuarioEntity? usuario = await consultarRepository.ConsultarAsync<UsuarioEntity>(traceId, usuario => usuario.Id == solicitud.IdUsuario && usuario.Activo);
+                UsuarioRolEntity? usuarioRol = await consultarRepository.ConsultarAsync<UsuarioRolEntity>(traceId, usuarioRol => usuarioRol.Id == solicitud.Id);
 
-                await Task.WhenAll(tareaUsuario, tareaUsuarioRol);
-
-                if (tareaUsuario.Result is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_EXISTE);
-                if (tareaUsuarioRol.Result is null) throw new KeyNotFoundException(MENSAJE_NO_ENCONTRADO);
+                if (usuario is null) throw new KeyNotFoundException(MENSAJE_USUARIO_NO_EXISTE);
+                if (usuarioRol is null) throw new KeyNotFoundException(MENSAJE_NO_ENCONTRADO);
 
                 if (solicitud.IdUsuarioAdministrador.HasValue)
                 {
@@ -71,7 +69,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.ActualizarUsuarioRolService
                     if (usuarioAdmin is null) throw new KeyNotFoundException(MENSAJE_USUARIO_ADMINISTRADOR_NO_EXISTE);
                 }
 
-                var usuarioRol = tareaUsuarioRol.Result;
                 usuarioRol.IdRol = solicitud.IdRol;
                 usuarioRol.IdUsuario = solicitud.IdUsuario;
                 usuarioRol.IdUsuarioAdministrador = solicitud.IdUsuarioAdministrador;

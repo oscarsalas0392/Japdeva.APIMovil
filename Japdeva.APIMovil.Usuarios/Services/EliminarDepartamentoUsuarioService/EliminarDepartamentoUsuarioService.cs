@@ -48,7 +48,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.EliminarDepartamentoUsuarioService
                 if (asignacion is null) throw new KeyNotFoundException(MENSAJE_NO_ENCONTRADO);
                 asignacion.Activo = ACTIVO;
                 await actualizarRepository.ActualizarAsync<DepartamentoUsuarioEntity>(traceId, asignacion);
-                return new OkObjectResult(null);
+                return new OkResult();
             }
             catch (Exception ex)
             {

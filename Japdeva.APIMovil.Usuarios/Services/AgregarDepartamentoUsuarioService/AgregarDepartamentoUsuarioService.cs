@@ -15,7 +15,6 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarDepartamentoUsuarioService
     {
         private readonly ILogger<AgregarDepartamentoUsuarioService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private const string MENSAJE_ASIGNACION_EXISTE = "El usuario ya está asignado a ese departamento.";
         private const string MENSAJE_USUARIO_NO_EXISTE = "El usuario no existe.";
         private const string MENSAJE_DEPARTAMENTO_NO_EXISTE = "El departamento no existe.";
         private const bool EXITO = true;
@@ -57,9 +56,7 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarDepartamentoUsuarioService
 
                 var asignacionExistente = await consultarRepository.ConsultarAsync<DepartamentoUsuarioEntity>(traceId, 
                     asociacion => asociacion.IdUsuario == solicitud.IdUsuario && asociacion.IdDepartamento == solicitud.IdDepartamento && asociacion.Activo);
-
-                if (asignacionExistente is not null) throw new ArgumentException(MENSAJE_ASIGNACION_EXISTE);
-
+                
                 var nuevaAsignacion = new DepartamentoUsuarioEntity();
                 nuevaAsignacion.IdUsuario = solicitud.IdUsuario;
                 nuevaAsignacion.IdDepartamento = solicitud.IdDepartamento;
@@ -67,7 +64,8 @@ namespace Japdeva.APIMovil.Usuarios.Services.AgregarDepartamentoUsuarioService
                 nuevaAsignacion.FechaRegistro = DateTime.UtcNow;
                 nuevaAsignacion.Activo = EXITO;
 
-                await agregarRepository.AgregarAsync<DepartamentoUsuarioEntity>(traceId, nuevaAsignacion);
+
+                if (asignacionExistente is null) await agregarRepository.AgregarAsync<DepartamentoUsuarioEntity>(traceId, nuevaAsignacion);
 
                 var respuesta = new DepartamentoUsuarioRespuestaModel();
                 respuesta.Id = nuevaAsignacion.Id;

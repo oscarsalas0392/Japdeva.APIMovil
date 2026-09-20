@@ -69,7 +69,7 @@ namespace Japdeva.APIMovil.Common.Middlewares
                 string contenido = await new StreamReader(streamTemporal).ReadToEndAsync();
                 context.Response.Body = streamOriginal;
                 string nuevoToken = this.ObtenerNuevoToken(traceId, esRutaAutenticar, tokenEntrada, context.Response.StatusCode);
-                if (!string.IsNullOrEmpty(nuevoToken))
+                if (!string.IsNullOrEmpty(nuevoToken) && !string.IsNullOrWhiteSpace(contenido))
                 {
                     var nodo = JsonNode.Parse(contenido);
                     if (nodo is JsonObject objeto)
